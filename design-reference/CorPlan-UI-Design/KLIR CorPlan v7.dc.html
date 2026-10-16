@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:#06080C;}
+body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#F5F7FA;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Outfit','Plus Jakarta Sans',sans-serif;margin:0;}
+a{color:#4E9BFF;text-decoration:none;}
+a:hover{color:#8FBBFF;}
+p{text-wrap:pretty;margin:0;}
+::selection{background:rgba(0,88,190,0.55);color:#fff;}
+button{font-family:inherit;}
+input,textarea,select{font-family:inherit;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:rgba(78,155,255,0.55) !important;}
+[data-hero3d-wrap]:not([data-visible]) [style*="animation:"]{animation-play-state:paused !important;}
+@keyframes klirDrift{0%{transform:translate3d(0,0,0) scale(1);opacity:0.85;}50%{transform:translate3d(0,-14px,0) scale(1.04);opacity:1;}100%{transform:translate3d(0,0,0) scale(1);opacity:0.85;}}
+@keyframes klirDriftGold{0%{transform:translate3d(0,0,0) scale(1);}50%{transform:translate3d(-16px,8px,0) scale(1.05);}100%{transform:translate3d(0,0,0) scale(1);}}
+@keyframes hudPulse{0%,100%{opacity:0.4;}50%{opacity:0.9;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin360{to{transform:rotate(360deg);}}
+@keyframes docBob{0%,100%{transform:rotateX(55deg) rotateZ(-38deg) translateY(0);}50%{transform:rotateX(55deg) rotateZ(-38deg) translateY(-10px);}}
+@keyframes cardSway1{0%,100%{transform:rotate(-24deg) translateY(8px);}50%{transform:rotate(-21deg) translateY(0px);}}
+@keyframes cardSway2{0%,100%{transform:rotate(-12deg) translateY(4px);}50%{transform:rotate(-10deg) translateY(-3px);}}
+@keyframes cardSway3{0%,100%{transform:rotate(0deg) translateY(0px);}50%{transform:rotate(1.5deg) translateY(-8px);}}
+@keyframes cardSway4{0%,100%{transform:rotate(12deg) translateY(4px);}50%{transform:rotate(10deg) translateY(-3px);}}
+@keyframes cardSway5{0%,100%{transform:rotate(24deg) translateY(8px);}50%{transform:rotate(21deg) translateY(0px);}}
+@keyframes barPulse{0%,100%{transform:scaleY(1);}50%{transform:scaleY(0.93);}}
+@keyframes coinBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-9px);}}
+@keyframes coinShine{0%,100%{opacity:0.25;transform:translateX(-30%);}50%{opacity:0.6;transform:translateX(30%);}}
+@keyframes gemSway{0%,100%{transform:rotate3d(0.3,1,0,-10deg);}50%{transform:rotate3d(0.3,1,0,10deg);}}
+@keyframes heroSheen{0%{transform:translateX(0) skewX(-18deg);opacity:0;}12%{opacity:0.9;}45%{opacity:0;}100%{transform:translateX(480%) skewX(-18deg);opacity:0;}}
+@keyframes nexusSpin{to{transform:rotate(360deg);}}
+@media (max-width:980px){
+[data-split]{grid-template-columns:1fr !important;gap:30px !important;}
+[data-hero3d-wrap]{order:-1;height:240px !important;}
+[data-cols-2]{grid-template-columns:1fr !important;}
+[data-cols-3]{grid-template-columns:1fr !important;}
+[data-swot-grid]{grid-template-columns:1fr 1fr !important;}
+[data-slide-grid]{grid-template-columns:1fr 1fr !important;}
+[data-hero-title]{font-size:32px !important;}
+[data-nav-tabs]{display:none !important;}
+[data-nav-tabs-m]{display:flex !important;}
+[data-pad]{padding-left:16px !important;padding-right:16px !important;}
+[data-biz-name]{display:none !important;}
+}
+@media (max-width:640px){
+[data-swot-grid]{grid-template-columns:1fr !important;}
+[data-slide-grid]{grid-template-columns:1fr !important;}
+}
+</style>
+</helmet>
+<div style="background:#06080C;min-height:100vh;overflow-x:hidden;position:relative;">
+
+<nav style="position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(6,8,12,0.84);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid rgba(255,255,255,0.08);">
+<div data-pad="true" style="max-width:1300px;margin:0 auto;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:14px;">
+<div style="display:flex;align-items:center;gap:11px;min-width:0;">
+<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+<path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="#0058BE"></path>
+<path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#F5F7FA" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:0.04em;">KLIR</span>
+</div>
+<span style="width:1px;height:16px;background:rgba(255,255,255,0.1);flex-shrink:0;"></span>
+<div style="display:flex;align-items:center;gap:7px;min-width:0;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.13em;color:#4E9BFF;flex-shrink:0;">CORPLAN</span>
+<span data-biz-name="true" style="font-size:12px;color:#8A93A3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ bizName }}</span>
+</div>
+</div>
+<div data-nav-tabs="true" style="display:flex;align-items:center;gap:2px;">
+<sc-for list="{{ navTabs }}" as="t" hint-placeholder-count="5">
+<button type="button" onClick="{{ t.go }}" style="{{ t.wrapStyle }}"><span style="{{ t.numStyle }}">{{ t.num }}</span>{{ t.label }}</button>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:9px;flex-shrink:0;">
+<div style="display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,0.1);border-radius:999px;padding:5px 11px 5px 9px;background:rgba(255,255,255,0.03);">
+<span style="width:6px;height:6px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 8px rgba(63,191,143,0.8);flex-shrink:0;"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.07em;color:#8A93A3;white-space:nowrap;">ANTRIAN KOSONG</span>
+</div>
+<div style="width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#0F6FE0,#003C82);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">KR</div>
+</div>
+</div>
+<div data-nav-tabs-m="true" style="display:none;gap:6px;padding:0 16px 10px;overflow-x:auto;">
+<sc-for list="{{ navTabs }}" as="t2" hint-placeholder-count="5">
+<button type="button" onClick="{{ t2.go }}" style="{{ t2.wrapStyleM }}"><span style="{{ t2.numStyle }}">{{ t2.num }}</span>{{ t2.label }}</button>
+</sc-for>
+</div>
+</nav>
+
+<!-- ============ 01 PROPOSAL ============ -->
+<div style="{{ styleProposal }}">
+<header style="position:relative;padding:112px 0 0;">
+<div aria-hidden="true" style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:1000px;height:600px;background:radial-gradient(closest-side, rgba(0,88,190,0.15), rgba(0,88,190,0.03) 60%, transparent 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 12s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div aria-hidden="true" style="position:absolute;top:-10px;left:6%;width:620px;height:400px;background:radial-gradient(closest-side, rgba(216,163,60,0.08), rgba(216,163,60,0.02) 60%, transparent 100%);filter:blur(60px);pointer-events:none;animation:klirDriftGold 14s cubic-bezier(0.45,0.05,0.35,1) infinite reverse;"></div>
+<div data-pad="true" style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 28px;">
+<div data-split="true" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+<div style="animation:fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">01 / PROPOSAL</span>
+</div>
+<h1 data-hero-title="true" style="font-size:44px;line-height:1.12;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;">Ceritakan usahamu, KLIR yang susun proposalnya</h1>
+<p style="font-size:16px;line-height:1.6;color:#8A93A3;margin:0 0 24px;max-width:460px;">Isi nama usaha dan gambaran singkatnya. AI langsung menyusun draf proposal bisnis enam bab yang rapi, siap dipakai untuk ajukan modal.</p>
+<div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:430px;">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Bab proposal</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">6</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Biaya generate</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;color:#D8A33C;">500</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Disusun oleh</div>
+<div style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-top:6px;">Gemini AI</div>
+</div>
+</div>
+</div>
+<div data-hero3d-wrap="true" data-decor="true" style="position:relative;height:360px;">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;">
+<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(78,155,255,0.16),rgba(78,155,255,0.03) 60%,transparent 75%);filter:blur(4px);"></div>
+<div data-anim="true" style="position:relative;width:280px;height:280px;animation:nexusSpin 24s linear infinite;">
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" style="position:absolute;top:0;left:0;"><circle cx="140" cy="140" r="136" stroke="rgba(78,155,255,0.16)" stroke-width="1" stroke-dasharray="1 7"></circle></svg>
+<span style="position:absolute;top:2px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#4E9BFF;box-shadow:0 0 9px rgba(78,155,255,0.9);"></span>
+<span style="position:absolute;top:50%;right:2px;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#D8A33C;box-shadow:0 0 8px rgba(216,163,60,0.85);"></span>
+<span style="position:absolute;bottom:18px;left:14%;width:4px;height:4px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 7px rgba(63,191,143,0.8);"></span>
+</div>
+</div>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;left:0;border-top:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:4px 0 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;right:0;border-top:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 4px 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.5s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;left:0;border-bottom:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:0 0 0 4px;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;right:0;border-bottom:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 0 4px 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1.5s;"></span>
+<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;perspective:1300px;">
+<div style="position:relative;width:190px;height:230px;transform-style:preserve-3d;animation:docBob 6s cubic-bezier(0.45,0.05,0.35,1) infinite;">
+<div style="position:absolute;inset:0;transform:translateZ(-25px);background:linear-gradient(135deg,#161B26,#0F131B);border:1px solid rgba(255,255,255,0.06);border-radius:8px;"></div>
+<div style="position:absolute;inset:0;transform:translateZ(-15px);background:linear-gradient(135deg,#181E2A,#10141D);border:1px solid rgba(255,255,255,0.07);border-radius:8px;"></div>
+<div style="position:absolute;inset:0;transform:translateZ(-5px);background:linear-gradient(135deg,#1A2130,#12161F);border:1px solid rgba(255,255,255,0.07);border-radius:8px;"></div>
+<div style="position:absolute;inset:0;transform:translateZ(5px);background:linear-gradient(135deg,#1C2434,#131822);border:1px solid rgba(255,255,255,0.08);border-radius:8px;"></div>
+<div style="position:absolute;inset:0;transform:translateZ(15px);background:linear-gradient(135deg,#1E2738,#141926);border:1px solid rgba(255,255,255,0.09);border-radius:8px;"></div>
+<div style="position:absolute;inset:0;transform:translateZ(25px);background:linear-gradient(150deg,#212C40,#151A27);border:1px solid rgba(78,155,255,0.35);border-radius:8px;box-shadow:0 0 26px rgba(78,155,255,0.15);padding:18px;display:flex;flex-direction:column;">
+<div style="width:55%;height:7px;background:rgba(78,155,255,0.45);border-radius:2px;"></div>
+<div style="width:82%;height:4px;background:rgba(255,255,255,0.13);border-radius:2px;margin-top:12px;"></div>
+<div style="width:70%;height:4px;background:rgba(255,255,255,0.13);border-radius:2px;margin-top:7px;"></div>
+<div style="width:76%;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:7px;"></div>
+</div>
+</div>
+</div>
+<div aria-hidden="true" style="position:absolute;top:0;left:-25%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgba(78,155,255,0.16),transparent);animation:heroSheen 5.5s cubic-bezier(0.45,0.05,0.35,1) infinite;pointer-events:none;"></div>
+<div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#5C6474;">STRUKTUR DOKUMEN</span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#D8A33C;">6 / 6 BAB</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:88px 28px 0;">
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;">
+
+<div style="position:relative;border:1px solid rgba(78,155,255,0.22);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Isi Data Usaha</h3>
+<span style="display:inline-flex;align-items:center;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;font-weight:700;letter-spacing:0.04em;color:#D8A33C;background:rgba(216,163,60,0.13);border:1px solid rgba(216,163,60,0.35);padding:4px 11px;border-radius:999px;white-space:nowrap;">500 Kredit</span>
+</div>
+<div style="margin-bottom:16px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Judul Bisnis</label>
+<input type="text" value="{{ proposalTitle }}" onChange="{{ h.setProposalTitle }}" placeholder="Contoh: Dapur Rempah Kirana" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:20px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Deskripsi &amp; Target Market</label>
+<textarea rows="4" value="{{ proposalDesc }}" onChange="{{ h.setProposalDesc }}" placeholder="Ceritakan usahamu dan siapa yang mau kamu jual dagangannya…" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;line-height:1.55;resize:vertical;"></textarea>
+</div>
+<button type="button" onClick="{{ h.generateProposal }}" style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,#0058BE);padding:13px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);">
+<sc-if value="{{ proposalBusy }}" hint-placeholder-val="{{ false }}"><span style="width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin360 0.7s linear infinite;"></span></sc-if>
+<span>{{ proposalBtnLabel }}</span>
+</button>
+</div>
+
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Status Dokumen</h3>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;color:#3FBF8F;background:rgba(63,191,143,0.14);border:1px solid rgba(63,191,143,0.35);padding:3px 10px;border-radius:999px;">SIAP</span>
+</div>
+<div style="padding:12px 14px;border:1px solid rgba(78,155,255,0.28);border-radius:12px;background:rgba(0,88,190,0.1);margin-bottom:14px;">
+<div style="font-weight:600;font-size:13.5px;">{{ proposalTitle }}</div>
+<div style="font-size:11px;color:#8A93A3;margin-top:3px;">{{ proposalMeta }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;">
+<svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2l1.8 5.2L17 9l-5.2 1.8L10 16l-1.8-5.2L3 9l5.2-1.8L10 2z" fill="#4E9BFF"></path></svg>
+<span style="font-size:12px;color:#8A93A3;">Disusun langsung oleh <strong style="color:#F5F7FA;">Google Gemini AI</strong></span>
+</div>
+<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;">
+<div style="font-size:13px;font-weight:600;margin-bottom:6px;">Bagikan ke AniVirtual &amp; KLIR Kas</div>
+<p style="font-size:12px;line-height:1.6;color:#8A93A3;margin:0 0 12px;">Kirim ringkasan usaha ini supaya asisten AniVirtual dan pembukuan KLIR Kas langsung paham usahamu, tanpa perlu jelasin ulang.</p>
+<button type="button" onClick="{{ h.shareContext }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;font-size:12.5px;font-weight:700;color:#00D2FF;background:rgba(0,88,190,0.16);border:1px solid rgba(78,155,255,0.4);padding:11px 14px;border-radius:10px;cursor:pointer;">
+<sc-if value="{{ shareBusy }}" hint-placeholder-val="{{ false }}"><span style="width:12px;height:12px;border:2px solid rgba(0,210,255,0.35);border-top-color:#00D2FF;border-radius:50%;display:inline-block;animation:spin360 0.7s linear infinite;"></span></sc-if>
+<span>{{ shareLabel }}</span>
+</button>
+</div>
+</div>
+
+</div>
+</section>
+
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:64px 28px 110px;">
+<div style="margin-bottom:20px;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:12px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">CONTOH HASIL</span>
+</div>
+<h2 style="font-size:26px;line-height:1.15;letter-spacing:-0.02em;font-weight:600;">Enam bab, bisa dibuka satu-satu</h2>
+</div>
+<div data-cols-3="true" style="display:grid;grid-template-columns:0.8fr 1.2fr;gap:16px;align-items:start;">
+<div style="display:flex;flex-direction:column;gap:7px;">
+<sc-for list="{{ babList }}" as="b" hint-placeholder-count="6">
+<div onClick="{{ b.select }}" style="{{ b.tabStyle }}">
+<div style="display:flex;align-items:center;gap:9px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:{{ b.numColor }};">{{ b.numLabel }}</span>
+<span style="font-size:13px;font-weight:600;">{{ b.title }}</span>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:22px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
+<div>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:#4E9BFF;">BAB {{ activeBabNum }}</span>
+<h3 style="font-size:18px;font-weight:600;letter-spacing:-0.015em;margin:7px 0 0;">{{ activeBabTitle }}</h3>
+<div style="font-size:11px;color:#5C6474;margin-top:5px;">{{ activeBabMeta }} &#183; <span style="color:#3FBF8F;">{{ activeBabStatus }}</span></div>
+</div>
+<button type="button" onClick="{{ h.copyBab }}" style="font-size:11.5px;font-weight:600;color:#F5F7FA;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.03);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;">{{ copyLabel }}</button>
+</div>
+<div style="padding-top:15px;">
+<sc-for list="{{ activeBabBody }}" as="para" hint-placeholder-count="2">
+<p style="font-size:14px;line-height:1.72;color:#C6CCD6;margin:0 0 13px;">{{ para }}</p>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ============ 02 PITCH DECK ============ -->
+<div style="{{ stylePitch }}">
+<header style="position:relative;padding:112px 0 0;">
+<div aria-hidden="true" style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:1000px;height:600px;background:radial-gradient(closest-side, rgba(0,88,190,0.15), rgba(0,88,190,0.03) 60%, transparent 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 12s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div data-pad="true" style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 28px;">
+<div data-split="true" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+<div style="animation:fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">02 / PITCH DECK</span>
+</div>
+<h1 data-hero-title="true" style="font-size:44px;line-height:1.12;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;">Materi buat calon investor, siap dalam sekali klik</h1>
+<p style="font-size:16px;line-height:1.6;color:#8A93A3;margin:0 0 24px;max-width:460px;">KLIR susun dua belas slide presentasi: dari masalah, solusi, sampai proyeksi keuangan usahamu.</p>
+<div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:430px;">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Jumlah slide</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">12</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Biaya generate</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;color:#D8A33C;">300</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Format</div>
+<div style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-top:6px;">Siap tampil</div>
+</div>
+</div>
+</div>
+<div data-hero3d-wrap="true" data-decor="true" style="position:relative;height:360px;">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;">
+<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(78,155,255,0.16),rgba(78,155,255,0.03) 60%,transparent 75%);filter:blur(4px);"></div>
+<div data-anim="true" style="position:relative;width:280px;height:280px;animation:nexusSpin 24s linear infinite;">
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" style="position:absolute;top:0;left:0;"><circle cx="140" cy="140" r="136" stroke="rgba(78,155,255,0.16)" stroke-width="1" stroke-dasharray="1 7"></circle></svg>
+<span style="position:absolute;top:2px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#4E9BFF;box-shadow:0 0 9px rgba(78,155,255,0.9);"></span>
+<span style="position:absolute;top:50%;right:2px;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#D8A33C;box-shadow:0 0 8px rgba(216,163,60,0.85);"></span>
+<span style="position:absolute;bottom:18px;left:14%;width:4px;height:4px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 7px rgba(63,191,143,0.8);"></span>
+</div>
+</div>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;left:0;border-top:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:4px 0 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;right:0;border-top:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 4px 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.5s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;left:0;border-bottom:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:0 0 0 4px;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;right:0;border-bottom:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 0 4px 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1.5s;"></span>
+<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+<div style="position:relative;width:260px;height:170px;">
+<div style="position:absolute;left:50%;bottom:0;width:118px;height:150px;margin-left:-59px;transform-origin:bottom center;background:linear-gradient(160deg,#141A24,#0D1119);border:1px solid rgba(255,255,255,0.08);border-radius:10px;box-shadow:0 14px 26px rgba(0,0,0,0.5);transform:rotate(-24deg) translateY(8px);"></div>
+<div style="position:absolute;left:50%;bottom:0;width:118px;height:150px;margin-left:-59px;transform-origin:bottom center;background:linear-gradient(160deg,#151C27,#0E121A);border:1px solid rgba(255,255,255,0.08);border-radius:10px;box-shadow:0 14px 26px rgba(0,0,0,0.5);animation:cardSway2 7s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div style="position:absolute;left:50%;bottom:0;width:122px;height:154px;margin-left:-61px;transform-origin:bottom center;background:linear-gradient(160deg,#1A2334,#101521);border:1px solid rgba(78,155,255,0.4);border-radius:10px;box-shadow:0 0 26px rgba(78,155,255,0.16),0 16px 30px rgba(0,0,0,0.5);animation:cardSway3 7s cubic-bezier(0.45,0.05,0.35,1) infinite;padding:16px;">
+<div style="width:50%;height:6px;background:rgba(78,155,255,0.5);border-radius:2px;"></div>
+<div style="width:75%;height:4px;background:rgba(255,255,255,0.14);border-radius:2px;margin-top:14px;"></div>
+<div style="width:60%;height:4px;background:rgba(255,255,255,0.14);border-radius:2px;margin-top:7px;"></div>
+</div>
+<div style="position:absolute;left:50%;bottom:0;width:118px;height:150px;margin-left:-59px;transform-origin:bottom center;background:linear-gradient(160deg,#151C27,#0E121A);border:1px solid rgba(255,255,255,0.08);border-radius:10px;box-shadow:0 14px 26px rgba(0,0,0,0.5);transform:rotate(12deg) translateY(4px);"></div>
+<div style="position:absolute;left:50%;bottom:0;width:118px;height:150px;margin-left:-59px;transform-origin:bottom center;background:linear-gradient(160deg,#141A24,#0D1119);border:1px solid rgba(255,255,255,0.08);border-radius:10px;box-shadow:0 14px 26px rgba(0,0,0,0.5);transform:rotate(24deg) translateY(8px);"></div>
+</div>
+</div>
+<div aria-hidden="true" style="position:absolute;top:0;left:-25%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgba(78,155,255,0.16),transparent);animation:heroSheen 5.5s cubic-bezier(0.45,0.05,0.35,1) infinite;pointer-events:none;"></div>
+<div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#5C6474;">SUSUNAN SLIDE</span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#D8A33C;">12 / 12 SIAP</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:88px 28px 110px;">
+<div data-cols-3="true" style="display:grid;grid-template-columns:0.85fr 1.15fr;gap:18px;align-items:start;">
+<div style="position:relative;border:1px solid rgba(78,155,255,0.22);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Form Pitch Deck</h3>
+<span style="display:inline-flex;align-items:center;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;font-weight:700;letter-spacing:0.04em;color:#D8A33C;background:rgba(216,163,60,0.13);border:1px solid rgba(216,163,60,0.35);padding:4px 11px;border-radius:999px;white-space:nowrap;">300 Kredit</span>
+</div>
+<div style="margin-bottom:14px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Judul Bisnis</label>
+<input type="text" value="{{ pitchTitle }}" onChange="{{ h.setPitchTitle }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:14px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Target Market</label>
+<input type="text" value="{{ pitchMarket }}" onChange="{{ h.setPitchMarket }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:20px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Target Pendanaan</label>
+<input type="text" value="{{ pitchAsk }}" onChange="{{ h.setPitchAsk }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<button type="button" onClick="{{ h.generatePitch }}" style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,#0058BE);padding:13px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);">
+<sc-if value="{{ pitchBusy }}" hint-placeholder-val="{{ false }}"><span style="width:13px;height:13px;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin360 0.7s linear infinite;"></span></sc-if>
+<span>{{ pitchBtnLabel }}</span>
+</button>
+</div>
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:20px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+<div><h3 style="font-size:15px;font-weight:600;">Pratinjau Dua Belas Slide</h3><div style="font-size:10.5px;color:#5C6474;margin-top:4px;">{{ pitchMeta }}</div></div>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#5C6474;border:1px dashed rgba(255,255,255,0.18);border-radius:5px;padding:3px 8px;white-space:nowrap;">Contoh hasil</span>
+</div>
+<div data-slide-grid="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;">
+<sc-for list="{{ slides }}" as="sl" hint-placeholder-count="12">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:11px;background:linear-gradient(180deg,#12161F,#0C0F15);padding:13px;">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;color:#4E9BFF;">SLIDE {{ sl.n }}</span>
+<span style="font-size:8.5px;color:#5C6474;text-transform:uppercase;letter-spacing:0.06em;">{{ sl.topic }}</span>
+</div>
+<div style="font-size:12px;font-weight:600;line-height:1.4;margin-bottom:8px;color:#F5F7FA;">{{ sl.headline }}</div>
+<sc-for list="{{ sl.bullets }}" as="bl" hint-placeholder-count="2">
+<div style="font-size:10.5px;line-height:1.5;color:#8A93A3;padding-left:10px;position:relative;margin-top:4px;"><span style="position:absolute;left:0;top:6px;width:3px;height:3px;border-radius:50%;background:#5C6474;"></span>{{ bl }}</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ============ 03 HPP ============ -->
+<div style="{{ styleHpp }}">
+<header style="position:relative;padding:112px 0 0;">
+<div aria-hidden="true" style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:1000px;height:600px;background:radial-gradient(closest-side, rgba(0,88,190,0.15), rgba(0,88,190,0.03) 60%, transparent 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 12s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div data-pad="true" style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 28px;">
+<div data-split="true" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+<div style="animation:fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">03 / HARGA POKOK</span>
+</div>
+<h1 data-hero-title="true" style="font-size:44px;line-height:1.12;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;">Tau persis untung tiap produk terjual</h1>
+<p style="font-size:16px;line-height:1.6;color:#8A93A3;margin:0 0 24px;max-width:460px;">Masukkan biaya produksi dan harga jualmu. KLIR hitung langsung untung per unit dan target omset bulananmu.</p>
+<div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:430px;">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Kolom diisi</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">5</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Hasil dihitung</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">4</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Prosesnya</div>
+<div style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-top:6px;color:#3FBF8F;">Instan</div>
+</div>
+</div>
+</div>
+<div data-hero3d-wrap="true" data-decor="true" style="position:relative;height:360px;">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;">
+<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(78,155,255,0.16),rgba(78,155,255,0.03) 60%,transparent 75%);filter:blur(4px);"></div>
+<div data-anim="true" style="position:relative;width:280px;height:280px;animation:nexusSpin 24s linear infinite;">
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" style="position:absolute;top:0;left:0;"><circle cx="140" cy="140" r="136" stroke="rgba(78,155,255,0.16)" stroke-width="1" stroke-dasharray="1 7"></circle></svg>
+<span style="position:absolute;top:2px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#4E9BFF;box-shadow:0 0 9px rgba(78,155,255,0.9);"></span>
+<span style="position:absolute;top:50%;right:2px;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#D8A33C;box-shadow:0 0 8px rgba(216,163,60,0.85);"></span>
+<span style="position:absolute;bottom:18px;left:14%;width:4px;height:4px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 7px rgba(63,191,143,0.8);"></span>
+</div>
+</div>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;left:0;border-top:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:4px 0 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;right:0;border-top:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 4px 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.5s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;left:0;border-bottom:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:0 0 0 4px;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;right:0;border-bottom:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 0 4px 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1.5s;"></span>
+<div style="width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;gap:14px;padding-bottom:40px;">
+<div style="width:30px;height:90px;transform-origin:bottom;background:linear-gradient(180deg,#1E2738,#141926);border:1px solid rgba(255,255,255,0.1);border-radius:5px 5px 0 0;"></div>
+<div style="width:30px;height:120px;transform-origin:bottom;background:linear-gradient(180deg,#1E2738,#141926);border:1px solid rgba(255,255,255,0.1);border-radius:5px 5px 0 0;"></div>
+<div style="width:30px;height:80px;transform-origin:bottom;background:linear-gradient(180deg,#2A2010,#1A1408);border:1px solid rgba(216,163,60,0.4);border-radius:5px 5px 0 0;animation:barPulse 4s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.6s;"></div>
+<div style="width:30px;height:170px;transform-origin:bottom;background:linear-gradient(180deg,#16233A,#0F1826);border:1px solid rgba(78,155,255,0.5);border-radius:5px 5px 0 0;box-shadow:0 0 24px rgba(78,155,255,0.2);animation:barPulse 4s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.9s;"></div>
+<div style="width:30px;height:110px;transform-origin:bottom;background:linear-gradient(180deg,#1E2738,#141926);border:1px solid rgba(255,255,255,0.1);border-radius:5px 5px 0 0;"></div>
+</div>
+<div aria-hidden="true" style="position:absolute;top:0;left:-25%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgba(78,155,255,0.16),transparent);animation:heroSheen 5.5s cubic-bezier(0.45,0.05,0.35,1) infinite;pointer-events:none;"></div>
+<div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#5C6474;">MODAL VS HARGA</span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#D8A33C;">PER UNIT</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:88px 28px 110px;">
+<div data-cols-2="true" style="display:grid;grid-template-columns:0.95fr 1.05fr;gap:18px;align-items:start;">
+<div style="position:relative;border:1px solid rgba(78,155,255,0.22);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;margin-bottom:18px;">Form Kalkulator HPP</h3>
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+<div>
+<label style="display:block;font-size:12px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Bahan Baku (Rp/Unit)</label>
+<input type="number" value="{{ hppBahan }}" onChange="{{ h.setHppBahan }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div>
+<label style="display:block;font-size:12px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Tenaga Kerja (Rp/Unit)</label>
+<input type="number" value="{{ hppTenaga }}" onChange="{{ h.setHppTenaga }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+</div>
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+<div>
+<label style="display:block;font-size:12px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Overhead (Rp/Unit)</label>
+<input type="number" value="{{ hppOverhead }}" onChange="{{ h.setHppOverhead }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div>
+<label style="display:block;font-size:12px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Harga Jual (Rp/Unit)</label>
+<input type="number" value="{{ hppHarga }}" onChange="{{ h.setHppHarga }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+</div>
+<div style="margin-bottom:20px;">
+<label style="display:block;font-size:12px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Target Volume Penjualan / Bulan</label>
+<input type="number" value="{{ hppVolume }}" onChange="{{ h.setHppVolume }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<button type="button" onClick="{{ h.calcHppNow }}" style="width:100%;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,#0058BE);padding:13px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);">Hitung HPP &amp; Margin Untung</button>
+</div>
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;"><h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Hasil Perhitungan</h3><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#5C6474;">{{ hppMeta }}</span></div>
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+<div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;background:rgba(255,255,255,0.02);padding:16px;">
+<div style="font-size:11px;color:#5C6474;">Total HPP per Unit</div>
+<div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-top:7px;">{{ hppTotalView }}</div>
+</div>
+<div style="border:1px solid rgba(63,191,143,0.28);border-radius:12px;background:rgba(63,191,143,0.08);padding:16px;">
+<div style="font-size:11px;color:#8FCDB4;">Untung Kotor per Unit</div>
+<div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-top:7px;color:#3FBF8F;">{{ hppLabaView }}</div>
+</div>
+<div style="border:1px solid rgba(78,155,255,0.28);border-radius:12px;background:rgba(0,88,190,0.1);padding:16px;">
+<div style="font-size:11px;color:#8FB8EC;">Margin</div>
+<div style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-top:7px;color:#4E9BFF;">{{ hppMarginView }}</div>
+</div>
+<div style="border:1px solid rgba(216,163,60,0.28);border-radius:12px;background:rgba(216,163,60,0.08);padding:16px;">
+<div style="font-size:11px;color:#D9C393;">Proyeksi Omset Bulanan</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:7px;color:#D8A33C;">{{ hppOmsetView }}</div>
+</div>
+</div>
+<div style="display:{{ hppWarnDisplay }};align-items:center;gap:10px;margin-top:16px;border:1px solid rgba(232,93,156,0.34);border-radius:10px;background:rgba(232,93,156,0.08);padding:12px 14px;">
+<span style="width:6px;height:6px;border-radius:50%;background:#E85D9C;flex-shrink:0;"></span>
+<span style="font-size:12px;line-height:1.5;color:#F0A6C4;">Harga jual masih di bawah atau sama dengan biaya. Naikkan harga jual atau turunkan biaya supaya untung positif.</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ============ 04 KUR ============ -->
+<div style="{{ styleKur }}">
+<header style="position:relative;padding:112px 0 0;">
+<div aria-hidden="true" style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:1000px;height:600px;background:radial-gradient(closest-side, rgba(0,88,190,0.15), rgba(0,88,190,0.03) 60%, transparent 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 12s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div data-pad="true" style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 28px;">
+<div data-split="true" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+<div style="animation:fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">04 / PINJAMAN KUR</span>
+</div>
+<h1 data-hero-title="true" style="font-size:44px;line-height:1.12;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;">Cek dulu cicilannya sebelum ajukan pinjaman</h1>
+<p style="font-size:16px;line-height:1.6;color:#8A93A3;margin:0 0 24px;max-width:460px;">Masukkan plafon pinjaman dan pilih tenornya. KLIR tunjukkan kira-kira berapa cicilan bulanan yang perlu kamu siapkan.</p>
+<div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:430px;">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Pilihan tenor</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">4</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Bunga subsidi</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">6%</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Hasilnya</div>
+<div style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-top:6px;color:#3FBF8F;">Langsung</div>
+</div>
+</div>
+</div>
+<div data-hero3d-wrap="true" data-decor="true" style="position:relative;height:360px;">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;">
+<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(78,155,255,0.16),rgba(78,155,255,0.03) 60%,transparent 75%);filter:blur(4px);"></div>
+<div data-anim="true" style="position:relative;width:280px;height:280px;animation:nexusSpin 24s linear infinite;">
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" style="position:absolute;top:0;left:0;"><circle cx="140" cy="140" r="136" stroke="rgba(78,155,255,0.16)" stroke-width="1" stroke-dasharray="1 7"></circle></svg>
+<span style="position:absolute;top:2px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#4E9BFF;box-shadow:0 0 9px rgba(78,155,255,0.9);"></span>
+<span style="position:absolute;top:50%;right:2px;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#D8A33C;box-shadow:0 0 8px rgba(216,163,60,0.85);"></span>
+<span style="position:absolute;bottom:18px;left:14%;width:4px;height:4px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 7px rgba(63,191,143,0.8);"></span>
+</div>
+</div>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;left:0;border-top:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:4px 0 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;right:0;border-top:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 4px 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.5s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;left:0;border-bottom:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:0 0 0 4px;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;right:0;border-bottom:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 0 4px 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1.5s;"></span>
+<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+<div style="position:relative;width:150px;height:200px;animation:coinBob 6s cubic-bezier(0.45,0.05,0.35,1) infinite;">
+<div style="position:absolute;left:50%;bottom:14px;width:132px;height:52px;margin-left:-66px;border-radius:50%;background:linear-gradient(180deg,#274a80,#16233a);border:1px solid rgba(255,255,255,0.1);"></div>
+<div style="position:absolute;left:50%;bottom:26px;width:132px;height:52px;margin-left:-66px;border-radius:50%;background:linear-gradient(180deg,#2c548f,#182640);border:1px solid rgba(255,255,255,0.1);"></div>
+<div style="position:absolute;left:50%;bottom:38px;width:132px;height:52px;margin-left:-66px;border-radius:50%;background:linear-gradient(180deg,#305c9e,#1a2946);border:1px solid rgba(255,255,255,0.12);"></div>
+<div style="position:absolute;left:50%;bottom:50px;width:132px;height:52px;margin-left:-66px;border-radius:50%;background:linear-gradient(180deg,#3a6bb5,#1c2e4e);border:1px solid rgba(78,155,255,0.3);"></div>
+<div style="position:absolute;left:50%;bottom:64px;width:132px;height:56px;margin-left:-66px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#6fb0ff,#0058BE 55%,#003C82);border:2px solid rgba(216,163,60,0.75);overflow:hidden;box-shadow:0 0 26px rgba(78,155,255,0.3);">
+<div style="position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,0.55) 50%,transparent 60%);animation:coinShine 3.2s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+</div>
+</div>
+</div>
+<div aria-hidden="true" style="position:absolute;top:0;left:-25%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgba(78,155,255,0.16),transparent);animation:heroSheen 5.5s cubic-bezier(0.45,0.05,0.35,1) infinite;pointer-events:none;"></div>
+<div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#5C6474;">SIMULASI PINJAMAN</span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#D8A33C;">KUR 6% / TAHUN</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:88px 28px 110px;">
+<div data-cols-2="true" style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:start;">
+<div style="position:relative;border:1px solid rgba(78,155,255,0.22);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;margin-bottom:18px;">Form Simulasi KUR</h3>
+<div style="margin-bottom:14px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Plafon Pinjaman (Rp)</label>
+<input type="number" value="{{ kurPlafon }}" onChange="{{ h.setKurPlafon }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:20px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Tenor (Bulan)</label>
+<select value="{{ kurTenor }}" onChange="{{ h.setKurTenor }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+<option value="12">12 Bulan (1 Tahun)</option>
+<option value="24">24 Bulan (2 Tahun)</option>
+<option value="36">36 Bulan (3 Tahun)</option>
+<option value="60">60 Bulan (5 Tahun)</option>
+</select>
+</div>
+<button type="button" onClick="{{ h.calcKurNow }}" style="width:100%;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,#0058BE);padding:13px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);">Simulasikan Angsuran (Bunga Subsidi 6%)</button>
+</div>
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;"><h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Hasil Simulasi Angsuran</h3><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#5C6474;">{{ kurMeta }}</span></div>
+<div style="border:1px solid rgba(78,155,255,0.3);border-radius:14px;background:rgba(0,88,190,0.12);padding:20px;margin-bottom:12px;">
+<div style="font-size:12px;color:#8FB8EC;">Angsuran Bulanan</div>
+<div style="font-family:'Outfit',sans-serif;font-size:30px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;color:#4E9BFF;">{{ kurAngsuranView }}</div>
+<div style="font-size:11.5px;color:#8FB8EC;margin-top:4px;">per bulan, selama {{ kurTenor }} bulan</div>
+</div>
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+<div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;background:rgba(255,255,255,0.02);padding:15px;">
+<div style="font-size:11px;color:#5C6474;">Pokok Bulanan</div>
+<div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;">{{ kurPokokView }}</div>
+</div>
+<div style="border:1px solid rgba(216,163,60,0.28);border-radius:12px;background:rgba(216,163,60,0.08);padding:15px;">
+<div style="font-size:11px;color:#D9C393;">Total Bunga Subsidi</div>
+<div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;color:#D8A33C;">{{ kurBungaView }}</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+<!-- ============ 05 VALUASI & SWOT ============ -->
+<div style="{{ styleVal }}">
+<header style="position:relative;padding:112px 0 0;">
+<div aria-hidden="true" style="position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:1000px;height:600px;background:radial-gradient(closest-side, rgba(0,88,190,0.15), rgba(0,88,190,0.03) 60%, transparent 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 12s cubic-bezier(0.45,0.05,0.35,1) infinite;"></div>
+<div data-pad="true" style="position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 28px;">
+<div data-split="true" style="display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;">
+<div style="animation:fadeUp 700ms cubic-bezier(0.16,1,0.3,1) both;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">05 / VALUASI USAHA</span>
+</div>
+<h1 data-hero-title="true" style="font-size:44px;line-height:1.12;letter-spacing:-0.03em;font-weight:600;margin:0 0 16px;">Kira-kira berapa nilai usahamu sekarang</h1>
+<p style="font-size:16px;line-height:1.6;color:#8A93A3;margin:0 0 24px;max-width:460px;">Masukkan omset dan laba tahunanmu. KLIR kasih estimasi nilai usaha, plus lihat kekuatan dan tantangannya lewat SWOT.</p>
+<div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:430px;">
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Sektor usaha</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">4</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Kuadran SWOT</div>
+<div style="font-family:'Outfit',sans-serif;font-size:19px;font-weight:600;letter-spacing:-0.02em;margin-top:4px;">4</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:11px 12px;background:rgba(255,255,255,0.02);">
+<div style="font-size:10px;color:#5C6474;">Hasilnya</div>
+<div style="font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-top:6px;color:#3FBF8F;">Langsung</div>
+</div>
+</div>
+</div>
+<div data-hero3d-wrap="true" data-decor="true" style="position:relative;height:360px;">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:0;">
+<div style="position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(78,155,255,0.16),rgba(78,155,255,0.03) 60%,transparent 75%);filter:blur(4px);"></div>
+<div data-anim="true" style="position:relative;width:280px;height:280px;animation:nexusSpin 24s linear infinite;">
+<svg width="280" height="280" viewBox="0 0 280 280" fill="none" style="position:absolute;top:0;left:0;"><circle cx="140" cy="140" r="136" stroke="rgba(78,155,255,0.16)" stroke-width="1" stroke-dasharray="1 7"></circle></svg>
+<span style="position:absolute;top:2px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#4E9BFF;box-shadow:0 0 9px rgba(78,155,255,0.9);"></span>
+<span style="position:absolute;top:50%;right:2px;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:#D8A33C;box-shadow:0 0 8px rgba(216,163,60,0.85);"></span>
+<span style="position:absolute;bottom:18px;left:14%;width:4px;height:4px;border-radius:50%;background:#3FBF8F;box-shadow:0 0 7px rgba(63,191,143,0.8);"></span>
+</div>
+</div>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;left:0;border-top:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:4px 0 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;top:4px;right:0;border-top:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 4px 0 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:0.5s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;left:0;border-bottom:1px solid rgba(216,163,60,0.65);border-left:1px solid rgba(216,163,60,0.65);border-radius:0 0 0 4px;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1s;"></span>
+<span aria-hidden="true" style="position:absolute;width:20px;height:20px;bottom:4px;right:0;border-bottom:1px solid rgba(216,163,60,0.65);border-right:1px solid rgba(216,163,60,0.65);border-radius:0 0 4px 0;animation:hudPulse 3s cubic-bezier(0.45,0.05,0.35,1) infinite;animation-delay:1.5s;"></span>
+<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;perspective:900px;">
+<div style="position:relative;width:120px;height:150px;animation:gemSway 8s cubic-bezier(0.45,0.05,0.35,1) infinite;">
+<div style="position:absolute;inset:0;clip-path:polygon(50% 0%,100% 38%,74% 100%,26% 100%,0% 38%);background:linear-gradient(155deg,#4E9BFF 0%,#0058BE 45%,#D8A33C 100%);box-shadow:0 0 34px rgba(78,155,255,0.25);"></div>
+<div style="position:absolute;inset:14% 22% 30% 22%;clip-path:polygon(50% 0%,100% 45%,68% 100%,32% 100%,0% 45%);background:linear-gradient(160deg,rgba(255,255,255,0.5),rgba(255,255,255,0.05));opacity:0.55;"></div>
+<div style="position:absolute;left:50%;top:0;width:1px;height:40%;background:rgba(255,255,255,0.4);transform:translateX(-50%);"></div>
+</div>
+</div>
+<div aria-hidden="true" style="position:absolute;top:0;left:-25%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgba(78,155,255,0.16),transparent);animation:heroSheen 5.5s cubic-bezier(0.45,0.05,0.35,1) infinite;pointer-events:none;"></div>
+<div style="position:absolute;left:12px;bottom:10px;display:flex;align-items:center;gap:8px;">
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#5C6474;">ESTIMASI NILAI</span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.12em;color:#D8A33C;">USAHA</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:88px 28px 60px;">
+<div data-cols-2="true" style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:start;">
+<div style="position:relative;border:1px solid rgba(78,155,255,0.22);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;margin-bottom:18px;">Form Valuasi</h3>
+<div style="margin-bottom:14px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Omset Tahunan (Rp)</label>
+<input type="number" value="{{ valOmset }}" onChange="{{ h.setValOmset }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:14px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Laba Bersih Tahunan (Rp)</label>
+<input type="number" value="{{ valLaba }}" onChange="{{ h.setValLaba }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+</div>
+<div style="margin-bottom:20px;">
+<label style="display:block;font-size:12.5px;color:#8A93A3;margin-bottom:7px;font-weight:500;">Sektor Industri</label>
+<select value="{{ valSektor }}" onChange="{{ h.setValSektor }}" style="width:100%;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.03);padding:11px 13px;font-size:13.5px;color:#F5F7FA;">
+<option value="fnb">F&amp;B / Kuliner &amp; Retail</option>
+<option value="tech">Teknologi &amp; SaaS AI</option>
+<option value="jasa">Jasa &amp; Konsultansi</option>
+<option value="manufaktur">Manufaktur &amp; Konveksi</option>
+</select>
+</div>
+<button type="button" onClick="{{ h.calcValNow }}" style="width:100%;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,#0058BE);padding:13px 20px;border-radius:10px;border:none;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);">Hitung Valuasi &amp; SWOT</button>
+</div>
+<div style="position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:24px;box-shadow:0 28px 80px rgba(0,0,0,0.5);">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;"><h3 style="font-size:16px;font-weight:600;letter-spacing:-0.01em;">Estimasi Nilai Usaha</h3><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;color:#5C6474;">{{ valMeta }}</span></div>
+<div style="border:1px solid rgba(63,191,143,0.3);border-radius:14px;background:rgba(63,191,143,0.09);padding:20px;margin-bottom:12px;">
+<div style="font-size:12px;color:#8FCDB4;">Estimasi Nilai Wajar Usaha</div>
+<div style="font-family:'Outfit',sans-serif;font-size:27px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;color:#3FBF8F;">{{ valFairView }}</div>
+</div>
+<div data-cols-2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+<div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;background:rgba(255,255,255,0.02);padding:15px;">
+<div style="font-size:11px;color:#5C6474;">Dihitung dari Omset</div>
+<div style="font-family:'Outfit',sans-serif;font-size:16.5px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;">{{ valRevenueView }}</div>
+</div>
+<div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;background:rgba(255,255,255,0.02);padding:15px;">
+<div style="font-size:11px;color:#5C6474;">Dihitung dari Laba Bersih</div>
+<div style="font-family:'Outfit',sans-serif;font-size:16.5px;font-weight:600;letter-spacing:-0.02em;margin-top:6px;">{{ valProfitView }}</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section data-pad="true" style="max-width:1240px;margin:0 auto;padding:0 28px 110px;">
+<div style="margin-bottom:18px;">
+<div style="display:inline-flex;align-items:center;gap:9px;margin-bottom:10px;">
+<span style="width:22px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+<span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.17em;color:#4E9BFF;">ANALISIS SWOT</span>
+</div>
+<h2 style="font-size:24px;line-height:1.15;letter-spacing:-0.02em;font-weight:600;">Kekuatan, kelemahan, peluang, ancaman &#8212; {{ valSektorLabel }}</h2>
+</div>
+<div data-swot-grid="true" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+<div style="border:1px solid rgba(63,191,143,0.26);border-radius:14px;background:rgba(63,191,143,0.07);padding:18px;">
+<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.1em;color:#3FBF8F;margin-bottom:10px;font-weight:700;">KEKUATAN</div>
+<div style="font-size:12.5px;line-height:1.65;color:#C6CCD6;">{{ swotKekuatan }}</div>
+</div>
+<div style="border:1px solid rgba(216,163,60,0.26);border-radius:14px;background:rgba(216,163,60,0.07);padding:18px;">
+<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.1em;color:#D8A33C;margin-bottom:10px;font-weight:700;">KELEMAHAN</div>
+<div style="font-size:12.5px;line-height:1.65;color:#C6CCD6;">{{ swotKelemahan }}</div>
+</div>
+<div style="border:1px solid rgba(78,155,255,0.26);border-radius:14px;background:rgba(0,88,190,0.08);padding:18px;">
+<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.1em;color:#4E9BFF;margin-bottom:10px;font-weight:700;">PELUANG</div>
+<div style="font-size:12.5px;line-height:1.65;color:#C6CCD6;">{{ swotPeluang }}</div>
+</div>
+<div style="border:1px solid rgba(232,93,156,0.26);border-radius:14px;background:rgba(232,93,156,0.06);padding:18px;">
+<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.1em;color:#E85D9C;margin-bottom:10px;font-weight:700;">ANCAMAN</div>
+<div style="font-size:12.5px;line-height:1.65;color:#C6CCD6;">{{ swotAncaman }}</div>
+</div>
+</div>
+</section>
+</div>
+
+</div>
+</helmet>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    page: 'proposal',
+    proposalTitle: 'Dapur Rempah Kirana',
+    proposalDesc: 'Bumbu dasar beku kemasan 250 gram, tanpa pengawet, untuk rumah tangga dan warung makan di Yogyakarta. Dijual langsung dan lewat titip warung.',
+    proposalBusy: false,
+    activeBab: 0,
+    copiedBab: false,
+    shareBusy: false,
+    shareDone: false,
+    pitchTitle: 'Dapur Rempah Kirana',
+    pitchMarket: 'Rumah tangga & warung makan, Yogyakarta',
+    pitchAsk: 'Rp 45.000.000',
+    pitchBusy: false,
+    hppBahan: 9000,
+    hppTenaga: 6000,
+    hppOverhead: 3500,
+    hppHarga: 32000,
+    hppVolume: 1800,
+    kurPlafon: 50000000,
+    kurTenor: 12,
+    valOmset: 700000000,
+    valLaba: 140000000,
+    valSektor: 'fnb',
+    proposalRevision: 3,
+    proposalUpdatedAt: Date.now() - 4 * 60000,
+    pitchGeneratedAt: Date.now() - 22 * 60000,
+    hppCalcAt: Date.now(),
+    kurCalcAt: Date.now(),
+    valCalcAt: Date.now(),
+  };
+
+  BAB_LIST = [
+    { title: 'Ringkasan Eksekutif', body: [
+      'Dapur Rempah Kirana memproduksi bumbu dasar beku kemasan 250 gram untuk rumah tangga dan warung makan di Yogyakarta. Modal awal Rp 45.000.000 dipakai untuk mesin pengemas vakum, satu freezer display, dan stok bahan periode pertama.',
+      'Target dua belas bulan pertama adalah 1.800 unit terjual per bulan pada harga Rp 32.000 dengan HPP Rp 18.500 per unit. Margin kotor 42% menutup biaya operasional Rp 12.500.000 per bulan, dan modal kembali sekitar bulan keempat.'
+    ]},
+    { title: 'Deskripsi Usaha', body: [
+      'Dapur Rempah Kirana membuat lima varian bumbu dasar: kuning, merah, putih, rendang, dan gulai. Semua diproduksi dua kali seminggu dari dapur produksi di Sleman, memakai resep dengan takaran tetap supaya rasanya selalu sama.',
+      'Bumbu dikemas vakum lalu dibekukan, jadi tahan disimpan sampai tiga bulan tanpa bahan pengawet. Pembeli tinggal panaskan sebentar, tanpa perlu mengulek atau menggoreng bumbu sendiri.'
+    ]},
+    { title: 'Analisis Pasar', body: [
+      'Ada empat pemain sejenis di sekitar Yogyakarta, dengan harga jual Rp 24.000 sampai Rp 35.000 per kemasan. Sebagian besar belum punya kemasan tahan beku, jadi produk ini punya keunggulan di daya tahan simpan.',
+      'Permintaan bumbu siap pakai naik terutama di kalangan rumah tangga yang sibuk dan warung makan kecil yang ingin rasa konsisten tanpa menambah tenaga masak.'
+    ]},
+    { title: 'Strategi Pemasaran', body: [
+      'Penjualan awal difokuskan lewat pesan langsung dan titip jual di warung makan langganan. Promosi memakai foto proses masak dan testimoni pembeli, dibagikan lewat media sosial dan grup warga sekitar.',
+      'Harga dijaga sedikit di bawah rata-rata pasar pada tahap awal untuk menarik pembeli coba pertama kali, lalu disesuaikan setelah pelanggan tetap terbentuk.'
+    ]},
+    { title: 'Rencana Operasional', body: [
+      'Produksi berjalan dua kali seminggu, masing-masing menghasilkan sekitar 450 kemasan. Bahan baku dibeli mingguan dari dua pemasok cabai dan bawang supaya harga tidak bergantung pada satu sumber.',
+      'Satu freezer display dipakai untuk menyimpan stok siap kirim. Pengemasan dan pengiriman dikerjakan oleh dua orang, termasuk pemilik usaha.'
+    ]},
+    { title: 'Proyeksi Keuangan', body: [
+      'Dengan HPP Rp 18.500 dan harga jual Rp 32.000 per unit, untung kotor per unit sekitar Rp 13.500, atau margin 42%. Pada target 1.800 unit per bulan, omset diperkirakan Rp 57.600.000 per bulan.',
+      'Biaya operasional sekitar Rp 12.500.000 per bulan tertutup dari untung kotor, sehingga modal awal Rp 45.000.000 diperkirakan kembali sekitar bulan keempat.'
+    ]},
+  ];
+
+  BAB_META = [
+    { words: 312, date: '17 Agu 09:11', status: 'Selesai' },
+    { words: 428, date: '16 Agu 20:04', status: 'Selesai' },
+    { words: 496, date: '16 Agu 18:47', status: 'Ditarik dari Analisis Pasar' },
+    { words: 383, date: '16 Agu 15:30', status: 'Selesai' },
+    { words: 441, date: '16 Agu 12:10', status: 'Selesai' },
+    { words: 420, date: '17 Agu 09:42', status: 'Disinkronkan dari Simulasi' },
+  ];
+
+  SLIDES = [
+    { n: 1, topic: 'Sampul', headline: 'Dapur Rempah Kirana', bullets: ['Bumbu dasar beku siap pakai', 'Diajukan oleh pemilik usaha'] },
+    { n: 2, topic: 'Masalah', headline: 'Masak bumbu dasar sendiri makan waktu', bullets: ['Mengulek & menumis bisa 30–45 menit', 'Rasa gampang tidak konsisten tiap masak'] },
+    { n: 3, topic: 'Solusi', headline: 'Bumbu beku, tinggal panaskan', bullets: ['Kemasan 250 gram tanpa pengawet', 'Tahan sampai 3 bulan di freezer'] },
+    { n: 4, topic: 'Produk', headline: 'Lima varian bumbu dasar', bullets: ['Kuning, merah, putih, rendang, gulai', 'Resep takaran tetap tiap produksi'] },
+    { n: 5, topic: 'Target Pasar', headline: 'Rumah tangga & warung makan Yogyakarta', bullets: ['Fokus awal wilayah Sleman & sekitarnya', 'Menyasar warung penjual makanan rumahan'] },
+    { n: 6, topic: 'Model Bisnis', headline: 'Jual langsung & titip warung', bullets: ['Pesan lewat chat langsung', 'Titip jual di warung makan langganan'] },
+    { n: 7, topic: 'Traksi', headline: '1.800 unit terjual per bulan', bullets: ['Rata-rata 3 bulan terakhir', '90% pembeli lama pesan ulang'] },
+    { n: 8, topic: 'Kompetisi', headline: 'Empat pemain sejenis', bullets: ['Harga pasar Rp 24.000–35.000', 'Belum banyak yang tahan beku'] },
+    { n: 9, topic: 'Keunggulan', headline: 'Rasa konsisten, tahan lama', bullets: ['Resep terkunci, takaran tetap', 'Kemasan vakum tahan 3 bulan'] },
+    { n: 10, topic: 'Keuangan', headline: 'Margin kotor 42%', bullets: ['HPP Rp 18.500, harga jual Rp 32.000', 'Modal kembali sekitar bulan ke-4'] },
+    { n: 11, topic: 'Kebutuhan Dana', headline: 'Rp 45.000.000 untuk mulai', bullets: ['Mesin pengemas vakum & freezer', 'Stok bahan baku periode pertama'] },
+    { n: 12, topic: 'Penutup', headline: 'Ajak bermitra mulai sekarang', bullets: ['Target 1.800 unit/bulan tahun pertama', 'Siap berkembang ke kota lain'] },
+  ];
+
+  SEKTOR_LABELS = { fnb: 'F&B / Kuliner & Retail', tech: 'Teknologi & SaaS AI', jasa: 'Jasa & Konsultansi', manufaktur: 'Manufaktur & Konveksi' };
+  SEKTOR_MULT = { fnb: { rev: 0.75, pe: 4 }, tech: { rev: 2.5, pe: 9 }, jasa: { rev: 0.9, pe: 5 }, manufaktur: { rev: 1.1, pe: 4.5 } };
+  SEKTOR_SWOT = {
+    fnb: { kekuatan: 'Resep dengan takaran tetap membuat rasa selalu sama. Margin kotor yang sehat menjaga harga tetap bersaing.', kelemahan: 'Cuma mengandalkan satu tempat penyimpanan dingin, jadi rawan kalau rusak. Kapasitas produksi masih terbatas.', peluang: 'Warung makan sekitar butuh bahan siap pakai. Belum banyak pesaing yang jualan lewat marketplace.', ancaman: 'Harga bahan baku dapur gampang naik saat musim tertentu. Modal kecil membuat pesaing baru mudah masuk.' },
+    tech: { kekuatan: 'Biaya tambah pelanggan baru kecil karena produknya digital. Bisa dipakai di mana saja tanpa batas kota.', kelemahan: 'Biaya server dan pengembangan berjalan terus tiap bulan. Bergantung pada beberapa orang teknis kunci.', peluang: 'Makin banyak usaha kecil mulai pakai aplikasi untuk kerja sehari-hari. Bisa bekerja sama dengan platform lain.', ancaman: 'Pesaing besar bisa keluarkan fitur serupa lebih cepat. Pelanggan gampang pindah ke aplikasi lain yang lebih murah.' },
+    jasa: { kekuatan: 'Modal awal kecil karena menjual keahlian, bukan barang. Hubungan dekat dengan klien membuat mereka kembali.', kelemahan: 'Pendapatan bergantung pada jam kerja orang, susah berkembang cepat. Sepi order saat tidak ada proyek.', peluang: 'Banyak usaha kecil butuh bantuan yang selama ini dikerjakan sendiri. Bisa tawarkan paket langganan bulanan.', ancaman: 'Klien bisa belajar sendiri lewat internet. Tarif gampang ditawar turun oleh pesaing baru.' },
+    manufaktur: { kekuatan: 'Produksi banyak sekaligus membuat biaya per unit lebih murah. Kualitas terjaga karena proses sudah baku.', kelemahan: 'Butuh modal besar di awal untuk mesin dan bahan baku. Uang tertahan lama di stok barang jadi.', peluang: 'Permintaan produk custom untuk acara dan seragam terus ada. Bisa titip jual lewat toko atau marketplace.', ancaman: 'Harga bahan baku impor naik turun mengikuti kurs dolar. Barang impor murah jadi pesaing langsung.' },
+  };
+
+  rp(n) { n = Math.round(Number(n) || 0); return 'Rp ' + n.toLocaleString('id-ID'); }
+
+  fmtTime(ts) { const d = new Date(ts); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+  minsAgo(ts) { const m = Math.max(1, Math.round((Date.now() - ts) / 60000)); return m < 60 ? m + ' menit lalu' : Math.round(m / 60) + ' jam lalu'; }
+
+  componentDidMount() {
+    if (!('IntersectionObserver' in window)) { document.querySelectorAll('[data-hero3d-wrap]').forEach((el) => el.setAttribute('data-visible', 'true')); return; }
+    this._io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) e.target.setAttribute('data-visible', 'true');
+        else e.target.removeAttribute('data-visible');
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('[data-hero3d-wrap]').forEach((el) => this._io.observe(el));
+  }
+
+  componentWillUnmount() {
+    if (this._io) this._io.disconnect();
+  }
+
+  calcHPP() {
+    const bahan = Number(this.state.hppBahan) || 0;
+    const tenaga = Number(this.state.hppTenaga) || 0;
+    const overhead = Number(this.state.hppOverhead) || 0;
+    const harga = Number(this.state.hppHarga) || 0;
+    const volume = Number(this.state.hppVolume) || 0;
+    const totalHPP = bahan + tenaga + overhead;
+    const laba = harga - totalHPP;
+    const margin = harga > 0 ? (laba / harga * 100) : 0;
+    const omset = harga * volume;
+    return { totalHPP: totalHPP, laba: laba, margin: margin, omset: omset, valid: harga > totalHPP };
+  }
+
+  calcKUR() {
+    const plafon = Number(this.state.kurPlafon) || 0;
+    const tenor = Number(this.state.kurTenor) || 12;
+    const bunga = plafon * 0.06 * (tenor / 12);
+    const totalBayar = plafon + bunga;
+    const angsuran = tenor > 0 ? totalBayar / tenor : 0;
+    const pokok = tenor > 0 ? plafon / tenor : 0;
+    return { bunga: bunga, angsuran: angsuran, pokok: pokok };
+  }
+
+  calcVAL() {
+    const omset = Number(this.state.valOmset) || 0;
+    const laba = Number(this.state.valLaba) || 0;
+    const sektor = this.state.valSektor || 'fnb';
+    const mult = this.SEKTOR_MULT[sektor];
+    const byRevenue = omset * mult.rev;
+    const byProfit = laba * mult.pe;
+    const fair = (byRevenue + byProfit) / 2;
+    return { byRevenue: byRevenue, byProfit: byProfit, fair: fair, swot: this.SEKTOR_SWOT[sektor], label: this.SEKTOR_LABELS[sektor] };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const hpp = this.calcHPP();
+    const kur = this.calcKUR();
+    const val = this.calcVAL();
+    const babData = this.BAB_LIST[s.activeBab];
+
+    const tabDefs = [
+      { key: 'proposal', num: '01', label: 'Proposal' },
+      { key: 'pitchdeck', num: '02', label: 'Pitch Deck' },
+      { key: 'hpp', num: '03', label: 'HPP' },
+      { key: 'kur', num: '04', label: 'KUR' },
+      { key: 'valuasi', num: '05', label: 'Valuasi' },
+    ];
+    const navTabs = tabDefs.map((t) => {
+      const active = s.page === t.key;
+      const go = () => this.setState({ page: t.key });
+      const baseOn = 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:8px;border:1px solid rgba(78,155,255,0.28);background:rgba(0,88,190,0.16);color:#F5F7FA;font-size:12.5px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;cursor:pointer;';
+      const baseOff = 'display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:8px;border:1px solid transparent;background:transparent;color:#8A93A3;font-size:12.5px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;cursor:pointer;';
+      return {
+        num: t.num, label: t.label, go: go,
+        wrapStyle: active ? baseOn : baseOff,
+        wrapStyleM: (active ? baseOn : baseOff) + 'flex-shrink:0;',
+        numStyle: 'font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.1em;color:' + (active ? '#4E9BFF' : '#5C6474') + ';',
+      };
+    });
+
+    const babList = this.BAB_LIST.map((b, i) => {
+      const active = s.activeBab === i;
+      return {
+        numLabel: '0' + (i + 1),
+        title: b.title,
+        select: () => this.setState({ activeBab: i, copiedBab: false }),
+        numColor: active ? '#4E9BFF' : '#5C6474',
+        tabStyle: active
+          ? 'cursor:pointer;border:1px solid rgba(78,155,255,0.3);border-radius:10px;padding:11px 13px;background:rgba(0,88,190,0.14);'
+          : 'cursor:pointer;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 13px;background:rgba(255,255,255,0.02);',
+      };
+    });
+
+    return {
+      bizName: s.proposalTitle,
+      navTabs: navTabs,
+      styleProposal: s.page === 'proposal' ? 'display:block;' : 'display:none;',
+      stylePitch: s.page === 'pitchdeck' ? 'display:block;' : 'display:none;',
+      styleHpp: s.page === 'hpp' ? 'display:block;' : 'display:none;',
+      styleKur: s.page === 'kur' ? 'display:block;' : 'display:none;',
+      styleVal: s.page === 'valuasi' ? 'display:block;' : 'display:none;',
+
+      proposalTitle: s.proposalTitle,
+      proposalDesc: s.proposalDesc,
+      proposalBusy: s.proposalBusy,
+      proposalBtnLabel: s.proposalBusy ? 'Membuat proposal…' : 'Buat Proposal AI (500 Kredit)',
+      shareBusy: s.shareBusy,
+      shareLabel: s.shareBusy ? 'Mengirim…' : (s.shareDone ? 'Terkirim ke AniVirtual & KLIR Kas ✓' : 'Bagikan Konteks ke AniVirtual Memory'),
+      babList: babList,
+      activeBabNum: '0' + (s.activeBab + 1),
+      activeBabTitle: babData.title,
+      activeBabBody: babData.body,
+      activeBabMeta: this.BAB_META[s.activeBab].words.toLocaleString('id-ID') + ' kata · diedit ' + this.BAB_META[s.activeBab].date,
+      activeBabStatus: this.BAB_META[s.activeBab].status,
+      copyLabel: s.copiedBab ? 'Tersalin ✓' : 'Salin Teks',
+      proposalMeta: 'Revisi #' + s.proposalRevision + ' · diperbarui ' + this.minsAgo(s.proposalUpdatedAt),
+
+      pitchTitle: s.pitchTitle,
+      pitchMarket: s.pitchMarket,
+      pitchAsk: s.pitchAsk,
+      pitchBusy: s.pitchBusy,
+      pitchBtnLabel: s.pitchBusy ? 'Membuat pitch deck…' : 'Buat Pitch Deck (300 Kredit)',
+      pitchMeta: 'Dibuat pukul ' + this.fmtTime(s.pitchGeneratedAt) + ' · draf v1',
+      slides: this.SLIDES,
+
+      hppBahan: s.hppBahan, hppTenaga: s.hppTenaga, hppOverhead: s.hppOverhead, hppHarga: s.hppHarga, hppVolume: s.hppVolume,
+      hppTotalView: this.rp(hpp.totalHPP),
+      hppLabaView: this.rp(hpp.laba),
+      hppMarginView: hpp.margin.toFixed(1).replace('.', ',') + '%',
+      hppOmsetView: this.rp(hpp.omset),
+      hppWarnDisplay: hpp.valid ? 'none' : 'flex',
+      hppMeta: 'Dihitung pukul ' + this.fmtTime(s.hppCalcAt),
+
+      kurPlafon: s.kurPlafon, kurTenor: String(s.kurTenor),
+      kurAngsuranView: this.rp(kur.angsuran),
+      kurPokokView: this.rp(kur.pokok),
+      kurBungaView: this.rp(kur.bunga),
+      kurMeta: 'Disimulasikan pukul ' + this.fmtTime(s.kurCalcAt),
+
+      valOmset: s.valOmset, valLaba: s.valLaba, valSektor: s.valSektor,
+      valSektorLabel: val.label,
+      valFairView: this.rp(val.fair),
+      valRevenueView: this.rp(val.byRevenue),
+      valProfitView: this.rp(val.byProfit),
+      valMeta: 'Dihitung pukul ' + this.fmtTime(s.valCalcAt) + ' · basis 12 bulan terakhir',
+      swotKekuatan: val.swot.kekuatan,
+      swotKelemahan: val.swot.kelemahan,
+      swotPeluang: val.swot.peluang,
+      swotAncaman: val.swot.ancaman,
+
+      h: {
+        setProposalTitle: (e) => this.setState({ proposalTitle: e.target.value }),
+        setProposalDesc: (e) => this.setState({ proposalDesc: e.target.value }),
+        generateProposal: () => { this.setState({ proposalBusy: true }); setTimeout(() => this.setState((st) => ({ proposalBusy: false, proposalUpdatedAt: Date.now(), proposalRevision: (st.proposalRevision || 3) + 1 })), 1100); },
+        copyBab: () => {
+          const b = this.BAB_LIST[this.state.activeBab];
+          const txt = b.body.join('\n\n');
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).catch(() => {});
+          this.setState({ copiedBab: true });
+          setTimeout(() => this.setState({ copiedBab: false }), 2000);
+        },
+        shareContext: () => {
+          this.setState({ shareBusy: true });
+          setTimeout(() => this.setState({ shareBusy: false, shareDone: true }), 900);
+          setTimeout(() => this.setState({ shareDone: false }), 4200);
+        },
+        setPitchTitle: (e) => this.setState({ pitchTitle: e.target.value }),
+        setPitchMarket: (e) => this.setState({ pitchMarket: e.target.value }),
+        setPitchAsk: (e) => this.setState({ pitchAsk: e.target.value }),
+        generatePitch: () => { this.setState({ pitchBusy: true }); setTimeout(() => this.setState({ pitchBusy: false, pitchGeneratedAt: Date.now() }), 1100); },
+        setHppBahan: (e) => this.setState({ hppBahan: e.target.value }),
+        setHppTenaga: (e) => this.setState({ hppTenaga: e.target.value }),
+        setHppOverhead: (e) => this.setState({ hppOverhead: e.target.value }),
+        setHppHarga: (e) => this.setState({ hppHarga: e.target.value }),
+        setHppVolume: (e) => this.setState({ hppVolume: e.target.value }),
+        calcHppNow: () => this.setState({ hppCalcAt: Date.now() }),
+        setKurPlafon: (e) => this.setState({ kurPlafon: e.target.value }),
+        setKurTenor: (e) => this.setState({ kurTenor: e.target.value }),
+        calcKurNow: () => this.setState({ kurCalcAt: Date.now() }),
+        setValOmset: (e) => this.setState({ valOmset: e.target.value }),
+        setValLaba: (e) => this.setState({ valLaba: e.target.value }),
+        setValSektor: (e) => this.setState({ valSektor: e.target.value }),
+        calcValNow: () => this.setState({ valCalcAt: Date.now() }),
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+KLIR - KONTEKS REFERENSI UNTUK REDESIGN VISUAL DASHBOARD/PORTAL
+=================================================================
+
+ISI ZIP INI ADALAH KONTEKS REFERENSI, BUKAN FILE UNTUK DIEDIT LANGSUNG.
+Semua file di sini punya fungsi/logika yang SUDAH BEKERJA (dibangun developer
+KLIR, Fatur). Tujuan redesign HANYA menyempurnakan tampilan visual, TIDAK
+BOLEH mengubah struktur data, state, event handler, atau alur fungsi yang ada.
+
+STRUKTUR FOLDER
+----------------
+/page.tsx
+  Entry point aplikasi (Next.js). Berisi: layar landing (pra-login), layar
+  hub pemilihan portal pasca-login (3 kartu: CEO/Owner, Finance, Marketing),
+  dan shell navigasi di dalam tiap portal (top navbar, tab switcher,
+  tombol ganti portal/logout). Ini referensi UTAMA untuk elemen navigasi/layout.
+
+/layout.tsx
+  Root layout Next.js. Berisi definisi font (Plus Jakarta Sans untuk body,
+  Outfit untuk heading, JetBrains Mono untuk label/tag/angka teknis) dan
+  warna dasar body (#0A0E15 bg, #F5F7FA teks, aksen seleksi #0058BE).
+
+/components/CompanyDataDashboard.tsx
+  Dashboard utama portal CEO/Owner. Berisi Company Health Score (gauge
+  melingkar SVG + breakdown 4 kategori: finance/growth/operations/strategy),
+  kartu ringkasan finansial/marketing/tim, grafik ApexCharts per bulan,
+  dan fungsi export Excel. INI FOKUS UTAMA "dashboard dipertajam".
+
+/components/ExecutiveAIAssistantView.tsx
+  Tab kedua portal CEO -- AI Asisten Perusahaan.
+
+/components/FinanceModuleView.tsx
+  Portal Finance: buku kas masuk/keluar, daftar transaksi, invoice/piutang,
+  ringkasan cashflow.
+
+/components/MarketingModuleView.tsx
+  Dashboard utama portal Marketing: metrik ROAS/revenue, daftar kampanye
+  aktif, kupon promo, quick launch campaign.
+
+/components/MarketingAIAssistantView.tsx
+  Tab kedua portal Marketing -- AI Studio (gambar & video).
+
+/components/RoleVerificationModal.tsx
+  Modal verifikasi PIN sebelum masuk ke tiap portal (CEO/Finance/Marketing).
+
+/landing-v18-reference/KlirLandingV4.tsx
+/landing-v18-reference/klirV4Markup-v18.ts
+  Landing page publik KLIR versi TERBARU (v18) -- referensi BAHASA DESAIN
+  (warna, tipografi, radius, spacing) yang dipakai sebagai acuan konsistensi
+  visual. CATATAN: landing page ini pakai efek 3D/WebGL (Three.js) yang berat
+  -- efek itu TIDAK untuk dibawa ke dashboard. Dashboard harus tetap terasa
+  ringan, sederhana, dan fungsional (bukan medium promosi).
+
+PALET WARNA YANG SUDAH KONSISTEN DIPAKAI (referensi, bukan permintaan ganti):
+  Background utama : #06080C / #0A0E15
+  Teks utama       : #F5F7FA
+  Aksen biru       : #0058BE / #00D2FF / #4E9BFF
+  Aksen hijau      : #3FBF8F / #10B981 (indikator positif/uang masuk)
+  Aksen oranye     : #F2A83B / #F59E0B (indikator warning/marketing)
+  Aksen indigo     : #6366F1 (elemen AI/aktif)
+  Border/garis     : rgba(255,255,255,0.09-0.16) di atas background gelap

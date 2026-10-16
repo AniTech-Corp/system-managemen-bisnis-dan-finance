@@ -1,0 +1,60 @@
+{
+  "name": "klir-finance-monitoring",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node --experimental-test-module-mocks --import tsx --test tests/activity-log.test.ts tests/ai-orchestrator.test.ts",
+    "test:unit": "node --experimental-test-module-mocks --import tsx --test tests/activity-log.test.ts",
+    "test:all": "node --experimental-test-module-mocks --import tsx --test \"tests/**/*.test.ts\"",
+    "seed": "npx tsx prisma/seed.ts",
+    "seed:benchmark": "npx tsx scripts/seed-benchmark.ts",
+    "deploy:vps": "ssh -i ~/.ssh/id_ed25519 root@72.61.142.156 \"cd /var/www/KLIR && git checkout package-lock.json && git pull && npm install && npx prisma generate && npm run build && pm2 reload klir-os\""
+  },
+  "dependencies": {
+    "@breezystack/lamejs": "1.2.7",
+    "@google/generative-ai": "^0.24.1",
+    "@next/swc-win32-x64-msvc": "^16.3.5",
+    "@prisma/client": "^6.3.1",
+    "apexcharts": "^7.1.0",
+    "argon2": "^0.45.1",
+    "docx": "^9.7.1",
+    "emergentintegrations": "^4.0.0",
+    "exceljs": "^4.4.0",
+    "jsonwebtoken": "^9.0.3",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.31.0",
+    "mammoth": "^1.12.1",
+    "music-metadata": "11.15.0",
+    "next": "16.3.5",
+    "pdf-parse": "^2.4.5",
+    "pptxgenjs": "^4.0.1",
+    "prisma": "6.3.1",
+    "react": "19.2.8",
+    "react-apexcharts": "^2.1.1",
+    "react-dom": "19.2.8",
+    "sharp": "0.35.4",
+    "three": "^0.149.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.149.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.0",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  }
+}

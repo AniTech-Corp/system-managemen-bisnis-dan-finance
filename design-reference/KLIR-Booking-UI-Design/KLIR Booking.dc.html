@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #06080C; }
+@keyframes klirFloat { 0%, 100% { transform: rotateX(12deg) rotateY(-16deg) translateY(0); } 50% { transform: rotateX(12deg) rotateY(-16deg) translateY(-7px); } }
+@keyframes klirGlowPulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+</style>
+</helmet>
+<div style="min-height:100vh; background:#06080C; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; padding:40px; box-sizing:border-box;">
+<div style="max-width:1440px; margin:0 auto; display:flex; flex-direction:column; gap:28px;">
+
+<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08);">
+  <div>
+    <h1 style="font-family:'Outfit',sans-serif; font-weight:700; font-size:28px; margin:0; color:#F5F7FA; letter-spacing:-0.01em;">KLIR Booking</h1>
+    <p style="font-size:14px; color:#8A93A3; margin:8px 0 0;">Atur jadwal reservasi, kirim pengingat, dan pantau ulasan pelanggan.</p>
+  </div>
+  <div style="display:flex; gap:6px; background:#0B0E15; padding:6px; border-radius:14px; border:1px solid rgba(255,255,255,0.08);">
+    <sc-if value="{{tab1Active}}" hint-placeholder-val="{{true}}"><button onclick="{{goToTab1}}" style="padding:10px 18px; border-radius:10px; border:none; background:#0058BE; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer; box-shadow:0 4px 16px rgba(0,88,190,0.35);">Jadwal Reservasi</button></sc-if>
+    <sc-if value="{{tab1Inactive}}" hint-placeholder-val="{{false}}"><button onclick="{{goToTab1}}" style="padding:10px 18px; border-radius:10px; border:none; background:transparent; color:#8A93A3; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer;" style-hover="color:#F5F7FA;">Jadwal Reservasi</button></sc-if>
+    <sc-if value="{{tab2Active}}" hint-placeholder-val="{{false}}"><button onclick="{{goToTab2}}" style="padding:10px 18px; border-radius:10px; border:none; background:#0058BE; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer; box-shadow:0 4px 16px rgba(0,88,190,0.35);">Pengingat Jadwal</button></sc-if>
+    <sc-if value="{{tab2Inactive}}" hint-placeholder-val="{{true}}"><button onclick="{{goToTab2}}" style="padding:10px 18px; border-radius:10px; border:none; background:transparent; color:#8A93A3; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer;" style-hover="color:#F5F7FA;">Pengingat Jadwal</button></sc-if>
+    <sc-if value="{{tab3Active}}" hint-placeholder-val="{{false}}"><button onclick="{{goToTab3}}" style="padding:10px 18px; border-radius:10px; border:none; background:#0058BE; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer; box-shadow:0 4px 16px rgba(0,88,190,0.35);">Ulasan &amp; Rating</button></sc-if>
+    <sc-if value="{{tab3Inactive}}" hint-placeholder-val="{{true}}"><button onclick="{{goToTab3}}" style="padding:10px 18px; border-radius:10px; border:none; background:transparent; color:#8A93A3; font-family:'Plus Jakarta Sans',sans-serif; font-weight:600; font-size:13px; cursor:pointer;" style-hover="color:#F5F7FA;">Ulasan &amp; Rating</button></sc-if>
+  </div>
+</div>
+
+<sc-if value="{{tab1Active}}" hint-placeholder-val="{{true}}">
+<div style="display:flex; flex-direction:column; gap:24px;">
+
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px;">
+    <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+      <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+        <span style="position:absolute; top:10px; left:10px; width:14px; height:14px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+        <span style="position:absolute; bottom:10px; right:10px; width:14px; height:14px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      </sc-if>
+      <div style="font-size:12px; color:#8A93A3; font-weight:600;">Total Reservasi Masuk</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:#F5F7FA; margin-top:8px;">{{totalBookings}} Booking</div>
+      <div style="font-size:11px; color:#5C6474; margin-top:4px;">Jadwal terdaftar</div>
+    </div>
+    <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+      <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+        <span style="position:absolute; top:10px; left:10px; width:14px; height:14px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+        <span style="position:absolute; bottom:10px; right:10px; width:14px; height:14px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      </sc-if>
+      <div style="font-size:12px; color:#8A93A3; font-weight:600;">Slot Terkonfirmasi</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:#4E9BFF; margin-top:8px;">{{confirmedCount}} Slot</div>
+      <div style="font-size:11px; color:#5C6474; margin-top:4px;">Siap dilayani</div>
+    </div>
+    <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+      <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+        <span style="position:absolute; top:10px; left:10px; width:14px; height:14px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+        <span style="position:absolute; bottom:10px; right:10px; width:14px; height:14px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      </sc-if>
+      <div style="font-size:12px; color:#8A93A3; font-weight:600;">Reservasi Selesai</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:#3FBF8F; margin-top:8px;">{{completedCount}} Selesai</div>
+      <div style="font-size:11px; color:#5C6474; margin-top:4px;">Layanan tuntas</div>
+    </div>
+    <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+      <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+        <span style="position:absolute; top:10px; left:10px; width:14px; height:14px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+        <span style="position:absolute; bottom:10px; right:10px; width:14px; height:14px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      </sc-if>
+      <div style="font-size:12px; color:#8A93A3; font-weight:600;">Nilai Transaksi Reservasi</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; color:#F5F7FA; margin-top:8px;">{{totalRevenueLabel}}</div>
+      <div style="font-size:11px; color:#5C6474; margin-top:4px;">Total nilai booking</div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:minmax(300px,380px) 1fr; gap:22px; align-items:start;">
+    <div style="position:relative; background:#0B0E15; border:1px solid rgba(0,88,190,0.25); border-radius:20px; padding:26px; box-shadow:0 0 60px rgba(78,155,255,0.06);">
+      <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+        <span style="position:absolute; top:12px; left:12px; width:16px; height:16px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+        <span style="position:absolute; bottom:12px; right:12px; width:16px; height:16px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      </sc-if>
+      <sc-if value="{{heroIconsOn}}" hint-placeholder-val="{{true}}">
+        <div style="width:100%; display:flex; justify-content:center; padding:4px 0 4px;">
+          <div style="position:relative; width:88px; height:88px;">
+            <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle, rgba(78,155,255,0.32), transparent 70%); filter:blur(6px); animation:klirGlowPulse 4s ease-in-out infinite;"></div>
+            <div style="position:absolute; top:10px; left:10px; width:64px; height:64px; border-radius:18px; background:linear-gradient(145deg,#12407a,#0058BE); box-shadow:0 16px 28px rgba(0,0,0,0.4); animation:klirFloat 5s ease-in-out infinite;">
+              <div style="position:absolute; top:0; left:12%; right:12%; height:2px; background:linear-gradient(90deg,transparent,#D8A33C,transparent); opacity:0.85;"></div>
+              <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="7" y1="2" x2="7" y2="6"></line><line x1="17" y1="2" x2="17" y2="6"></line></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:16px 0 18px;">Buat Reservasi Jadwal Baru</h3>
+      <form onsubmit="{{submitNewReservation}}" style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Nama Klien / Pelanggan</label>
+          <input type="text" value="{{newResName}}" onchange="{{setNewResName}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Nomor Telepon atau Kontak</label>
+            <input type="text" value="{{newResPhone}}" onchange="{{setNewResPhone}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+          </div>
+          <div>
+            <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Email (Opsional)</label>
+            <input type="email" value="{{newResEmail}}" onchange="{{setNewResEmail}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Jenis Layanan / Jasa</label>
+          <input type="text" value="{{newResService}}" onchange="{{setNewResService}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Tanggal</label>
+            <input type="date" value="{{newResDate}}" onchange="{{setNewResDate}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+          </div>
+          <div>
+            <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Jam Booking</label>
+            <input type="text" placeholder="14:00" value="{{newResTime}}" onchange="{{setNewResTime}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Total Biaya (Rp)</label>
+          <input type="number" value="{{newResPrice}}" onchange="{{setNewResPrice}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+        </div>
+        <button type="submit" style="width:100%; margin-top:4px; padding:13px; border-radius:12px; border:none; background:linear-gradient(135deg,#0058BE,#00399E); color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14px; cursor:pointer; transition:filter 0.15s;" style-hover="filter:brightness(1.1);">Jadwalkan Reservasi</button>
+      </form>
+    </div>
+
+    <div style="background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:26px;">
+      <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:0 0 18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08);">Daftar Jadwal Reservasi Pelanggan</h3>
+      <div style="display:flex; flex-direction:column; gap:12px; max-height:560px; overflow-y:auto;">
+        <sc-for list="{{reservationList}}" as="item" hint-placeholder-count="4">
+          <div style="padding:16px; background:#06080C; border:1px solid rgba(255,255,255,0.08); border-radius:14px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <span style="font-weight:700; color:#F5F7FA; font-size:14px;">{{item.customerName}}</span>
+                  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:#4E9BFF; background:rgba(78,155,255,0.12); padding:2px 8px; border-radius:6px;">#{{item.bookingCode}}</span>
+                  <sc-if value="{{item.isMenunggu}}" hint-placeholder-val="{{true}}"><span style="font-size:10px; font-weight:700; padding:4px 10px; border-radius:999px; background:rgba(216,163,60,0.18); color:#D8A33C;">MENUNGGU KONFIRMASI</span></sc-if>
+                  <sc-if value="{{item.isTerkonfirmasi}}" hint-placeholder-val="{{false}}"><span style="font-size:10px; font-weight:700; padding:4px 10px; border-radius:999px; background:rgba(0,88,190,0.18); color:#4E9BFF;">TERKONFIRMASI</span></sc-if>
+                  <sc-if value="{{item.isSelesai}}" hint-placeholder-val="{{false}}"><span style="font-size:10px; font-weight:700; padding:4px 10px; border-radius:999px; background:rgba(63,191,143,0.15); color:#3FBF8F;">SELESAI</span></sc-if>
+                </div>
+                <div style="font-size:12px; color:#8A93A3; margin-top:6px;">{{item.serviceLine}} &middot; {{item.dateTimeLabel}}</div>
+                <div style="font-size:11px; color:#5C6474; margin-top:2px;">{{item.contactLabel}}</div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <div style="font-size:10px; color:#5C6474;">Total Biaya</div>
+                <div style="font-family:'JetBrains Mono',monospace; font-weight:600; font-size:15px; color:#F5F7FA;">{{item.priceLabel}}</div>
+              </div>
+            </div>
+            <div style="padding:10px 12px; background:#0B0E15; border:1px solid rgba(255,255,255,0.06); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <div style="font-size:11px; color:#8A93A3;">{{item.noteText}}</div>
+              <div style="display:flex; gap:8px;">
+                <sc-if value="{{item.showConfirmBtn}}" hint-placeholder-val="{{true}}"><button onclick="{{item.onConfirm}}" style="padding:7px 14px; border-radius:8px; border:1px solid rgba(0,88,190,0.4); background:rgba(0,88,190,0.12); color:#4E9BFF; font-size:11px; font-weight:700; cursor:pointer;" style-hover="background:rgba(0,88,190,0.22);">Konfirmasi Slot</button></sc-if>
+                <sc-if value="{{item.showCompleteBtn}}" hint-placeholder-val="{{false}}"><button onclick="{{item.onComplete}}" style="padding:7px 14px; border-radius:8px; border:1px solid rgba(63,191,143,0.4); background:rgba(63,191,143,0.12); color:#3FBF8F; font-size:11px; font-weight:700; cursor:pointer;" style-hover="background:rgba(63,191,143,0.22);">Tandai Selesai</button></sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{tab2Active}}" hint-placeholder-val="{{false}}">
+<div style="display:grid; grid-template-columns:minmax(300px,380px) 1fr; gap:22px; align-items:start;">
+  <div style="position:relative; background:#0B0E15; border:1px solid rgba(0,88,190,0.25); border-radius:20px; padding:26px; box-shadow:0 0 60px rgba(78,155,255,0.06);">
+    <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+      <span style="position:absolute; top:12px; left:12px; width:16px; height:16px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      <span style="position:absolute; bottom:12px; right:12px; width:16px; height:16px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+    </sc-if>
+    <sc-if value="{{heroIconsOn}}" hint-placeholder-val="{{true}}">
+      <div style="width:100%; display:flex; justify-content:center; padding:4px 0 4px;">
+        <div style="position:relative; width:88px; height:88px;">
+          <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle, rgba(78,155,255,0.32), transparent 70%); filter:blur(6px); animation:klirGlowPulse 4s ease-in-out infinite;"></div>
+          <div style="position:absolute; top:10px; left:10px; width:64px; height:64px; border-radius:18px; background:linear-gradient(145deg,#12407a,#0058BE); box-shadow:0 16px 28px rgba(0,0,0,0.4); animation:klirFloat 5s ease-in-out infinite;">
+            <div style="position:absolute; top:0; left:12%; right:12%; height:2px; background:linear-gradient(90deg,transparent,#D8A33C,transparent); opacity:0.85;"></div>
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:16px 0 6px;">Kirim Pengingat Jadwal</h3>
+    <p style="font-size:12px; color:#8A93A3; margin:0 0 16px;">Pilih reservasi yang akan datang, lalu kirim pengingat ke pelanggan.</p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      <sc-for list="{{reminderCandidates}}" as="c" hint-placeholder-count="3">
+        <sc-if value="{{c.isSelected}}" hint-placeholder-val="{{false}}">
+          <div onclick="{{c.onSelect}}" style="cursor:pointer; padding:12px 14px; border-radius:12px; border:1px solid #0058BE; background:rgba(0,88,190,0.15);">
+            <div style="font-size:13px; font-weight:600; color:#F5F7FA;">{{c.label}}</div>
+            <div style="font-size:11px; color:#4E9BFF; margin-top:2px; font-family:'JetBrains Mono',monospace;">{{c.subLabel}}</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{c.isNotSelected}}" hint-placeholder-val="{{true}}">
+          <div onclick="{{c.onSelect}}" style="cursor:pointer; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.08); background:#06080C;" style-hover="border-color:rgba(255,255,255,0.25);">
+            <div style="font-size:13px; font-weight:600; color:#F5F7FA;">{{c.label}}</div>
+            <div style="font-size:11px; color:#8A93A3; margin-top:2px; font-family:'JetBrains Mono',monospace;">{{c.subLabel}}</div>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+    <div style="background:#06080C; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px; margin-bottom:16px; min-height:60px;">
+      <div style="font-size:11px; color:#8A93A3; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.04em;">Pratinjau Pesan Pengingat</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#F5F7FA; line-height:1.6;">{{reminderPreviewText}}</div>
+    </div>
+    <button onclick="{{sendReminder}}" disabled="{{noReminderSelected}}" style="width:100%; padding:13px; border-radius:12px; border:none; background:linear-gradient(135deg,#0058BE,#00399E); color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:filter 0.15s;" style-hover="filter:brightness(1.1);">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F5F7FA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      Kirim Pengingat lewat Chat Dalam Aplikasi
+    </button>
+  </div>
+  <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:26px;">
+    <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+      <span style="position:absolute; top:12px; left:12px; width:16px; height:16px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      <span style="position:absolute; bottom:12px; right:12px; width:16px; height:16px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+    </sc-if>
+    <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:0 0 18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08);">Riwayat Pengingat Terkirim</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <sc-for list="{{reminderHistoryList}}" as="h" hint-placeholder-count="2">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#06080C; border:1px solid rgba(255,255,255,0.08); border-radius:12px; gap:12px;">
+          <div>
+            <div style="font-size:13px; font-weight:600; color:#F5F7FA;">{{h.customerName}}</div>
+            <div style="font-size:11px; color:#8A93A3; margin-top:2px;">{{h.serviceLine}}</div>
+          </div>
+          <div style="text-align:right; flex-shrink:0;">
+            <span style="font-size:10px; font-weight:700; padding:4px 10px; border-radius:999px; background:rgba(78,155,255,0.15); color:#4E9BFF;">TERKIRIM</span>
+            <div style="font-size:10px; color:#5C6474; margin-top:4px; font-family:'JetBrains Mono',monospace;">{{h.sentAtLabel}}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{tab3Active}}" hint-placeholder-val="{{false}}">
+<div style="display:grid; grid-template-columns:minmax(300px,380px) 1fr; gap:22px; align-items:start;">
+  <div style="position:relative; background:#0B0E15; border:1px solid rgba(0,88,190,0.25); border-radius:20px; padding:26px; box-shadow:0 0 60px rgba(78,155,255,0.06);">
+    <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+      <span style="position:absolute; top:12px; left:12px; width:16px; height:16px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      <span style="position:absolute; bottom:12px; right:12px; width:16px; height:16px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+    </sc-if>
+    <sc-if value="{{heroIconsOn}}" hint-placeholder-val="{{true}}">
+      <div style="width:100%; display:flex; justify-content:center; padding:4px 0 4px;">
+        <div style="position:relative; width:88px; height:88px;">
+          <div style="position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle, rgba(216,163,60,0.28), transparent 70%); filter:blur(6px); animation:klirGlowPulse 4s ease-in-out infinite;"></div>
+          <div style="position:absolute; top:10px; left:10px; width:64px; height:64px; border-radius:18px; background:linear-gradient(145deg,#12407a,#0058BE); box-shadow:0 16px 28px rgba(0,0,0,0.4); animation:klirFloat 5s ease-in-out infinite;">
+            <div style="position:absolute; top:0; left:12%; right:12%; height:2px; background:linear-gradient(90deg,transparent,#D8A33C,transparent); opacity:0.85;"></div>
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#D8A33C" stroke="#D8A33C" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+    <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:16px 0 18px;">Catat Ulasan Pelanggan</h3>
+    <form onsubmit="{{submitReview}}" style="display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Nama Klien</label>
+        <input type="text" value="{{reviewName}}" onchange="{{setReviewName}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" />
+      </div>
+      <div>
+        <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Rating Kepuasan</label>
+        <div style="display:flex; gap:6px;">
+          <sc-for list="{{ratingStars}}" as="st" hint-placeholder-count="5">
+            <sc-if value="{{st.filled}}" hint-placeholder-val="{{true}}"><svg onclick="{{st.onClick}}" width="26" height="26" viewBox="0 0 24 24" fill="#D8A33C" stroke="#D8A33C" stroke-width="1.2" style="cursor:pointer;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>
+            <sc-if value="{{st.notFilled}}" hint-placeholder-val="{{false}}"><svg onclick="{{st.onClick}}" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5C6474" stroke-width="1.4" style="cursor:pointer;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>
+          </sc-for>
+        </div>
+        <div style="font-size:11px; color:#8A93A3; margin-top:6px;">{{reviewRatingLabel}}</div>
+      </div>
+      <div>
+        <label style="font-size:12px; color:#8A93A3; display:block; margin-bottom:6px; font-weight:500;">Ulasan / Masukan Pelanggan</label>
+        <textarea rows="4" value="{{reviewFeedback}}" onchange="{{setReviewFeedback}}" style="width:100%; box-sizing:border-box; background:#06080C; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px 12px; color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; outline:none; resize:vertical; transition:border-color 0.15s;" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);"></textarea>
+      </div>
+      <button type="submit" style="width:100%; margin-top:4px; padding:13px; border-radius:12px; border:none; background:linear-gradient(135deg,#0058BE,#00399E); color:#F5F7FA; font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:14px; cursor:pointer; transition:filter 0.15s;" style-hover="filter:brightness(1.1);">Proses Ulasan</button>
+    </form>
+  </div>
+
+  <div style="position:relative; background:#0B0E15; border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:26px;">
+    <sc-if value="{{bracketsOn}}" hint-placeholder-val="{{true}}">
+      <span style="position:absolute; top:12px; left:12px; width:16px; height:16px; border-top:1.5px solid #D8A33C; border-left:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+      <span style="position:absolute; bottom:12px; right:12px; width:16px; height:16px; border-bottom:1.5px solid #D8A33C; border-right:1.5px solid #D8A33C; opacity:0.8; pointer-events:none;"></span>
+    </sc-if>
+    <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:#F5F7FA; margin:0 0 18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08);">Hasil Ulasan &amp; Rating</h3>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:16px; background:#06080C; border-radius:14px; border:1px solid rgba(255,255,255,0.08); gap:12px;">
+      <div>
+        <div style="font-size:11px; color:#8A93A3;">Pelanggan</div>
+        <div style="font-size:15px; font-weight:700; color:#F5F7FA; margin-top:2px;">{{resultCustomerName}}</div>
+        <div style="display:flex; gap:3px; margin-top:8px;">
+          <sc-for list="{{resultDisplayStars}}" as="ds" hint-placeholder-count="5">
+            <sc-if value="{{ds.filled}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="#D8A33C" stroke="#D8A33C" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>
+            <sc-if value="{{ds.notFilled}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5C6474" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"></polygon></svg></sc-if>
+          </sc-for>
+        </div>
+      </div>
+      <div style="text-align:right; flex-shrink:0;">
+        <sc-if value="{{resultIsPositive}}" hint-placeholder-val="{{false}}"><span style="font-size:10px; font-weight:700; padding:5px 12px; border-radius:999px; background:rgba(63,191,143,0.15); color:#3FBF8F;">PELANGGAN PUAS</span></sc-if>
+        <sc-if value="{{resultIsNeutral}}" hint-placeholder-val="{{false}}"><span style="font-size:10px; font-weight:700; padding:5px 12px; border-radius:999px; background:rgba(78,155,255,0.15); color:#4E9BFF;">CUKUP PUAS</span></sc-if>
+        <sc-if value="{{resultIsWarning}}" hint-placeholder-val="{{true}}"><span style="font-size:10px; font-weight:700; padding:5px 12px; border-radius:999px; background:rgba(216,163,60,0.18); color:#D8A33C;">PERLU PERHATIAN</span></sc-if>
+      </div>
+    </div>
+
+    <div style="margin-top:14px; padding:14px; background:#06080C; border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+      <div style="font-size:11px; color:#8A93A3; margin-bottom:6px;">Ulasan Pelanggan</div>
+      <p style="font-size:13px; color:#F5F7FA; font-style:italic; margin:0; line-height:1.6;">&ldquo;{{resultQuoteText}}&rdquo;</p>
+    </div>
+
+    <div style="margin-top:14px; padding:14px; background:rgba(78,155,255,0.06); border:1px solid rgba(0,88,190,0.2); border-radius:12px;">
+      <div style="font-size:11px; color:#4E9BFF; font-weight:700; margin-bottom:6px;">Rekomendasi Tindakan</div>
+      <sc-if value="{{resultIsPositive}}" hint-placeholder-val="{{false}}"><p style="font-size:12px; color:#8A93A3; margin:0; line-height:1.6;">Tidak ada tindakan mendesak. Waktu yang tepat untuk minta pelanggan ini merekomendasikan usaha Anda ke orang lain.</p></sc-if>
+      <sc-if value="{{resultIsNeutral}}" hint-placeholder-val="{{false}}"><p style="font-size:12px; color:#8A93A3; margin:0; line-height:1.6;">Hubungi pelanggan untuk menanyakan bagian mana yang bisa ditingkatkan.</p></sc-if>
+      <sc-if value="{{resultIsWarning}}" hint-placeholder-val="{{true}}"><p style="font-size:12px; color:#8A93A3; margin:0; line-height:1.6;">Perlu ditindaklanjuti segera. Hubungi pelanggan untuk klarifikasi dan tawarkan solusi atas ketidakpuasannya.</p></sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;reservasi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;reservasi&quot;,&quot;pengingat&quot;,&quot;ulasan&quot;],&quot;section&quot;:&quot;Perilaku&quot;},&quot;showCornerBrackets&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Tampilan&quot;},&quot;showHeroIcons&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Tampilan&quot;}}">
+class Component extends DCLogic {
+  state = {
+    activeTab: 'reservasi',
+    reservations: [
+      { id: 'r1', customerName: 'Siti Rahma', phone: '0812-3456-7890', email: '', service: 'Potong Rambut & Styling', dateISO: '2026-08-25', dateLabel: '25 Agt 2026', time: '10:00', price: 150000, status: 'MENUNGGU', bookingCode: 'BK-8823' },
+      { id: 'r2', customerName: 'Bayu Setiawan', phone: '0821-9988-1122', email: 'bayu@gmail.com', service: 'Servis AC Rumah', dateISO: '2026-08-24', dateLabel: '24 Agt 2026', time: '13:30', price: 350000, status: 'TERKONFIRMASI', bookingCode: 'BK-8801' },
+      { id: 'r3', customerName: 'Nadia Putri', phone: '0813-2211-4455', email: '', service: 'Facial Wajah', dateISO: '2026-08-22', dateLabel: '22 Agt 2026', time: '15:00', price: 220000, status: 'SELESAI', bookingCode: 'BK-8790' },
+      { id: 'r4', customerName: 'Andi Wijaya', phone: '0857-1122-3344', email: 'andi.wijaya@gmail.com', service: 'Konsultasi Desain Logo', dateISO: '2026-08-26', dateLabel: '26 Agt 2026', time: '11:00', price: 500000, status: 'MENUNGGU', bookingCode: 'BK-8830' }
+    ],
+    newResName: '', newResPhone: '', newResEmail: '', newResService: '', newResDate: '', newResTime: '', newResPrice: '',
+    selectedReminderId: 'r2',
+    reminderHistory: [
+      { id: 'h1', customerName: 'Nadia Putri', service: 'Facial Wajah', sentAtLabel: 'Kemarin, 16:40' }
+    ],
+    reviewName: '', reviewRating: 3, reviewFeedback: '',
+    reviewResult: { customerName: 'Hendra Gunawan', rating: 2, feedback: 'Waktu tunggunya lama sekali, padahal sudah reservasi dari jauh hari.' }
+  };
+
+  componentDidMount() {
+    const dt = this.props.defaultTab;
+    if (dt && dt !== this.state.activeTab) this.setState({ activeTab: dt });
+  }
+
+  formatRupiah(n) {
+    return 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+  }
+
+  formatDateLabel(iso) {
+    try {
+      return new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) { return iso; }
+  }
+
+  goToTab(tab) { this.setState({ activeTab: tab }); }
+  setField(key, value) { this.setState({ [key]: value }); }
+
+  submitNewReservation(e) {
+    e.preventDefault();
+    const s = this.state;
+    if (!s.newResName || !s.newResService) return;
+    const dateLabel = s.newResDate ? this.formatDateLabel(s.newResDate) : '';
+    const newRes = {
+      id: 'r' + Date.now(),
+      customerName: s.newResName,
+      phone: s.newResPhone,
+      email: s.newResEmail,
+      service: s.newResService,
+      dateISO: s.newResDate,
+      dateLabel: dateLabel,
+      time: s.newResTime,
+      price: Number(s.newResPrice) || 0,
+      status: 'MENUNGGU',
+      bookingCode: 'BK-' + Math.floor(1000 + Math.random() * 9000)
+    };
+    this.setState({
+      reservations: [newRes, ...s.reservations],
+      newResName: '', newResPhone: '', newResEmail: '', newResService: '', newResDate: '', newResTime: '', newResPrice: ''
+    });
+  }
+
+  confirmReservation(id) {
+    this.setState({ reservations: this.state.reservations.map(r => r.id === id ? { ...r, status: 'TERKONFIRMASI' } : r) });
+  }
+
+  completeReservation(id) {
+    this.setState({ reservations: this.state.reservations.map(r => r.id === id ? { ...r, status: 'SELESAI' } : r) });
+  }
+
+  selectReminder(id) { this.setState({ selectedReminderId: id }); }
+
+  sendReminder() {
+    const s = this.state;
+    const target = s.reservations.find(r => r.id === s.selectedReminderId);
+    if (!target) return;
+    const entry = { id: 'h' + Date.now(), customerName: target.customerName, service: target.service, sentAtLabel: 'Baru saja' };
+    this.setState({ reminderHistory: [entry, ...s.reminderHistory] });
+  }
+
+  setReviewRating(n) { this.setState({ reviewRating: n }); }
+
+  submitReview(e) {
+    e.preventDefault();
+    const s = this.state;
+    if (!s.reviewName) return;
+    this.setState({
+      reviewResult: { customerName: s.reviewName, rating: s.reviewRating, feedback: s.reviewFeedback },
+      reviewName: '', reviewFeedback: '', reviewRating: 3
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const bracketsOn = this.props.showCornerBrackets ?? true;
+    const heroIconsOn = this.props.showHeroIcons ?? true;
+
+    const tab1Active = s.activeTab === 'reservasi';
+    const tab2Active = s.activeTab === 'pengingat';
+    const tab3Active = s.activeTab === 'ulasan';
+
+    const totalBookings = s.reservations.length;
+    const confirmedCount = s.reservations.filter(r => r.status === 'TERKONFIRMASI').length;
+    const completedCount = s.reservations.filter(r => r.status === 'SELESAI').length;
+    const totalRevenueLabel = this.formatRupiah(s.reservations.reduce((sum, r) => sum + r.price, 0));
+
+    const statusNoteMap = {
+      MENUNGGU: 'Menunggu konfirmasi dari usaha.',
+      TERKONFIRMASI: 'Slot sudah dikonfirmasi, siap dilayani sesuai jadwal.',
+      SELESAI: 'Layanan sudah selesai dilayani.'
+    };
+    const statusLabelMap = { MENUNGGU: 'Menunggu Konfirmasi', TERKONFIRMASI: 'Terkonfirmasi', SELESAI: 'Selesai' };
+
+    const reservationList = s.reservations.map(r => ({
+      id: r.id,
+      customerName: r.customerName,
+      bookingCode: r.bookingCode,
+      serviceLine: r.service,
+      dateTimeLabel: (r.dateLabel || r.dateISO) + ' \u00b7 ' + r.time + ' WIB',
+      contactLabel: r.phone + (r.email ? ' \u00b7 ' + r.email : ''),
+      priceLabel: this.formatRupiah(r.price),
+      statusLabel: statusLabelMap[r.status],
+      isMenunggu: r.status === 'MENUNGGU',
+      isTerkonfirmasi: r.status === 'TERKONFIRMASI',
+      isSelesai: r.status === 'SELESAI',
+      noteText: statusNoteMap[r.status],
+      showConfirmBtn: r.status === 'MENUNGGU',
+      showCompleteBtn: r.status === 'TERKONFIRMASI',
+      onConfirm: () => this.confirmReservation(r.id),
+      onComplete: () => this.completeReservation(r.id)
+    }));
+
+    const reminderCandidates = s.reservations.filter(r => r.status !== 'SELESAI').map(r => ({
+      id: r.id,
+      label: r.customerName + ' \u2014 ' + r.service,
+      subLabel: (r.dateLabel || r.dateISO) + ' \u00b7 ' + r.time + ' WIB',
+      isSelected: r.id === s.selectedReminderId,
+      isNotSelected: r.id !== s.selectedReminderId,
+      onSelect: () => this.selectReminder(r.id)
+    }));
+
+    const selectedTarget = s.reservations.find(r => r.id === s.selectedReminderId);
+    const noReminderSelected = !selectedTarget;
+    const reminderPreviewText = selectedTarget
+      ? ('Halo ' + selectedTarget.customerName + ', ini pengingat jadwal ' + selectedTarget.service + ' Anda pada ' + (selectedTarget.dateLabel || selectedTarget.dateISO) + ' pukul ' + selectedTarget.time + '. Sampai jumpa!')
+      : 'Pilih salah satu reservasi di atas untuk melihat pratinjau pesan.';
+
+    const reminderHistoryList = s.reminderHistory.map(h => ({ id: h.id, customerName: h.customerName, serviceLine: h.service, sentAtLabel: h.sentAtLabel }));
+
+    const ratingLabelMap = { 1: 'Sangat Kecewa', 2: 'Kurang Puas', 3: 'Cukup / Netral', 4: 'Puas', 5: 'Sangat Puas' };
+    const ratingStars = [1, 2, 3, 4, 5].map(n => ({ n, filled: n <= s.reviewRating, notFilled: n > s.reviewRating, onClick: () => this.setReviewRating(n) }));
+    const reviewRatingLabel = ratingLabelMap[s.reviewRating] || '';
+
+    const rr = s.reviewResult;
+    const resultDisplayStars = rr ? [1, 2, 3, 4, 5].map(n => ({ n, filled: n <= rr.rating, notFilled: n > rr.rating })) : [];
+    const resultIsPositive = !!rr && rr.rating >= 4;
+    const resultIsNeutral = !!rr && rr.rating === 3;
+    const resultIsWarning = !!rr && rr.rating <= 2;
+
+    return {
+      tab1Active, tab1Inactive: !tab1Active,
+      tab2Active, tab2Inactive: !tab2Active,
+      tab3Active, tab3Inactive: !tab3Active,
+      goToTab1: () => this.goToTab('reservasi'),
+      goToTab2: () => this.goToTab('pengingat'),
+      goToTab3: () => this.goToTab('ulasan'),
+      bracketsOn, heroIconsOn,
+
+      totalBookings, confirmedCount, completedCount, totalRevenueLabel,
+
+      newResName: s.newResName, newResPhone: s.newResPhone, newResEmail: s.newResEmail,
+      newResService: s.newResService, newResDate: s.newResDate, newResTime: s.newResTime, newResPrice: s.newResPrice,
+      setNewResName: (e) => this.setField('newResName', e.target.value),
+      setNewResPhone: (e) => this.setField('newResPhone', e.target.value),
+      setNewResEmail: (e) => this.setField('newResEmail', e.target.value),
+      setNewResService: (e) => this.setField('newResService', e.target.value),
+      setNewResDate: (e) => this.setField('newResDate', e.target.value),
+      setNewResTime: (e) => this.setField('newResTime', e.target.value),
+      setNewResPrice: (e) => this.setField('newResPrice', e.target.value),
+      submitNewReservation: (e) => this.submitNewReservation(e),
+
+      reservationList,
+
+      reminderCandidates, noReminderSelected, reminderPreviewText,
+      sendReminder: () => this.sendReminder(),
+      reminderHistoryList,
+
+      reviewName: s.reviewName, reviewFeedback: s.reviewFeedback,
+      setReviewName: (e) => this.setField('reviewName', e.target.value),
+      setReviewFeedback: (e) => this.setField('reviewFeedback', e.target.value),
+      ratingStars, reviewRatingLabel,
+      submitReview: (e) => this.submitReview(e),
+
+      resultCustomerName: rr ? rr.customerName : '',
+      resultQuoteText: rr ? rr.feedback : '',
+      resultDisplayStars,
+      resultIsPositive, resultIsNeutral, resultIsWarning
+    };
+  }
+}
+</script>
+</body>
+</html>

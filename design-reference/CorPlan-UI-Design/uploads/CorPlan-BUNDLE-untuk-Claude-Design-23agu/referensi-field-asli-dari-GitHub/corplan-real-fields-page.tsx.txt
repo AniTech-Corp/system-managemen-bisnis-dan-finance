@@ -1,0 +1,453 @@
+          {activeView === 'corplan' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                <div>
+                  <h1 className="font-heading font-bold text-xl text-white">CorPlan — AI Business Proposal & Financial Engine</h1>
+                  <p className="text-xs text-[#8a8f98]">Generator proposal 6 bab terstruktur, kalkulator HPP, & simulator KUR.</p>
+                </div>
+
+                <div className="flex bg-[#15161c] p-1 rounded-xl border border-white/10 text-xs flex-wrap gap-1">
+                  <button
+                    onClick={() => setCorplanSubTab('generator')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${corplanSubTab === 'generator' ? 'bg-[#0058be] text-white shadow' : 'text-[#8a8f98]'}`}
+                  >
+                    1. AI Proposal (6 Bab)
+                  </button>
+                  <button
+                    onClick={() => setCorplanSubTab('pitchdeck')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${corplanSubTab === 'pitchdeck' ? 'bg-[#0058be] text-white shadow' : 'text-[#8a8f98]'}`}
+                  >
+                    2. Pitch Deck (12 Slide)
+                  </button>
+                  <button
+                    onClick={() => setCorplanSubTab('hpp')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${corplanSubTab === 'hpp' ? 'bg-[#0058be] text-white shadow' : 'text-[#8a8f98]'}`}
+                  >
+                    3. Kalkulator HPP
+                  </button>
+                  <button
+                    onClick={() => setCorplanSubTab('kur')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${corplanSubTab === 'kur' ? 'bg-[#0058be] text-white shadow' : 'text-[#8a8f98]'}`}
+                  >
+                    4. Simulator KUR
+                  </button>
+                  <button
+                    onClick={() => setCorplanSubTab('valuation')}
+                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${corplanSubTab === 'valuation' ? 'bg-[#0058be] text-white shadow' : 'text-[#8a8f98]'}`}
+                  >
+                    5. Valuasi & SWOT
+                  </button>
+                </div>
+              </div>
+
+              {corplanSubTab === 'generator' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="linear-card-glow p-6 rounded-2xl space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-sm text-white">Form Proposal Bisnis</h3>
+                        <span className="text-[10px] bg-[#8d55e8]/15 text-[#8d55e8] px-2.5 py-0.5 rounded-full border border-[#8d55e8]/30 font-bold">
+                          500 Credits
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleGenerateCorplan} className="space-y-3 text-xs">
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1 font-medium">Judul Bisnis</label>
+                          <input
+                            type="text"
+                            value={corplanTitle}
+                            onChange={(e) => setCorplanTitle(e.target.value)}
+                            required
+                            className="w-full bg-[#15161c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#0058be]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1 font-medium">Deskripsi & Target Market</label>
+                          <textarea
+                            rows={3}
+                            value={corplanDesc}
+                            onChange={(e) => setCorplanDesc(e.target.value)}
+                            className="w-full bg-[#15161c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#0058be]"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={corplanLoading}
+                          className="btn-linear-glow w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2"
+                        >
+                          {corplanLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : '⚡ Generate Proposal AI (500 Credits)'}
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="linear-card p-6 rounded-2xl space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-sm text-white">Status Dokumen</h3>
+                        <span className="text-xs bg-white/5 px-2.5 py-0.5 rounded-full text-[#8a8f98]">Neon DB Connected</span>
+                      </div>
+                      <div className="p-3 bg-[#15161c] border border-[#0058be]/50 rounded-xl flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="font-semibold text-xs text-white">{corplanTitle}</div>
+                          <div className="text-[10px] text-[#626770]">6 Bab Proposal • Hybrid Sync Seq #1</div>
+                        </div>
+                        <span className="text-[10px] font-bold bg-[#00e676]/15 text-[#00e676] px-2 py-0.5 rounded border border-[#00e676]/30">READY</span>
+                      </div>
+                      <div className="p-4 bg-[#121318] border border-white/10 rounded-xl space-y-2 text-xs text-[#8a8f98]">
+                        <div className="text-white font-medium flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-[#00d2ff]" /> Integrasi Lintas Pilar Ekosistem:
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          Gunakan tombol <strong>"Bagikan Konteks"</strong> untuk menyinkronkan profil bisnis ini ke asisten <strong>AniVirtual</strong> dan pembukuan <strong>KLIR Kas</strong> tanpa input ulang.
+                        </p>
+                        <button
+                          onClick={handleShareContextToAniVirtual}
+                          className="w-full py-2 bg-[#0058be]/15 border border-[#0058be]/30 hover:bg-[#0058be]/25 rounded-lg text-[11px] font-bold text-[#00d2ff] flex items-center justify-center gap-2 transition-all mt-2"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Bagikan Konteks ke AniVirtual Memory</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {activeCorplanData && (
+                    <div className="linear-card p-6 rounded-2xl space-y-4 border-[#0058be]/40">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h2 className="font-heading font-bold text-lg text-[#00d2ff]">{activeCorplanData.title}</h2>
+                          <div className="text-xs text-[#8a8f98] flex gap-3 mt-1">
+                            <span>Status: <strong className="text-[#00e676]">GENERATED LIVE</strong></span>
+                            <span>•</span>
+                            <span>Model: <strong className="text-white">Google Gemini AI</strong></span>
+                            <span>•</span>
+                            <span>Revision Seq: <strong className="text-[#0058be]">{activeCorplanData.revisionSeq || 1}</strong></span>
+                          </div>
+                        </div>
+                        <button onClick={handleSyncCorplan} className="px-3 py-1.5 bg-[#181920] border border-white/10 hover:bg-white/10 rounded-lg text-xs font-medium flex items-center gap-2">
+                          <RefreshCw className="w-3.5 h-3.5 text-[#0058be]" />
+                          <span>Hybrid Sync Client-to-Server</span>
+                        </button>
+                      </div>
+
+                      <div className="flex gap-2 border-b border-white/10 pb-2 text-xs overflow-x-auto">
+                        {(['bab1', 'bab2', 'bab3', 'bab4', 'bab5', 'bab6'] as const).map((bab, idx) => (
+                          <button
+                            key={bab}
+                            onClick={() => setActiveBabTab(bab)}
+                            className={`px-3 py-1.5 rounded-lg font-medium transition-all shrink-0 ${activeBabTab === bab ? 'bg-[#0058be] text-white' : 'text-[#8a8f98] hover:text-white'}`}
+                          >
+                            Bab {idx + 1}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="p-4 bg-[#15161c] border border-white/10 rounded-xl text-xs leading-relaxed text-[#f7f8f8]">
+                        {activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_eksekutif_summary`] ||
+                          activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_analisis_pasar`] ||
+                          activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_rencana_pemasaran`] ||
+                          activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_rencana_operasional`] ||
+                          activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_rencana_keuangan`] ||
+                          activeCorplanData.outputs?.[0]?.outputData?.[`bab${activeBabTab.slice(-1)}_manajemen_risiko`] ||
+                          `Bab ${activeBabTab.slice(-1)} proposal bisnis terstruktur telah siap diaudit.`}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {corplanSubTab === 'pitchdeck' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="linear-card-glow p-6 rounded-2xl space-y-4 col-span-1">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-sm text-white">Generate Pitch Deck (12 Slide)</h3>
+                        <span className="text-[10px] bg-[#8d55e8]/15 text-[#8d55e8] px-2.5 py-0.5 rounded-full border border-[#8d55e8]/30 font-bold">
+                          300 Credits
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleGeneratePitchDeck} className="space-y-3 text-xs">
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Judul Bisnis</label>
+                          <input
+                            type="text"
+                            value={corplanTitle}
+                            onChange={(e) => setCorplanTitle(e.target.value)}
+                            required
+                            className="w-full bg-[#15161c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#0058be]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Target Market</label>
+                          <input
+                            type="text"
+                            value={pitchTargetMarket}
+                            onChange={(e) => setPitchTargetMarket(e.target.value)}
+                            className="w-full bg-[#15161c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#0058be]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Target Pendanaan (The Ask)</label>
+                          <input
+                            type="text"
+                            value={pitchFundingGoal}
+                            onChange={(e) => setPitchFundingGoal(e.target.value)}
+                            className="w-full bg-[#15161c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#0058be]"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={pitchDeckLoading}
+                          className="btn-linear-glow w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2"
+                        >
+                          {pitchDeckLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : '📊 Generate 12 Slide Investor (300 Credits)'}
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="linear-card p-6 rounded-2xl col-span-2 space-y-4 overflow-y-auto max-h-[600px]">
+                      <h3 className="font-semibold text-sm text-white">Preview 12 Slide Presentasi Investor</h3>
+                      {pitchDeckData?.slides ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          {pitchDeckData.slides.map((s: any) => (
+                            <div key={s.slideNumber} className="p-3 bg-[#15161c] border border-white/10 rounded-xl space-y-1.5 text-xs">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-[#00d2ff]">Slide {s.slideNumber}: {s.topic}</span>
+                              </div>
+                              <p className="font-medium text-white text-[11px]">{s.headline}</p>
+                              <ul className="text-[10px] text-[#8a8f98] list-disc list-inside space-y-0.5">
+                                {s.bullets?.map((b: string, i: number) => (
+                                  <li key={i}>{b}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[#8a8f98] italic">Klik "Generate 12 Slide Investor" untuk menyusun materi presentasi investor otomatis.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {corplanSubTab === 'hpp' && (
+                <div className="grid grid-cols-2 gap-6 text-xs">
+                  <div className="linear-card-glow p-6 rounded-2xl space-y-4">
+                    <h3 className="font-semibold text-sm flex items-center gap-2 text-white">
+                      <Calculator className="w-4 h-4 text-[#0058be]" /> Form Kalkulator HPP & Margin
+                    </h3>
+                    <form onSubmit={handleCalculateHPP} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Bahan Baku (Rp/Unit)</label>
+                          <input type="number" value={hppRaw} onChange={(e) => setHppRaw(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Tenaga Kerja (Rp/Unit)</label>
+                          <input type="number" value={hppLabor} onChange={(e) => setHppLabor(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Overhead (Rp/Unit)</label>
+                          <input type="number" value={hppOverhead} onChange={(e) => setHppOverhead(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Harga Jual (Rp/Unit)</label>
+                          <input type="number" value={hppPrice} onChange={(e) => setHppPrice(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[#8a8f98] block mb-1">Target Volume Penjualan / Bulan</label>
+                        <input type="number" value={hppVolume} onChange={(e) => setHppVolume(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                      </div>
+                      <button type="submit" className="btn-linear-glow w-full py-2.5 rounded-lg font-semibold">
+                        Hitung HPP & Margin Profit
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="linear-card p-6 rounded-2xl space-y-4">
+                    <h3 className="font-semibold text-sm text-white">Hasil Perhitungan Finansial HPP</h3>
+                    {hppResult ? (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Total HPP / Unit:</span>
+                          <span className="font-bold text-white">Rp {hppResult.totalHPPPerUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Laba Kotor / Unit:</span>
+                          <span className="font-bold text-[#00e676]">Rp {hppResult.grossProfitPerUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Margin Persentase:</span>
+                          <span className="font-bold text-[#00d2ff]">{hppResult.marginPercentage}</span>
+                        </div>
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Proyeksi Omset Bulanan:</span>
+                          <span className="font-bold text-[#ffab00]">Rp {hppResult.totalMonthlyRevenue.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#8a8f98] italic">Klik "Hitung HPP" untuk melihat kalkulasi rasio finansial.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {corplanSubTab === 'kur' && (
+                <div className="grid grid-cols-2 gap-6 text-xs">
+                  <div className="linear-card-glow p-6 rounded-2xl space-y-4">
+                    <h3 className="font-semibold text-sm flex items-center gap-2 text-white">
+                      <Building className="w-4 h-4 text-[#00d2ff]" /> Form Simulator Pinjaman KUR
+                    </h3>
+                    <form onSubmit={handleSimulateKUR} className="space-y-3">
+                      <div>
+                        <label className="text-[#8a8f98] block mb-1 font-medium">Plafond Pinjaman (Rp)</label>
+                        <input
+                          type="number"
+                          value={kurLoanAmount}
+                          onChange={(e) => setKurLoanAmount(e.target.value)}
+                          className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[#8a8f98] block mb-1 font-medium">Tenor (Bulan)</label>
+                        <select
+                          value={kurTenorMonths}
+                          onChange={(e) => setKurTenorMonths(e.target.value)}
+                          className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white"
+                        >
+                          <option value="12">12 Bulan (1 Tahun)</option>
+                          <option value="24">24 Bulan (2 Tahun)</option>
+                          <option value="36">36 Bulan (3 Tahun)</option>
+                          <option value="60">60 Bulan (5 Tahun)</option>
+                        </select>
+                      </div>
+                      <button type="submit" className="btn-linear-glow w-full py-2.5 rounded-lg font-semibold">
+                        Simulasikan Angsuran KUR (Bunga Subsider 6%)
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="linear-card p-6 rounded-2xl space-y-4">
+                    <h3 className="font-semibold text-sm text-white">Hasil Simulasi Angsuran KUR</h3>
+                    {kurResult ? (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Angsuran Bulanan:</span>
+                          <span className="font-bold text-[#00e676] text-sm">Rp {kurResult.monthlyInstallment.toLocaleString()} / bulan</span>
+                        </div>
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Pokok Bulanan:</span>
+                          <span className="font-bold text-white">Rp {kurResult.monthlyPrincipal.toLocaleString()}</span>
+                        </div>
+                        <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                          <span className="text-[#8a8f98]">Total Bunga Subsider:</span>
+                          <span className="font-bold text-[#ffab00]">Rp {kurResult.totalInterest.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#8a8f98] italic">Klik "Simulasikan Angsuran" untuk menghitung skema pengembalian.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {corplanSubTab === 'valuation' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6 text-xs">
+                    <div className="linear-card-glow p-6 rounded-2xl space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-sm text-white">Kalkulator Valuasi & SWOT Matrix</h3>
+                        <span className="text-[10px] bg-[#8d55e8]/15 text-[#8d55e8] px-2.5 py-0.5 rounded-full border border-[#8d55e8]/30 font-bold">
+                          50 Credits
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleValuationAndSwot} className="space-y-3">
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Omset Tahunan (Rp)</label>
+                          <input type="number" value={valRevenue} onChange={(e) => setValRevenue(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Laba Bersih Tahunan (Rp)</label>
+                          <input type="number" value={valProfit} onChange={(e) => setValProfit(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white" />
+                        </div>
+                        <div>
+                          <label className="text-[#8a8f98] block mb-1">Sektor Industri</label>
+                          <select value={valIndustry} onChange={(e) => setValIndustry(e.target.value)} className="w-full bg-[#15161c] border border-white/10 rounded-lg p-2 text-white">
+                            <option value="F&B / Retail Specialist">F&B / Kuliner & Retail</option>
+                            <option value="Technology & SaaS AI">Teknologi & SaaS AI</option>
+                            <option value="Jasa & Konsultansi">Jasa & Konsultansi</option>
+                            <option value="Manufaktur & Konveksi">Manufaktur & Konveksi</option>
+                          </select>
+                        </div>
+                        <button type="submit" disabled={valuationLoading} className="btn-linear-glow w-full py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2">
+                          {valuationLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : '📈 Hitung Valuasi & Analisis SWOT (50 Credits)'}
+                        </button>
+                      </form>
+                    </div>
+
+                    <div className="linear-card p-6 rounded-2xl space-y-4">
+                      <h3 className="font-semibold text-sm text-white">Hasil Estimasi Valuasi Usaha</h3>
+                      {valuationData?.valuation ? (
+                        <div className="space-y-3">
+                          <div className="p-3 bg-[#00e676]/10 border border-[#00e676]/30 rounded-xl flex justify-between">
+                            <span className="text-[#8a8f98]">Estimasi Nilai Pasar Wajar:</span>
+                            <span className="font-bold text-[#00e676] text-sm">Rp {valuationData.valuation.estimatedFairValuation.toLocaleString()}</span>
+                          </div>
+                          <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                            <span className="text-[#8a8f98]">Valuasi Basis Revenue:</span>
+                            <span className="font-bold text-white">Rp {valuationData.valuation.valuationByRevenue.toLocaleString()}</span>
+                          </div>
+                          <div className="p-3 bg-[#15161c] border border-white/10 rounded-xl flex justify-between">
+                            <span className="text-[#8a8f98]">Valuasi Basis Laba (P/E Multiple):</span>
+                            <span className="font-bold text-[#00d2ff]">Rp {valuationData.valuation.valuationByProfit.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[#8a8f98] italic">Submit form untuk melihat estimasi valuasi bisnis dan analisis SWOT.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {valuationData?.swot && (
+                    <div className="linear-card p-6 rounded-2xl space-y-4">
+                      <h3 className="font-semibold text-sm text-white">Analisis SWOT & Mitigasi Risiko AI</h3>
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div className="p-4 bg-[#00e676]/5 border border-[#00e676]/20 rounded-xl space-y-1">
+                          <span className="font-bold text-[#00e676] block mb-1">💪 Kekuatan (Strengths)</span>
+                          <ul className="list-disc list-inside text-[#8a8f98] space-y-0.5">
+                            {valuationData.swot.strengths?.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div className="p-4 bg-[#ffab00]/5 border border-[#ffab00]/20 rounded-xl space-y-1">
+                          <span className="font-bold text-[#ffab00] block mb-1">⚠️ Kelemahan (Weaknesses)</span>
+                          <ul className="list-disc list-inside text-[#8a8f98] space-y-0.5">
+                            {valuationData.swot.weaknesses?.map((w: string, i: number) => <li key={i}>{w}</li>)}
+                          </ul>
+                        </div>
+                        <div className="p-4 bg-[#00d2ff]/5 border border-[#00d2ff]/20 rounded-xl space-y-1">
+                          <span className="font-bold text-[#00d2ff] block mb-1">🚀 Peluang (Opportunities)</span>
+                          <ul className="list-disc list-inside text-[#8a8f98] space-y-0.5">
+                            {valuationData.swot.opportunities?.map((o: string, i: number) => <li key={i}>{o}</li>)}
+                          </ul>
+                        </div>
+                        <div className="p-4 bg-[#ff5252]/5 border border-[#ff5252]/20 rounded-xl space-y-1">
+                          <span className="font-bold text-[#ff5252] block mb-1">🛑 Ancaman (Threats)</span>
+                          <ul className="list-disc list-inside text-[#8a8f98] space-y-0.5">
+                            {valuationData.swot.threats?.map((t: string, i: number) => <li key={i}>{t}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* VIEW 2: ANIVIRTUAL */}

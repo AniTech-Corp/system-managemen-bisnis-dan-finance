@@ -1,0 +1,808 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #0A0E15;
+    --bg-canvas: #06080C;
+    --bg-sidebar: #0B0E14;
+    --bg-card: #10141C;
+    --bg-card-hover: #171E2B;
+    --bg-input: #15161c;
+
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-glow: rgba(0, 88, 190, 0.35);
+
+    --accent-blue-pri: #0058BE;
+    --accent-blue-light: #4E9BFF;
+    --accent-gold: #D8A33C;
+    --accent-emerald: #3FBF8F;
+
+    --text-primary: #F5F7FA;
+    --text-secondary: #8A93A3;
+    --text-muted: #5C6474;
+  }
+
+  html {
+    background-color: var(--bg-canvas, #06080C);
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image: 
+      radial-gradient(ellipse at 50% 0%, rgba(0, 88, 190, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(141, 85, 232, 0.06) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+.font-heading {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Linear Glassmorphism Card System with Crisp Box Geometry */
+.linear-card {
+  background-color: rgba(18, 19, 24, 0.75);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09), 0 20px 40px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.linear-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 25px 60px rgba(0, 0, 0, 0.6);
+  transform: translateY(-2px);
+}
+
+.linear-card-glow {
+  background: linear-gradient(180deg, rgba(20, 22, 30, 0.85) 0%, rgba(14, 15, 20, 0.95) 100%);
+  border: 1px solid rgba(0, 88, 190, 0.35);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 0 40px rgba(0, 88, 190, 0.15);
+  backdrop-filter: blur(24px);
+}
+
+.btn-linear-glow {
+  background: linear-gradient(135deg, #0058be 0%, #8d55e8 100%);
+  color: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 0 24px rgba(0, 88, 190, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-linear-glow:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 35px rgba(0, 88, 190, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  opacity: 0.96;
+}
+
+@keyframes klirHudPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.85; }
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Enhanced Form Input & Focus State */
+.input-linear {
+  width: 100%;
+  background-color: rgba(21, 22, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0.625rem 0.875rem;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+.input-linear:focus {
+  border-color: #0058be;
+  box-shadow: 0 0 0 2px rgba(0, 88, 190, 0.3), 0 0 16px rgba(0, 88, 190, 0.2);
+  background-color: rgba(26, 28, 36, 0.95);
+}
+.input-linear::placeholder {
+  color: #626770;
+}
+
+/* Sub-Tab Navigation Boxy Styles */
+.pill-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.pill-tab-active {
+  background: rgba(0, 88, 190, 0.22);
+  color: #00d2ff;
+  border-color: rgba(0, 88, 190, 0.45);
+  box-shadow: 0 0 16px rgba(0, 88, 190, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.pill-tab-inactive {
+  color: #8a8f98;
+  background: transparent;
+}
+.pill-tab-inactive:hover {
+  color: #f7f8f8;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Badge Design Tokens with Crisp Rounded-Box Geometry */
+.badge-cyber {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: rgba(0, 210, 255, 0.12);
+  color: #00d2ff;
+  border: 1px solid rgba(0, 210, 255, 0.25);
+}
+.badge-emerald {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: rgba(0, 230, 118, 0.12);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.25);
+}
+.badge-amber {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: rgba(255, 171, 0, 0.12);
+  color: #ffab00;
+  border: 1px solid rgba(255, 171, 0, 0.25);
+}
+.badge-crimson {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: rgba(255, 82, 82, 0.12);
+  color: #ff5252;
+  border: 1px solid rgba(255, 82, 82, 0.25);
+}
+.badge-purple {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 5px;
+  background: rgba(141, 85, 232, 0.15);
+  color: #8d55e8;
+  border: 1px solid rgba(141, 85, 232, 0.3);
+}
+
+
+/* Signature KLIR HUD Corner Brackets */
+.hud-bracket-gold {
+  position: relative;
+}
+.hud-bracket-gold::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 1.5px solid rgba(216, 163, 60, 0.75);
+  border-left: 1.5px solid rgba(216, 163, 60, 0.75);
+  border-radius: 4px 0 0 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.hud-bracket-gold::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 1.5px solid rgba(216, 163, 60, 0.75);
+  border-right: 1.5px solid rgba(216, 163, 60, 0.75);
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hud-bracket-blue {
+  position: relative;
+}
+.hud-bracket-blue::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border-top: 1.5px solid rgba(78, 155, 255, 0.75);
+  border-left: 1.5px solid rgba(78, 155, 255, 0.75);
+  border-radius: 4px 0 0 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.hud-bracket-blue::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 1.5px solid rgba(78, 155, 255, 0.75);
+  border-right: 1.5px solid rgba(78, 155, 255, 0.75);
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Numbered Monospace Subtab Pills */
+.tab-pill-numbered {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+}
+.tab-pill-numbered-active {
+  background: rgba(0, 88, 190, 0.2);
+  border-color: rgba(78, 155, 255, 0.45);
+  color: #f5f7fa;
+  box-shadow: 0 0 20px rgba(0, 88, 190, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.tab-pill-numbered-inactive {
+  background: transparent;
+  color: #8a93a3;
+}
+.tab-pill-numbered-inactive:hover {
+  color: #f5f7fa;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.num-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: inherit;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile guard for the shared portal header. The desktop shell stays identical;
+   on narrow screens the center tabs scroll inside their own lane and the right
+   role/session controls remain anchored to the viewport instead of overflowing. */
+@media (max-width: 640px) {
+  .klir-top-navbar {
+    position: relative;
+    gap: 8px !important;
+    padding: 0 8px !important;
+  }
+
+  .klir-brand {
+    min-width: 24px !important;
+    gap: 0 !important;
+    flex: 0 0 24px;
+  }
+
+  .klir-brand-word {
+    display: none;
+  }
+
+  .klir-top-navbar > div:nth-child(2) {
+    min-width: 0;
+    max-width: calc(100vw - 106px);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1 1 auto;
+  }
+
+  .klir-top-navbar > div:nth-child(2)::-webkit-scrollbar {
+    display: none;
+  }
+
+  .klir-top-navbar > div:nth-child(2) button {
+    padding: 6px 8px !important;
+    gap: 5px !important;
+    font-size: 10px !important;
+    white-space: nowrap;
+  }
+
+  .klir-role-actions {
+    flex: 0 0 auto;
+    gap: 4px !important;
+  }
+
+  .klir-role-profile {
+    max-width: 32px;
+    padding: 0 6px !important;
+  }
+
+  .klir-role-name {
+    display: none;
+  }
+
+  .klir-role-back {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+/* Reference Mockup Visual Animations */
+@keyframes klirDrift {
+  0% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+  50% { transform: translate3d(0,-14px,0) scale(1.04); opacity: 1; }
+  100% { transform: translate3d(0,0,0) scale(1); opacity: 0.85; }
+}
+@keyframes klirDriftGold {
+  0% { transform: translate3d(0,0,0) scale(1); }
+  50% { transform: translate3d(-16px,8px,0) scale(1.05); }
+  100% { transform: translate3d(0,0,0) scale(1); }
+}
+@keyframes docBob {
+  0%, 100% { transform: rotateX(55deg) rotateZ(-38deg) translateY(0); }
+  50% { transform: rotateX(55deg) rotateZ(-38deg) translateY(-10px); }
+}
+@keyframes nexusSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes floatY2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-6px) rotate(2deg); }
+}
+@keyframes floatSlow2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes kpFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes kpSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes avPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+}
+@keyframes avSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes spinSlowCCW {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+@keyframes klirBeat {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+@keyframes klirFloat {
+  0%, 100% { transform: rotateX(12deg) rotateY(-16deg) translateY(0); }
+  50% { transform: rotateX(12deg) rotateY(-16deg) translateY(-7px); }
+}
+@keyframes klirGlowPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.85; }
+}
+@keyframes pulseRing {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes rotateGentle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes coinSpin {
+  0%, 100% { transform: rotateZ(-3deg); }
+  50% { transform: rotateZ(3deg); }
+}
+@keyframes slideMarker {
+  0% { left: 6%; }
+  50% { left: 72%; }
+  100% { left: 6%; }
+}
+@keyframes softGlow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* 3D Crystal Gem & Gyroscopic Orbital Rings Keyframes */
+@keyframes crystalSpin3D {
+  0% { transform: rotateX(18deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
+  50% { transform: rotateX(32deg) rotateY(180deg) rotateZ(12deg) translateY(-8px); }
+  100% { transform: rotateX(18deg) rotateY(360deg) rotateZ(0deg) translateY(0); }
+}
+
+@keyframes gemFloat {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-10px) scale(1.04); }
+}
+
+@keyframes ringOrbit1 {
+  0% { transform: rotateX(68deg) rotateY(15deg) rotateZ(0deg); }
+  100% { transform: rotateX(68deg) rotateY(15deg) rotateZ(360deg); }
+}
+
+@keyframes ringOrbit2 {
+  0% { transform: rotateX(-50deg) rotateY(45deg) rotateZ(0deg); }
+  100% { transform: rotateX(-50deg) rotateY(45deg) rotateZ(-360deg); }
+}
+
+@keyframes ringOrbit3 {
+  0% { transform: rotateX(20deg) rotateY(-60deg) rotateZ(0deg); }
+  100% { transform: rotateX(20deg) rotateY(-60deg) rotateZ(360deg); }
+}
+
+/* Division-picker: 3D floating hero visual */
+@keyframes klirHeroPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@keyframes klirHeroTilt {
+  0%, 100% { transform: translateX(-10px) rotateX(11deg) rotateY(-19deg); }
+  50% { transform: translateX(-10px) rotateX(8deg) rotateY(-13deg); }
+}
+@keyframes klirHeroHalo {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+/* satu keyframe per kartu, depth-nya di-hardcode langsung */
+@keyframes klirHeroFloatBack {
+  0%, 100% { transform: translate3d(0, 0, -95px); }
+  50% { transform: translate3d(0, -9px, -95px); }
+}
+@keyframes klirHeroFloatMid {
+  0%, 100% { transform: translate3d(0, 0, 0px); }
+  50% { transform: translate3d(0, -9px, 0px); }
+}
+@keyframes klirHeroFloatFront {
+  0%, 100% { transform: translate3d(0, 0, 95px); }
+  50% { transform: translate3d(0, -9px, 95px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .klir-hero-visual,
+  .klir-hero-visual * {
+    animation: none !important;
+  }
+}
+@keyframes klirUp {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes klirFade {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes klirSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes klirBeat {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes klirSheen {
+  0% { transform: translateX(-130%); }
+  55% { transform: translateX(130%); }
+  100% { transform: translateX(130%); }
+}
+
+/* ========================================================================= */
+/* LUXURY ENTERPRISE DESIGN TOKENS (SAP FIORI & OBSIDIAN LUXURY COCKPIT)    */
+/* ========================================================================= */
+
+.sap-shell-bar {
+  background: rgba(8, 11, 16, 0.82) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5) !important;
+}
+
+.sap-fiori-tile {
+  position: relative;
+  background: linear-gradient(180deg, rgba(16, 21, 30, 0.85) 0%, rgba(10, 13, 20, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 30px -4px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 6px !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.sap-fiori-tile:hover {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 14px 40px -4px rgba(0, 0, 0, 0.65) !important;
+  transform: translateY(-2px);
+}
+
+.sap-kpi-number {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: -0.03em !important;
+}
+
+.sap-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2.5px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.sap-status-pill-safe {
+  background: rgba(0, 230, 118, 0.10);
+  color: #00E676;
+  border: 1px solid rgba(0, 230, 118, 0.28);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.12);
+}
+
+.sap-status-pill-warning {
+  background: rgba(216, 163, 60, 0.12);
+  color: #F59E0B;
+  border: 1px solid rgba(216, 163, 60, 0.28);
+  box-shadow: 0 0 12px rgba(216, 163, 60, 0.12);
+}
+
+.sap-status-pill-danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
+}
+
+.sap-status-pill-info {
+  background: rgba(78, 155, 255, 0.12);
+  color: #4E9BFF;
+  border: 1px solid rgba(78, 155, 255, 0.28);
+  box-shadow: 0 0 12px rgba(78, 155, 255, 0.12);
+}
+
+.sap-status-pill-purple {
+  background: rgba(141, 85, 232, 0.12);
+  color: #A78BFA;
+  border: 1px solid rgba(141, 85, 232, 0.28);
+  box-shadow: 0 0 12px rgba(141, 85, 232, 0.12);
+}
+
+.sap-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: klirBeat 2s infinite ease-in-out;
+}
+
+.sap-smart-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12.5px;
+}
+
+.sap-smart-table th {
+  background: rgba(15, 20, 30, 0.85);
+  color: #8A93A3;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.sap-smart-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #E2E8F0;
+  transition: background 120ms ease;
+}
+
+.sap-smart-table tr:hover td {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.sap-doc-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #4E9BFF;
+  letter-spacing: -0.01em;
+}
+
+/* ========================================================================= */
+/* Minimal Executive Toolbar (Clean Luxury SAP / Linear Style)               */
+/* ========================================================================= */
+.sap-toolbar-bar {
+  position: relative;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 5px;
+  background: rgba(14, 19, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  flex-wrap: wrap;
+}
+
+.sap-toolbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #CBD5E1;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.sap-toolbar-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sap-toolbar-select {
+  background: transparent;
+  border: none;
+  color: #F1F5F9;
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.sap-toolbar-select option {
+  background: #0D1117;
+  color: #F1F5F9;
+}
+
+.sap-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 3px;
+}
+
+.sap-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #CBD5E1;
+}
+
+.sap-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
+}
+
+.sap-toolbar-btn-accent {
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+}
+
+.sap-toolbar-btn-accent:hover {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7DD3FC;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+

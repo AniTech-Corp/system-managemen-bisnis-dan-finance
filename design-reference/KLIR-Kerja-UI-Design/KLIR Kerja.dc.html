@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com"></link>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"></link>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;background:#06080C;color:#F5F7FA;font-family:'Plus Jakarta Sans',sans-serif;}
+a{color:#4E9BFF;text-decoration:none;}
+a:hover{color:#7FB4FF;}
+::selection{background:rgba(78,155,255,0.35);}
+@keyframes floatSlow{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-6px) rotate(2deg);}}
+@keyframes floatSlow2{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+@keyframes pulseRing{0%{transform:scale(0.6);opacity:0.7;}100%{transform:scale(1.8);opacity:0;}}
+@keyframes softGlow{0%,100%{opacity:0.55;}50%{opacity:1;}}
+[data-tab-nav]::-webkit-scrollbar{display:none;}
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(circle at 50% -10%, rgba(0,88,190,0.12), transparent 60%),#06080C;padding:32px clamp(16px,4vw,48px) 72px;">
+<div style="max-width:1440px;margin:0 auto;">
+
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;">
+  <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#0058BE,#4E9BFF);display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;color:#F5F7FA;">K</div>
+  <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;color:#F5F7FA;letter-spacing:0.02em;">KLIR</span>
+  <span style="color:#5C6474;font-size:13px;">/</span>
+  <span style="color:#8A93A3;font-size:13px;font-weight:500;">Kerja</span>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:28px;">
+  <div>
+    <h1 style="font-family:'Outfit',sans-serif;font-weight:700;font-size:26px;color:#F5F7FA;margin:0 0 6px;">KLIR Kerja</h1>
+    <p style="font-size:13px;color:#8A93A3;margin:0;max-width:520px;line-height:1.5;">Kelola papan tugas, presensi, gaji, evaluasi kinerja, dan panduan kerja tim — semua dalam satu tempat.</p>
+  </div>
+  <div data-tab-nav="1" style="display:flex;gap:6px;background:#0C0E14;padding:6px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none;">
+    <button type="button" style="{{ kanbanTabStyle }}" onClick="{{ goToKanban }}">Papan Tugas</button>
+    <button type="button" style="{{ attendanceTabStyle }}" onClick="{{ goToAttendance }}">Presensi</button>
+    <button type="button" style="{{ payrollTabStyle }}" onClick="{{ goToPayroll }}">Penggajian</button>
+    <button type="button" style="{{ kpiTabStyle }}" onClick="{{ goToKpi }}">Evaluasi Kinerja</button>
+    <button type="button" style="{{ sopTabStyle }}" onClick="{{ goToSop }}">Generator SOP</button>
+  </div>
+</div>
+
+<sc-if value="{{ isKanban }}" hint-placeholder-val="{{ true }}">
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:600;font-size:19px;color:#F5F7FA;margin:0 0 4px;">Papan Tugas</h2>
+      <p style="font-size:13px;color:#8A93A3;margin:0;max-width:480px;">Atur semua tugas tim dalam satu papan, dari belum dikerjakan sampai selesai.</p>
+    </div>
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <div style="position:absolute;inset:-16px;background:radial-gradient(circle,rgba(78,155,255,0.14),transparent 70%);"></div>
+      <div style="position:absolute;top:30px;left:4px;width:40px;height:26px;background:#15161C;border:1px solid rgba(92,100,116,0.45);border-radius:6px;transform:rotate(-9deg);animation:floatSlow2 7s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:20px;left:13px;width:40px;height:26px;background:#171922;border:1px solid rgba(78,155,255,0.45);border-radius:6px;transform:rotate(-2deg);animation:floatSlow 6s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:10px;left:22px;width:40px;height:26px;background:#1A1C24;border:1px solid rgba(216,163,60,0.55);border-radius:6px;transform:rotate(4deg);animation:floatSlow2 8s ease-in-out infinite;">
+        <div style="position:absolute;top:6px;left:6px;width:5px;height:5px;border-radius:50%;background:#4E9BFF;"></div>
+        <div style="position:absolute;top:14px;left:6px;width:26px;height:3px;border-radius:2px;background:rgba(255,255,255,0.14);"></div>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ showQuickAddForm }}" hint-placeholder-val="{{ true }}">
+  <form onSubmit="{{ addTask }}" style="background:#0C0E14;border:1px solid rgba(78,155,255,0.18);border-radius:16px;padding:16px 18px;box-shadow:0 0 32px rgba(78,155,255,0.06);display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:22px;">
+    <input type="text" required="required" placeholder="Judul Tugas Baru" value="{{ newTaskTitle }}" onChange="{{ setNewTaskTitle }}" style="flex:2;min-width:220px;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+    <input type="text" placeholder="Nama PIC" value="{{ newTaskAssignee }}" onChange="{{ setNewTaskAssignee }}" style="width:160px;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+    <select value="{{ newTaskPriority }}" onChange="{{ setNewTaskPriority }}" style="background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;">
+      <option value="LOW">Low</option>
+      <option value="MEDIUM">Medium</option>
+      <option value="HIGH">High</option>
+      <option value="URGENT">Urgent</option>
+    </select>
+    <button type="submit" style="background:#0058BE;border:1px solid rgba(78,155,255,0.5);border-radius:10px;padding:10px 18px;color:#F5F7FA;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,88,190,0.3);white-space:nowrap;" style-hover="background:#0067DE;">+ Tambah Tugas</button>
+  </form>
+  </sc-if>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;min-height:180px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:10px;margin-bottom:12px;">
+        <span style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:#F5F7FA;"><span style="width:7px;height:7px;border-radius:50%;background:#5C6474;display:inline-block;"></span>Belum Dikerjakan</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.08);color:#8A93A3;padding:2px 8px;border-radius:999px;">{{ todoCount }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ tasksTodo }}" as="t" hint-placeholder-count="2">
+          <div style="background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:13px;font-weight:600;color:#F5F7FA;">{{ t.title }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#8A93A3;">
+              <span>{{ t.assignee }}</span>
+              <span style="font-weight:700;color:{{ t.priorityColor }};background:{{ t.priorityBg }};padding:2px 8px;border-radius:999px;font-size:10px;">{{ t.priorityLabel }}</span>
+            </div>
+            <button type="button" onClick="{{ t.moveNext }}" style="width:100%;padding:7px;background:rgba(0,88,190,0.16);border:1px solid rgba(78,155,255,0.3);color:#4E9BFF;font-weight:600;font-size:11px;border-radius:8px;cursor:pointer;" style-hover="background:rgba(0,88,190,0.26);">{{ t.moveLabel }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;min-height:180px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:10px;margin-bottom:12px;">
+        <span style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:#F5F7FA;"><span style="width:7px;height:7px;border-radius:50%;background:#4E9BFF;display:inline-block;"></span>Sedang Berjalan</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.08);color:#8A93A3;padding:2px 8px;border-radius:999px;">{{ inProgressCount }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ tasksInProgress }}" as="t" hint-placeholder-count="2">
+          <div style="background:#15161C;border:1px solid rgba(78,155,255,0.25);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;">
+            <div style="font-size:13px;font-weight:600;color:#F5F7FA;">{{ t.title }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#8A93A3;">
+              <span>{{ t.assignee }}</span>
+              <span style="font-weight:700;color:{{ t.priorityColor }};background:{{ t.priorityBg }};padding:2px 8px;border-radius:999px;font-size:10px;">{{ t.priorityLabel }}</span>
+            </div>
+            <button type="button" onClick="{{ t.moveNext }}" style="width:100%;padding:7px;background:rgba(63,191,143,0.16);border:1px solid rgba(63,191,143,0.3);color:#3FBF8F;font-weight:600;font-size:11px;border-radius:8px;cursor:pointer;" style-hover="background:rgba(63,191,143,0.26);">{{ t.moveLabel }}</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:14px;min-height:180px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:10px;margin-bottom:12px;">
+        <span style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:#F5F7FA;"><span style="width:7px;height:7px;border-radius:50%;background:#3FBF8F;display:inline-block;"></span>Selesai</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(255,255,255,0.08);color:#8A93A3;padding:2px 8px;border-radius:999px;">{{ doneCount }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ tasksDone }}" as="t" hint-placeholder-count="2">
+          <div style="background:#15161C;border:1px solid rgba(63,191,143,0.18);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;opacity:0.75;">
+            <div style="font-size:13px;font-weight:600;color:#F5F7FA;text-decoration:line-through;">{{ t.title }}</div>
+            <div style="font-size:11px;color:#8A93A3;">{{ t.assignee }} · Selesai</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAttendance }}" hint-placeholder-val="{{ false }}">
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:600;font-size:19px;color:#F5F7FA;margin:0 0 4px;">Presensi</h2>
+      <p style="font-size:13px;color:#8A93A3;margin:0;max-width:480px;">Catat kehadiran staf setiap hari, lengkap dengan lokasi kerja.</p>
+    </div>
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <div style="position:absolute;inset:-16px;background:radial-gradient(circle,rgba(78,155,255,0.14),transparent 70%);"></div>
+      <div style="position:absolute;top:22px;left:22px;width:28px;height:28px;border-radius:50%;border:2px solid rgba(78,155,255,0.7);"></div>
+      <div style="position:absolute;top:22px;left:22px;width:28px;height:28px;border-radius:50%;border:2px solid #4E9BFF;animation:pulseRing 2.2s ease-out infinite;"></div>
+      <div style="position:absolute;top:30px;left:30px;width:12px;height:12px;border-radius:50%;background:#4E9BFF;animation:floatSlow2 6s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:11px;color:#8A93A3;font-weight:600;">Tingkat Ketepatan Waktu</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#3FBF8F;">{{ punctualityRate }}</span>
+    </div>
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:11px;color:#8A93A3;font-weight:600;">Total Presensi Hari Ini</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#F5F7FA;">{{ attTotalLabel }}</span>
+    </div>
+    <div style="background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:11px;color:#8A93A3;font-weight:600;">Keterlambatan</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:#D8A33C;">{{ attLateLabel }}</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start;">
+    <form onSubmit="{{ submitAttendance }}" style="background:#0C0E14;border:1px solid rgba(78,155,255,0.18);border-radius:18px;padding:18px;box-shadow:0 0 32px rgba(78,155,255,0.06);display:flex;flex-direction:column;gap:12px;">
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0;">Presensi Mandiri Staf</h3>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Nama Karyawan</label>
+        <input type="text" required="required" value="{{ attName }}" onChange="{{ setAttName }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Shift Kerja</label>
+        <select value="{{ attShift }}" onChange="{{ setAttShift }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;">
+          <option value="PAGI">Shift Pagi (08:00 - 16:00)</option>
+          <option value="SIANG">Shift Siang (13:00 - 21:00)</option>
+          <option value="MALAM">Shift Malam (18:00 - 02:00)</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Status Kehadiran</label>
+        <select value="{{ attStatus }}" onChange="{{ setAttStatus }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;">
+          <option value="HADIR_TEPAT_WAKTU">Hadir Tepat Waktu</option>
+          <option value="TERLAMBAT">Terlambat</option>
+          <option value="IZIN">Izin atau Sakit</option>
+          <option value="CUTI">Cuti Resmi</option>
+        </select>
+      </div>
+      <div style="padding:10px 12px;background:rgba(0,88,190,0.10);border:1px solid rgba(78,155,255,0.2);border-radius:10px;font-size:11px;color:#4E9BFF;display:flex;align-items:center;gap:6px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#4E9BFF;flex-shrink:0;"></span>
+        <span style="font-family:'JetBrains Mono',monospace;">Lokasi terdeteksi: {{ gpsInfoText }}</span>
+      </div>
+      <button type="submit" style="width:100%;padding:11px;background:#0058BE;border:1px solid rgba(78,155,255,0.5);border-radius:10px;color:#F5F7FA;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,88,190,0.3);" style-hover="background:#0067DE;">Catat Presensi</button>
+    </form>
+
+    <div style="position:relative;background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;">
+      <div style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;left:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;right:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0 0 12px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">Log Presensi Real-Time Hari Ini</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;">
+        <sc-for list="{{ attendanceList }}" as="a" hint-placeholder-count="4">
+          <div style="background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:13px;font-weight:600;color:#F5F7FA;">{{ a.name }}</span>
+                <span style="font-size:10px;font-weight:700;color:{{ a.statusColor }};background:{{ a.statusBg }};padding:2px 8px;border-radius:999px;">{{ a.statusLabel }}</span>
+              </div>
+              <div style="font-size:11px;color:#8A93A3;">Shift {{ a.shiftLabel }} · {{ a.location }}</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A93A3;flex-shrink:0;">{{ a.timeDisplay }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ attendanceEmpty }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:12px;color:#8A93A3;font-style:italic;text-align:center;padding:32px 0;">Belum ada catatan presensi staf hari ini.</p>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPayroll }}" hint-placeholder-val="{{ false }}">
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:600;font-size:19px;color:#F5F7FA;margin:0 0 4px;">Penggajian</h2>
+      <p style="font-size:13px;color:#8A93A3;margin:0;max-width:480px;">Hitung dan catat gaji karyawan setiap bulan, otomatis masuk ke KLIR Kas.</p>
+    </div>
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <div style="position:absolute;inset:-16px;background:radial-gradient(circle,rgba(78,155,255,0.14),transparent 70%);"></div>
+      <div style="position:absolute;bottom:14px;left:20px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1A1C24,#15161C);border:1px solid rgba(216,163,60,0.4);transform:scaleY(0.8);animation:floatSlow2 7s ease-in-out infinite;"></div>
+      <div style="position:absolute;bottom:24px;left:20px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1A1C24,#15161C);border:1px solid rgba(78,155,255,0.45);transform:scaleY(0.8);animation:floatSlow 7s ease-in-out infinite;"></div>
+      <div style="position:absolute;bottom:34px;left:20px;width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#242732,#171922);border:1px solid rgba(216,163,60,0.7);transform:scaleY(0.8);animation:floatSlow2 6s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start;">
+    <form onSubmit="{{ submitPayroll }}" style="background:#0C0E14;border:1px solid rgba(78,155,255,0.18);border-radius:18px;padding:18px;box-shadow:0 0 32px rgba(78,155,255,0.06);display:flex;flex-direction:column;gap:12px;">
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0;">Terbitkan Slip Gaji</h3>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Nama Karyawan</label>
+        <input type="text" required="required" value="{{ payName }}" onChange="{{ setPayName }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Posisi atau Divisi</label>
+        <input type="text" value="{{ payRole }}" onChange="{{ setPayRole }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Gaji Pokok (Rp)</label>
+          <input type="number" required="required" value="{{ payBasic }}" onChange="{{ setPayBasic }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Tunjangan (Rp)</label>
+          <input type="number" value="{{ payAllowance }}" onChange="{{ setPayAllowance }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Lembur (Rp)</label>
+          <input type="number" value="{{ payOvertime }}" onChange="{{ setPayOvertime }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Potongan (Rp)</label>
+          <input type="number" value="{{ payDeduction }}" onChange="{{ setPayDeduction }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+      </div>
+      <button type="submit" style="width:100%;padding:11px;background:#0058BE;border:1px solid rgba(78,155,255,0.5);border-radius:10px;color:#F5F7FA;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,88,190,0.3);" style-hover="background:#0067DE;">Generate Slip Gaji</button>
+    </form>
+
+    <div style="position:relative;background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;">
+      <div style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;left:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;right:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;margin-bottom:12px;">
+        <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0;">Daftar Penggajian Karyawan</h3>
+        <span style="font-size:11px;color:#8A93A3;">{{ payrollCountLabel }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;">
+        <sc-for list="{{ payrollList }}" as="p" hint-placeholder-count="2">
+          <div style="background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <span style="font-weight:700;font-size:14px;color:#F5F7FA;">{{ p.name }}</span>
+                  <span style="font-size:10px;color:#8A93A3;background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:6px;">{{ p.role }}</span>
+                  <span style="font-size:10px;font-weight:700;color:{{ p.paidColor }};background:{{ p.paidBg }};padding:2px 8px;border-radius:999px;">{{ p.paidLabel }}</span>
+                </div>
+                <div style="font-size:11px;color:#8A93A3;margin-top:4px;">Periode: {{ p.period }}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-size:10px;color:#8A93A3;">Gaji Bersih</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:#4E9BFF;">{{ p.netFmt }}</div>
+              </div>
+            </div>
+            <div style="padding:10px;background:#0F1017;border:1px solid rgba(255,255,255,0.06);border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8A93A3;">Pokok {{ p.basicFmt }} · Tunjangan {{ p.allowanceFmt }} · Potongan {{ p.deductionFmt }}</div>
+              <sc-if value="{{ p.payNow }}" hint-placeholder-val="{{ true }}">
+                <button type="button" onClick="{{ p.payNow }}" style="padding:6px 12px;background:rgba(63,191,143,0.16);border:1px solid rgba(63,191,143,0.35);color:#3FBF8F;font-weight:700;font-size:10px;border-radius:8px;cursor:pointer;white-space:nowrap;" style-hover="background:rgba(63,191,143,0.26);">Bayarkan & Catat ke KLIR Kas</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ payrollEmpty }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:12px;color:#8A93A3;font-style:italic;text-align:center;padding:32px 0;">Belum ada slip gaji yang dibuat.</p>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isKpi }}" hint-placeholder-val="{{ false }}">
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:600;font-size:19px;color:#F5F7FA;margin:0 0 4px;">Evaluasi Kinerja</h2>
+      <p style="font-size:13px;color:#8A93A3;margin:0;max-width:480px;">Nilai kinerja staf dengan empat kriteria sederhana, dari disiplin sampai kerja sama tim.</p>
+    </div>
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <div style="position:absolute;inset:-16px;background:radial-gradient(circle,rgba(78,155,255,0.14),transparent 70%);"></div>
+      <div style="position:absolute;top:8px;left:8px;width:56px;height:56px;border-radius:50%;background:conic-gradient(#3FBF8F 0deg 260deg, rgba(255,255,255,0.08) 260deg 360deg);animation:floatSlow2 8s ease-in-out infinite;">
+        <div style="position:absolute;top:6px;left:6px;width:44px;height:44px;border-radius:50%;background:#0C0E14;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#F5F7FA;">B+</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+    <form onSubmit="{{ submitKpi }}" style="background:#0C0E14;border:1px solid rgba(78,155,255,0.18);border-radius:18px;padding:18px;box-shadow:0 0 32px rgba(78,155,255,0.06);display:flex;flex-direction:column;gap:12px;">
+      <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0;">Formulir Evaluasi Kinerja Staf</h3>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Nama Karyawan</label>
+        <input type="text" required="required" value="{{ kpiName }}" onChange="{{ setKpiName }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Disiplin Jam Kerja (Maks 25)</label>
+          <input type="number" value="{{ kpiPunctuality }}" onChange="{{ setKpiPunctuality }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Ketepatan Tugas (Maks 30)</label>
+          <input type="number" value="{{ kpiTask }}" onChange="{{ setKpiTask }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Kualitas Output (Maks 25)</label>
+          <input type="number" value="{{ kpiQuality }}" onChange="{{ setKpiQuality }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Kerjasama Tim (Maks 20)</label>
+          <input type="number" value="{{ kpiTeamwork }}" onChange="{{ setKpiTeamwork }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+        </div>
+      </div>
+      <button type="submit" style="width:100%;padding:11px;background:#0058BE;border:1px solid rgba(78,155,255,0.5);border-radius:10px;color:#F5F7FA;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,88,190,0.3);" style-hover="background:#0067DE;">Kalkulasi Skor Kinerja</button>
+    </form>
+
+    <div style="position:relative;background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;min-height:200px;">
+      <sc-if value="{{ hasKpiResult }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:8px;left:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:8px;right:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0 0 12px;">Hasil Evaluasi Kinerja Staf</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="padding:14px;background:rgba(63,191,143,0.10);border:1px solid rgba(63,191,143,0.3);border-radius:14px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <span style="font-size:11px;color:#8A93A3;display:block;">Total Skor Kinerja</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#3FBF8F;">{{ kpiResult.total }} / 100</span>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-weight:800;font-size:14px;color:#F5F7FA;background:rgba(63,191,143,0.2);border:1px solid rgba(63,191,143,0.4);padding:5px 12px;border-radius:10px;display:inline-block;">{{ kpiResult.grade }}</span>
+              <span style="font-size:10px;color:#3FBF8F;font-weight:700;display:block;margin-top:4px;">{{ kpiResult.gradeLabel }}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <sc-for list="{{ kpiBreakdown }}" as="b" hint-placeholder-count="4">
+              <div style="padding:8px 10px;background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:10px;display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+                <span style="color:#8A93A3;">{{ b.indicator }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#F5F7FA;">{{ b.score }} / {{ b.max }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:12px;background:#0F1017;border:1px solid rgba(255,255,255,0.08);border-radius:10px;">
+            <span style="font-weight:700;color:#4E9BFF;font-size:12px;display:block;margin-bottom:4px;">Catatan untuk Pemilik Usaha</span>
+            <p style="color:#8A93A3;font-size:12px;line-height:1.5;margin:0;">{{ kpiResult.recommendation }}</p>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasKpiResult }}" hint-placeholder-val="{{ true }}">
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSop }}" hint-placeholder-val="{{ false }}">
+<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:600;font-size:19px;color:#F5F7FA;margin:0 0 4px;">Generator SOP</h2>
+      <p style="font-size:13px;color:#8A93A3;margin:0;max-width:480px;">Ubah penjelasan lisan jadi dokumen panduan kerja tertulis, lengkap dengan kuis untuk karyawan baru.</p>
+    </div>
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0;">
+      <div style="position:absolute;inset:-16px;background:radial-gradient(circle,rgba(78,155,255,0.14),transparent 70%);"></div>
+      <div style="position:absolute;top:14px;left:16px;width:36px;height:46px;background:#15161C;border:1px solid rgba(92,100,116,0.4);border-radius:5px;transform:rotate(-6deg);animation:floatSlow2 7s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:8px;left:20px;width:36px;height:46px;background:#171922;border:1px solid rgba(78,155,255,0.45);border-radius:5px;transform:rotate(2deg);animation:floatSlow 7s ease-in-out infinite;">
+        <div style="position:absolute;top:8px;left:6px;width:24px;height:2.5px;background:rgba(255,255,255,0.18);border-radius:2px;"></div>
+        <div style="position:absolute;top:15px;left:6px;width:24px;height:2.5px;background:rgba(255,255,255,0.18);border-radius:2px;"></div>
+        <div style="position:absolute;top:22px;left:6px;width:16px;height:2.5px;background:rgba(255,255,255,0.18);border-radius:2px;"></div>
+      </div>
+      <div style="position:absolute;top:4px;right:6px;width:8px;height:8px;border-radius:50%;background:#D8A33C;animation:softGlow 2.4s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start;">
+    <form onSubmit="{{ submitSop }}" style="position:relative;background:#0C0E14;border:1px solid rgba(78,155,255,0.18);border-radius:18px;padding:18px;box-shadow:0 0 32px rgba(78,155,255,0.06);display:flex;flex-direction:column;gap:12px;">
+      <div style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;left:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="position:absolute;bottom:8px;right:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0;">Generator SOP Kerja</h3>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#4E9BFF;background:rgba(0,88,190,0.16);border:1px solid rgba(78,155,255,0.35);padding:4px 10px;border-radius:999px;">50 Kredit</span>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Judul SOP Kerja</label>
+        <input type="text" required="required" value="{{ sopTitle }}" onChange="{{ setSopTitle }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;" style-focus="border-color:#4E9BFF;"></input>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;color:#8A93A3;font-weight:600;margin-bottom:6px;">Instruksi Mentah atau Suara Transkripsi</label>
+        <p style="font-size:11px;color:#5C6474;margin:0 0 6px;line-height:1.4;">Tempel hasil transkripsi suara Anda menjelaskan cara kerja, atau tulis langsung per baris.</p>
+        <textarea required="required" rows="5" value="{{ sopRaw }}" onChange="{{ setSopRaw }}" style="width:100%;background:#15161C;border:1px solid rgba(255,255,255,0.10);border-radius:10px;padding:10px 12px;color:#F5F7FA;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;resize:vertical;" style-focus="border-color:#4E9BFF;"></textarea>
+      </div>
+      <button type="submit" style="width:100%;padding:11px;background:#0058BE;border:1px solid rgba(78,155,255,0.5);border-radius:10px;color:#F5F7FA;font-weight:700;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,88,190,0.3);" style-hover="background:#0067DE;">Susun SOP & Kuis (50 Kredit)</button>
+    </form>
+
+    <div style="position:relative;background:#0C0E14;border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px;min-height:200px;">
+      <sc-if value="{{ hasSopResult }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;top:8px;left:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;top:8px;right:8px;width:16px;height:16px;border-top:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:8px;left:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-left:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <div style="position:absolute;bottom:8px;right:8px;width:16px;height:16px;border-bottom:1.5px solid #D8A33C;border-right:1.5px solid #D8A33C;opacity:0.8;pointer-events:none;"></div>
+        <h3 style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;color:#F5F7FA;margin:0 0 12px;">Dokumen SOP dan Kuis Pemahaman Karyawan Baru</h3>
+        <div style="display:flex;flex-direction:column;gap:16px;max-height:520px;overflow-y:auto;">
+          <div style="padding:14px;background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+            <div style="font-weight:700;color:#F5F7FA;font-size:15px;margin-bottom:6px;">{{ sopResult.title }}</div>
+            <p style="color:#8A93A3;font-size:12px;line-height:1.5;margin:0;">{{ sopResult.tujuan }}</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <h4 style="font-weight:700;color:#F5F7FA;font-size:12px;margin:0;">Tahapan Langkah Kerja</h4>
+            <sc-for list="{{ sopSteps }}" as="st" hint-placeholder-count="3">
+              <div style="background:#15161C;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;">
+                <span style="width:20px;height:20px;border-radius:50%;background:rgba(0,88,190,0.2);color:#4E9BFF;font-weight:700;font-size:10px;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;flex-shrink:0;">{{ st.step }}</span>
+                <div>
+                  <div style="font-weight:600;color:#F5F7FA;font-size:12px;">{{ st.action }}</div>
+                  <div style="color:#8A93A3;font-size:11px;margin-top:2px;">Standar: {{ st.standard }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:14px;background:rgba(0,88,190,0.08);border:1px solid rgba(78,155,255,0.25);border-radius:12px;display:flex;flex-direction:column;gap:10px;">
+            <h4 style="font-weight:700;color:#4E9BFF;font-size:12px;margin:0;">3 Soal Kuis Pemahaman Karyawan Baru</h4>
+            <sc-for list="{{ sopQuiz }}" as="q" hint-placeholder-count="3">
+              <div style="background:#0F1017;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;">
+                <div style="font-weight:600;color:#F5F7FA;font-size:12px;">{{ $index }}. {{ q.question }}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <sc-for list="{{ q.options }}" as="opt" hint-placeholder-count="4">
+                    <div style="padding:6px 8px;border-radius:6px;font-size:11px;background:{{ opt.bg }};color:{{ opt.color }};border:{{ opt.border }};font-weight:{{ opt.weight }};">{{ opt.text }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasSopResult }}" hint-placeholder-val="{{ true }}">
+        <p style="font-size:12px;color:#8A93A3;font-style:italic;text-align:center;padding:60px 0;">Isi formulir di samping untuk membuat dokumen SOP dan kuis pemahaman instan.</p>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;defaultTab&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Papan Tugas&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;Papan Tugas&quot;,&quot;Presensi&quot;,&quot;Penggajian&quot;,&quot;Evaluasi Kinerja&quot;,&quot;Generator SOP&quot;],&quot;section&quot;:&quot;Perilaku&quot;},
+  &quot;showGpsCoordinates&quot;: {&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Perilaku&quot;},
+  &quot;showQuickAddForm&quot;: {&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Perilaku&quot;}
+}">
+const PRIORITY_META = {
+  LOW: { label: 'Low', color: '#5C6474', bg: 'rgba(92,100,116,0.16)' },
+  MEDIUM: { label: 'Medium', color: '#4E9BFF', bg: 'rgba(0,88,190,0.18)' },
+  HIGH: { label: 'High', color: '#D8A33C', bg: 'rgba(216,163,60,0.16)' },
+  URGENT: { label: 'Urgent', color: '#06080C', bg: '#D8A33C' },
+};
+const ATT_META = {
+  HADIR_TEPAT_WAKTU: { label: 'Hadir Tepat Waktu', color: '#3FBF8F', bg: 'rgba(63,191,143,0.16)' },
+  TERLAMBAT: { label: 'Terlambat', color: '#D8A33C', bg: 'rgba(216,163,60,0.18)' },
+  IZIN: { label: 'Izin / Sakit', color: '#4E9BFF', bg: 'rgba(0,88,190,0.18)' },
+  CUTI: { label: 'Cuti Resmi', color: '#8A93A3', bg: 'rgba(138,147,163,0.16)' },
+};
+const SHIFT_LABEL = { PAGI: 'Pagi', SIANG: 'Siang', MALAM: 'Malam' };
+const TAB_LABEL_TO_KEY = {
+  'Papan Tugas': 'kanban', Presensi: 'attendance', Penggajian: 'payroll',
+  'Evaluasi Kinerja': 'kpi', 'Generator SOP': 'sop',
+};
+function formatRupiah(n) { return 'Rp ' + Math.round(n || 0).toLocaleString('id-ID'); }
+
+class Component extends DCLogic {
+  state = {
+    activeTab: TAB_LABEL_TO_KEY[this.props.defaultTab] || 'kanban',
+    tasks: [
+      { id: 't1', title: 'Cek stok opname gudang', assignee: 'Budi Santoso', priority: 'MEDIUM', status: 'TODO' },
+      { id: 't2', title: 'Follow up klien PT Sumber Jaya', assignee: 'Rina Wulandari', priority: 'HIGH', status: 'TODO' },
+      { id: 't3', title: 'Siapkan materi promo akhir bulan', assignee: 'Dewi Anggraini', priority: 'MEDIUM', status: 'IN_PROGRESS' },
+      { id: 't4', title: 'Perbaikan mesin kasir kedua', assignee: 'Agus Salim', priority: 'URGENT', status: 'IN_PROGRESS' },
+      { id: 't5', title: 'Setor uang tunai ke bank', assignee: 'Budi Santoso', priority: 'LOW', status: 'DONE' },
+      { id: 't6', title: 'Update harga menu baru', assignee: 'Dewi Anggraini', priority: 'MEDIUM', status: 'DONE' },
+    ],
+    newTaskTitle: '', newTaskAssignee: '', newTaskPriority: 'MEDIUM',
+    attendance: [
+      { id: 'a1', name: 'Budi Santoso', shift: 'PAGI', status: 'HADIR_TEPAT_WAKTU', time: new Date(2026, 7, 24, 7, 58), location: 'Outlet Utama' },
+      { id: 'a2', name: 'Rina Wulandari', shift: 'PAGI', status: 'TERLAMBAT', time: new Date(2026, 7, 24, 8, 24), location: 'Outlet Utama' },
+      { id: 'a3', name: 'Dewi Anggraini', shift: 'SIANG', status: 'HADIR_TEPAT_WAKTU', time: new Date(2026, 7, 24, 12, 55), location: 'Outlet Cabang 2' },
+      { id: 'a4', name: 'Agus Salim', shift: 'PAGI', status: 'HADIR_TEPAT_WAKTU', time: new Date(2026, 7, 24, 7, 50), location: 'Outlet Utama' },
+      { id: 'a5', name: 'Siti Marlina', shift: 'PAGI', status: 'HADIR_TEPAT_WAKTU', time: new Date(2026, 7, 24, 7, 55), location: 'Outlet Utama' },
+    ],
+    attName: '', attShift: 'PAGI', attStatus: 'HADIR_TEPAT_WAKTU',
+    payrolls: [
+      { id: 'p1', name: 'Budi Santoso', role: 'Kepala Toko', basic: 4500000, allowance: 500000, overtime: 200000, deduction: 100000, net: 5100000, period: 'Agustus 2026', isPaid: true },
+      { id: 'p2', name: 'Rina Wulandari', role: 'Kasir', basic: 3200000, allowance: 300000, overtime: 0, deduction: 50000, net: 3450000, period: 'Agustus 2026', isPaid: false },
+    ],
+    payName: '', payRole: '', payBasic: '', payAllowance: '', payOvertime: '', payDeduction: '',
+    kpiName: '', kpiPunctuality: '', kpiTask: '', kpiQuality: '', kpiTeamwork: '', kpiResult: null,
+    sopTitle: '', sopRaw: '', sopResult: null,
+  };
+
+  bindField(name) { return (e) => this.setState({ [name]: e.target.value }); }
+
+  goToKanban = () => this.setState({ activeTab: 'kanban' });
+  goToAttendance = () => this.setState({ activeTab: 'attendance' });
+  goToPayroll = () => this.setState({ activeTab: 'payroll' });
+  goToKpi = () => this.setState({ activeTab: 'kpi' });
+  goToSop = () => this.setState({ activeTab: 'sop' });
+
+  addTask = (e) => {
+    e.preventDefault();
+    if (!this.state.newTaskTitle.trim()) return;
+    const task = { id: 'task-' + Date.now(), title: this.state.newTaskTitle.trim(), assignee: this.state.newTaskAssignee.trim() || 'Tim Operasional', priority: this.state.newTaskPriority, status: 'TODO' };
+    this.setState((s) => ({ tasks: [task, ...s.tasks], newTaskTitle: '', newTaskAssignee: '' }));
+  };
+  moveTask(id, nextStatus) {
+    this.setState((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, status: nextStatus } : t)) }));
+  }
+
+  submitAttendance = (e) => {
+    e.preventDefault();
+    if (!this.state.attName.trim()) return;
+    const rec = { id: 'att-' + Date.now(), name: this.state.attName.trim(), shift: this.state.attShift, status: this.state.attStatus, time: new Date(), location: 'Outlet Utama' };
+    this.setState((s) => ({ attendance: [rec, ...s.attendance], attName: '' }));
+  };
+
+  submitPayroll = (e) => {
+    e.preventDefault();
+    if (!this.state.payName.trim()) return;
+    const basic = parseFloat(this.state.payBasic) || 0;
+    const allowance = parseFloat(this.state.payAllowance) || 0;
+    const overtime = parseFloat(this.state.payOvertime) || 0;
+    const deduction = parseFloat(this.state.payDeduction) || 0;
+    const net = basic + allowance + overtime - deduction;
+    const slip = { id: 'pay-' + Date.now(), name: this.state.payName.trim(), role: this.state.payRole.trim() || 'Staf Operasional', basic, allowance, overtime, deduction, net, period: 'Agustus 2026', isPaid: false };
+    this.setState((s) => ({ payrolls: [slip, ...s.payrolls], payName: '', payRole: '', payBasic: '', payAllowance: '', payOvertime: '', payDeduction: '' }));
+  };
+  payPayroll(id) {
+    this.setState((s) => ({ payrolls: s.payrolls.map((p) => (p.id === id ? { ...p, isPaid: true } : p)) }));
+  }
+
+  submitKpi = (e) => {
+    e.preventDefault();
+    if (!this.state.kpiName.trim()) return;
+    const clamp = (v, max) => Math.max(0, Math.min(max, parseFloat(v) || 0));
+    const a = clamp(this.state.kpiPunctuality, 25);
+    const b = clamp(this.state.kpiTask, 30);
+    const c = clamp(this.state.kpiQuality, 25);
+    const d = clamp(this.state.kpiTeamwork, 20);
+    const total = Math.round(a + b + c + d);
+    let grade, gradeLabel, recommendation;
+    if (total >= 90) { grade = 'A'; gradeLabel = 'Sangat Baik'; recommendation = 'Kinerja karyawan ini sangat baik. Pertimbangkan memberi apresiasi atau bonus kecil agar semangat kerja tetap terjaga.'; }
+    else if (total >= 75) { grade = 'B'; gradeLabel = 'Baik'; recommendation = 'Kinerja sudah baik secara keseluruhan. Beri catatan singkat soal bagian yang masih bisa ditingkatkan.'; }
+    else if (total >= 60) { grade = 'C'; gradeLabel = 'Cukup'; recommendation = 'Kinerja cukup, tapi ada beberapa hal yang perlu diperbaiki. Ajak bicara langsung untuk cari tahu kendalanya.'; }
+    else { grade = 'D'; gradeLabel = 'Perlu Perbaikan'; recommendation = 'Kinerja masih jauh dari harapan. Sebaiknya bicarakan langsung dan buat rencana perbaikan yang jelas.'; }
+    this.setState({
+      kpiResult: {
+        name: this.state.kpiName.trim(), total, grade, gradeLabel, recommendation,
+        breakdown: [
+          { indicator: 'Disiplin Jam Kerja', score: a, max: 25 },
+          { indicator: 'Ketepatan Tugas', score: b, max: 30 },
+          { indicator: 'Kualitas Output', score: c, max: 25 },
+          { indicator: 'Kerjasama Tim', score: d, max: 20 },
+        ],
+      },
+    });
+  };
+
+  submitSop = (e) => {
+    e.preventDefault();
+    const title = this.state.sopTitle.trim();
+    const raw = this.state.sopRaw.trim();
+    if (!title || !raw) return;
+    let parts = raw.split('\n').map((s) => s.trim()).filter(Boolean);
+    if (parts.length < 2) parts = raw.split('.').map((s) => s.trim()).filter(Boolean);
+    parts = parts.slice(0, 5);
+    if (parts.length === 0) parts = ['Lakukan langkah kerja sesuai kebiasaan sehari-hari.'];
+    const standards = [
+      'Dikerjakan dengan cara yang sama setiap kali.',
+      'Dicek ulang sebelum lanjut ke langkah berikutnya.',
+      'Dicatat supaya bisa dilihat lagi nanti.',
+      'Diselesaikan sebelum jam kerja berakhir.',
+      'Ditanyakan ke atasan dulu kalau ragu.',
+    ];
+    const steps = parts.map((p, i) => ({ step: i + 1, action: p.charAt(0).toUpperCase() + p.slice(1), standard: standards[i % standards.length] }));
+    const shorten = (t) => (t.length > 40 ? t.slice(0, 40) + '…' : t);
+    const first = shorten(steps[0].action);
+    const last = shorten(steps[steps.length - 1].action);
+    const quiz = [
+      { question: 'Apa langkah pertama dalam SOP "' + title + '"?', options: ['Menutup toko lebih awal', first, 'Mengabaikan urutan kerja', 'Menghubungi supplier baru'], correctIndex: 1 },
+      { question: 'Ada berapa langkah kerja dalam SOP ini?', options: [String(steps.length + 2), String(steps.length), String(Math.max(1, steps.length - 1)), String(steps.length + 5)], correctIndex: 1 },
+      { question: 'Langkah terakhir dalam SOP ini adalah...?', options: ['Tidak ada langkah terakhir', 'Mengulang dari awal tanpa alasan', last, 'Meninggalkan tugas tanpa selesai'], correctIndex: 2 },
+    ];
+    this.setState({
+      sopResult: {
+        title,
+        tujuan: 'Dokumen ini menjelaskan cara kerja untuk "' + title + '" supaya setiap karyawan, termasuk yang baru, bisa mengerjakannya dengan cara yang sama.',
+        steps, quiz,
+      },
+    });
+  };
+
+  decorateTask(t) {
+    const meta = PRIORITY_META[t.priority] || PRIORITY_META.MEDIUM;
+    let moveNext = null, moveLabel = null;
+    if (t.status === 'TODO') { moveNext = () => this.moveTask(t.id, 'IN_PROGRESS'); moveLabel = 'Mulai Kerjakan →'; }
+    else if (t.status === 'IN_PROGRESS') { moveNext = () => this.moveTask(t.id, 'DONE'); moveLabel = 'Tandai Selesai ✓'; }
+    return { ...t, priorityLabel: meta.label, priorityColor: meta.color, priorityBg: meta.bg, moveNext, moveLabel };
+  }
+  decorateAttendance(a) {
+    const meta = ATT_META[a.status] || ATT_META.IZIN;
+    const d = a.time instanceof Date ? a.time : new Date(a.time);
+    return { ...a, statusLabel: meta.label, statusColor: meta.color, statusBg: meta.bg, shiftLabel: SHIFT_LABEL[a.shift] || a.shift, timeDisplay: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) };
+  }
+  decoratePayroll(p) {
+    return {
+      ...p,
+      basicFmt: formatRupiah(p.basic), allowanceFmt: formatRupiah(p.allowance), overtimeFmt: formatRupiah(p.overtime), deductionFmt: formatRupiah(p.deduction), netFmt: formatRupiah(p.net),
+      paidLabel: p.isPaid ? 'Sudah Dibayar' : 'Menunggu Pembayaran',
+      paidColor: p.isPaid ? '#3FBF8F' : '#D8A33C',
+      paidBg: p.isPaid ? 'rgba(63,191,143,0.16)' : 'rgba(216,163,60,0.16)',
+      payNow: p.isPaid ? null : () => this.payPayroll(p.id),
+    };
+  }
+  decorateOption(text, idx, correctIndex) {
+    const isCorrect = idx === correctIndex;
+    return {
+      text,
+      bg: isCorrect ? 'rgba(63,191,143,0.14)' : '#15161C',
+      color: isCorrect ? '#3FBF8F' : '#8A93A3',
+      border: isCorrect ? '1px solid rgba(63,191,143,0.4)' : '1px solid rgba(255,255,255,0.08)',
+      weight: isCorrect ? 700 : 500,
+    };
+  }
+  tabBtnStyle(active) {
+    return {
+      padding: '9px 16px', borderRadius: '10px', fontSize: '13px', fontWeight: 600,
+      fontFamily: "'Plus Jakarta Sans',sans-serif", border: 'none', cursor: 'pointer', transition: 'all .15s ease',
+      background: active ? '#0058BE' : 'transparent', color: active ? '#F5F7FA' : '#8A93A3',
+      boxShadow: active ? '0 4px 16px rgba(0,88,190,0.35)' : 'none', whiteSpace: 'nowrap', flexShrink: 0,
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const tasksTodo = s.tasks.filter((t) => t.status === 'TODO').map((t) => this.decorateTask(t));
+    const tasksInProgress = s.tasks.filter((t) => t.status === 'IN_PROGRESS').map((t) => this.decorateTask(t));
+    const tasksDone = s.tasks.filter((t) => t.status === 'DONE').map((t) => this.decorateTask(t));
+
+    const attTotal = s.attendance.length;
+    const attOnTime = s.attendance.filter((a) => a.status === 'HADIR_TEPAT_WAKTU').length;
+    const attLate = s.attendance.filter((a) => a.status === 'TERLAMBAT').length;
+    const punctualityRate = attTotal ? Math.round((attOnTime / attTotal) * 100) : 0;
+    const attendanceList = s.attendance.map((a) => this.decorateAttendance(a));
+
+    const payrollList = s.payrolls.map((p) => this.decoratePayroll(p));
+    const kpiBreakdown = s.kpiResult ? s.kpiResult.breakdown : [];
+    const sopSteps = s.sopResult ? s.sopResult.steps : [];
+    const sopQuiz = s.sopResult ? s.sopResult.quiz.map((q) => ({ ...q, options: q.options.map((o, i) => this.decorateOption(o, i, q.correctIndex)) })) : [];
+
+    const showCoords = this.props.showGpsCoordinates !== false;
+    const gpsInfoText = showCoords ? 'Outlet Utama · GPS terverifikasi -6.2088, 106.8456' : 'Outlet Utama · lokasi terverifikasi GPS';
+
+    return {
+      isKanban: s.activeTab === 'kanban', isAttendance: s.activeTab === 'attendance', isPayroll: s.activeTab === 'payroll', isKpi: s.activeTab === 'kpi', isSop: s.activeTab === 'sop',
+      kanbanTabStyle: this.tabBtnStyle(s.activeTab === 'kanban'), attendanceTabStyle: this.tabBtnStyle(s.activeTab === 'attendance'), payrollTabStyle: this.tabBtnStyle(s.activeTab === 'payroll'), kpiTabStyle: this.tabBtnStyle(s.activeTab === 'kpi'), sopTabStyle: this.tabBtnStyle(s.activeTab === 'sop'),
+      goToKanban: this.goToKanban, goToAttendance: this.goToAttendance, goToPayroll: this.goToPayroll, goToKpi: this.goToKpi, goToSop: this.goToSop,
+
+      showQuickAddForm: this.props.showQuickAddForm !== false,
+      newTaskTitle: s.newTaskTitle, newTaskAssignee: s.newTaskAssignee, newTaskPriority: s.newTaskPriority,
+      setNewTaskTitle: this.bindField('newTaskTitle'), setNewTaskAssignee: this.bindField('newTaskAssignee'), setNewTaskPriority: this.bindField('newTaskPriority'),
+      addTask: this.addTask,
+      tasksTodo, tasksInProgress, tasksDone,
+      todoCount: tasksTodo.length, inProgressCount: tasksInProgress.length, doneCount: tasksDone.length,
+
+      punctualityRate: punctualityRate + '%', attTotalLabel: attTotal + ' Staf', attLateLabel: attLate + ' Orang',
+      attName: s.attName, attShift: s.attShift, attStatus: s.attStatus,
+      setAttName: this.bindField('attName'), setAttShift: this.bindField('attShift'), setAttStatus: this.bindField('attStatus'),
+      submitAttendance: this.submitAttendance, gpsInfoText,
+      attendanceList, attendanceEmpty: attendanceList.length === 0,
+
+      payName: s.payName, payRole: s.payRole, payBasic: s.payBasic, payAllowance: s.payAllowance, payOvertime: s.payOvertime, payDeduction: s.payDeduction,
+      setPayName: this.bindField('payName'), setPayRole: this.bindField('payRole'), setPayBasic: this.bindField('payBasic'), setPayAllowance: this.bindField('payAllowance'), setPayOvertime: this.bindField('payOvertime'), setPayDeduction: this.bindField('payDeduction'),
+      submitPayroll: this.submitPayroll, payrollList, payrollCountLabel: payrollList.length + ' Slip Diterbitkan', payrollEmpty: payrollList.length === 0,
+
+      kpiName: s.kpiName, kpiPunctuality: s.kpiPunctuality, kpiTask: s.kpiTask, kpiQuality: s.kpiQuality, kpiTeamwork: s.kpiTeamwork,
+      setKpiName: this.bindField('kpiName'), setKpiPunctuality: this.bindField('kpiPunctuality'), setKpiTask: this.bindField('kpiTask'), setKpiQuality: this.bindField('kpiQuality'), setKpiTeamwork: this.bindField('kpiTeamwork'),
+      submitKpi: this.submitKpi, kpiResult: s.kpiResult, hasKpiResult: !!s.kpiResult, kpiBreakdown,
+
+      sopTitle: s.sopTitle, sopRaw: s.sopRaw, setSopTitle: this.bindField('sopTitle'), setSopRaw: this.bindField('sopRaw'),
+      submitSop: this.submitSop, sopResult: s.sopResult, hasSopResult: !!s.sopResult, sopSteps, sopQuiz,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

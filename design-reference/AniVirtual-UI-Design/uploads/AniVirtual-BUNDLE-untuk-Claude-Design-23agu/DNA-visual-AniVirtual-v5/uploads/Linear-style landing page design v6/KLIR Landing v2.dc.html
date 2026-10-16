@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#06080C;}
+  body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#F5F7FA;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  h1,h2,h3{font-family:'Outfit','Plus Jakarta Sans',sans-serif;}
+  a{color:#F5F7FA;text-decoration:none;transition:color 160ms ease;}
+  a:hover{color:#4E9BFF;}
+  p{text-wrap:pretty;}
+  ::selection{background:rgba(0,88,190,0.55);color:#fff;}
+  @keyframes klirDrift{0%{transform:translate3d(0,0,0) scale(1);opacity:0.9;}50%{transform:translate3d(0,-16px,0) scale(1.05);opacity:1;}100%{transform:translate3d(0,0,0) scale(1);opacity:0.9;}}
+  @keyframes klirSweep{0%{transform:translateX(-120%) skewX(-18deg);}100%{transform:translateX(320%) skewX(-18deg);}}
+  @keyframes klirScan{0%{transform:translateY(-110%);opacity:0;}18%{opacity:1;}100%{transform:translateY(520%);opacity:0;}}
+  @keyframes klirTick{0%,100%{opacity:0.25;}50%{opacity:1;}}
+  @media (max-width:920px){
+    [data-desktop-only]{display:none !important;}
+    [data-mobile-only]{display:inline-flex !important;}
+    [data-split]{grid-template-columns:1fr !important;gap:36px !important;}
+    [data-copy]{order:1 !important;}
+    [data-visual]{order:2 !important;}
+    [data-cols-3]{grid-template-columns:1fr !important;}
+    [data-cols-4]{grid-template-columns:1fr 1fr !important;}
+    [data-cols-5]{grid-template-columns:1fr 1fr !important;}
+    [data-pillars]{grid-template-columns:1fr 1fr !important;}
+    [data-hero-title]{font-size:44px !important;}
+    [data-sec-title]{font-size:30px !important;}
+    [data-banner-title]{font-size:34px !important;}
+    [data-stat]{font-size:38px !important;}
+    [data-pad]{padding-left:20px !important;padding-right:20px !important;}
+    [data-mock-side]{display:none !important;}
+    [data-mock-body]{grid-template-columns:1fr !important;}
+    [data-mock-split]{grid-template-columns:1fr !important;}
+    [data-hero-canvas]{height:620px !important;}
+  }
+</style>
+</helmet>
+
+<div style="background:#06080C;min-height:100vh;overflow-x:hidden;position:relative;">
+
+  <nav data-nav="true" style="position:fixed;top:0;left:0;right:0;z-index:60;background:transparent;border-bottom:1px solid transparent;transition:background 220ms ease,border-color 220ms ease,backdrop-filter 220ms ease;">
+    <div data-pad="true" style="max-width:1200px;margin:0 auto;padding:0 28px;height:66px;display:flex;align-items:center;justify-content:space-between;gap:24px;">
+      <a href="#top" style="display:flex;align-items:center;gap:10px;">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="var(--accent, #0058BE)"></path>
+          <path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#F5F7FA" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.04em;">KLIR</span>
+      </a>
+
+      <div data-desktop-only="true" style="display:flex;align-items:center;gap:30px;">
+        <a href="#produk" style="font-size:13.5px;color:#8A93A3;font-weight:500;" style-hover="color:#F5F7FA;">Produk</a>
+        <a href="#sumber" style="font-size:13.5px;color:#8A93A3;font-weight:500;" style-hover="color:#F5F7FA;">Sumber Daya</a>
+        <a href="#harga" style="font-size:13.5px;color:#8A93A3;font-weight:500;" style-hover="color:#F5F7FA;">Harga</a>
+        <a href="#docs" style="font-size:13.5px;color:#8A93A3;font-weight:500;" style-hover="color:#F5F7FA;">Dokumentasi</a>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+        <a data-desktop-only="true" href="#masuk" style="font-size:13.5px;color:#8A93A3;padding:8px 12px;border-radius:7px;font-weight:500;transition:color 160ms ease,background 160ms ease;" style-hover="color:#F5F7FA;background:rgba(255,255,255,0.05);">Masuk</a>
+        <a href="#demo" style="position:relative;overflow:hidden;font-size:13.5px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--accent, #0058BE));padding:9px 16px;border-radius:8px;letter-spacing:-0.01em;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 2px rgba(0,0,0,0.4);transition:transform 170ms ease,box-shadow 170ms ease,filter 170ms ease;" style-hover="transform:translateY(-1px);filter:brightness(1.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.25),0 8px 24px rgba(0,88,190,0.5);">Minta demo</a>
+        <button data-mobile-only="true" onClick="{{ toggleMenu }}" aria-label="Menu" style="display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;padding:0;">
+          <svg width="15" height="12" viewBox="0 0 15 12" fill="none" aria-hidden="true">
+            <path d="M0 1h15M0 6h15M0 11h15" stroke="#F5F7FA" stroke-width="1.5"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div data-progress="true" aria-hidden="true" style="position:absolute;left:0;bottom:-1px;height:1.5px;width:0%;background:linear-gradient(90deg,var(--accent, #0058BE),#4E9BFF);box-shadow:0 0 12px rgba(78,155,255,0.75);transition:width 90ms linear;"></div>
+
+    <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#0B0E14;border-top:1px solid rgba(255,255,255,0.08);padding:14px 20px 20px;display:flex;flex-direction:column;gap:2px;">
+        <a href="#produk" onClick="{{ toggleMenu }}" style="font-size:15px;color:#8A93A3;padding:10px 0;">Produk</a>
+        <a href="#sumber" onClick="{{ toggleMenu }}" style="font-size:15px;color:#8A93A3;padding:10px 0;">Sumber Daya</a>
+        <a href="#harga" onClick="{{ toggleMenu }}" style="font-size:15px;color:#8A93A3;padding:10px 0;">Harga</a>
+        <a href="#docs" onClick="{{ toggleMenu }}" style="font-size:15px;color:#8A93A3;padding:10px 0;">Dokumentasi</a>
+        <a href="#masuk" onClick="{{ toggleMenu }}" style="font-size:15px;color:#F5F7FA;padding:10px 0;border-top:1px solid rgba(255,255,255,0.08);margin-top:8px;">Masuk</a>
+      </div>
+    </sc-if>
+  </nav>
+
+  <header id="top" style="position:relative;padding:158px 0 0;">
+    <div aria-hidden="true" style="position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:1180px;height:700px;background:radial-gradient(closest-side, rgba(0,88,190,0.26), rgba(0,88,190,0.05) 60%, rgba(6,8,12,0) 100%);filter:blur(30px);pointer-events:none;animation:klirDrift 14s ease-in-out infinite;"></div>
+    <div data-hero-canvas="true" aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:860px;pointer-events:none;z-index:1;-webkit-mask-image:radial-gradient(112% 74% at 50% 32%, #000 44%, transparent 84%);mask-image:radial-gradient(112% 74% at 50% 32%, #000 44%, transparent 84%);"></div>
+    <div aria-hidden="true" style="position:absolute;left:50%;top:96px;transform:translateX(-50%);width:1000px;height:480px;background:radial-gradient(closest-side, rgba(6,8,12,0.9), rgba(6,8,12,0.55) 55%, rgba(6,8,12,0) 78%);z-index:2;pointer-events:none;"></div>
+
+    <div data-pad="true" style="position:relative;z-index:3;max-width:1200px;margin:0 auto;padding:0 28px;text-align:center;">
+      <a href="#changelog" style="display:inline-flex;align-items:center;gap:10px;padding:5px 14px 5px 6px;border:1px solid rgba(255,255,255,0.1);border-radius:999px;background:rgba(255,255,255,0.03);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:12.5px;color:#8A93A3;margin-bottom:32px;transition:border-color 170ms ease,background 170ms ease;" style-hover="border-color:rgba(78,155,255,0.4);background:rgba(0,88,190,0.1);color:#8A93A3;">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--accent, #0058BE);color:#fff;font-size:10px;font-weight:600;letter-spacing:0.12em;padding:4px 9px;border-radius:999px;text-transform:uppercase;">Baru</span>
+        [ISI DATA ASLI &#183; judul pengumuman terbaru]
+        <span style="color:#5C6474;">&#8594;</span>
+      </a>
+
+      <h1 data-hero-title="true" style="font-size:78px;line-height:1.04;letter-spacing:-0.035em;font-weight:600;margin:0 auto 24px;max-width:900px;">
+        Satu sistem untuk<br>seluruh operasi usahamu
+      </h1>
+
+      <p style="font-size:19px;line-height:1.55;color:#8A93A3;max-width:600px;margin:0 auto 36px;">
+        KLIR menyatukan tujuh pilar operasi bisnis dalam satu ekosistem AI yang saling terhubung, dari perencanaan sampai kepatuhan.
+      </p>
+
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="#demo" style="display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--accent, #0058BE));padding:13px 24px;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease;" style-hover="transform:translateY(-2px);filter:brightness(1.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 14px 38px rgba(0,88,190,0.5);">
+          Minta demo <span style="opacity:0.75;">&#8594;</span>
+        </a>
+        <a href="#produk" style="display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:#F5F7FA;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.02);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:13px 24px;border-radius:10px;transition:background 180ms ease,border-color 180ms ease,transform 180ms ease;" style-hover="background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.26);transform:translateY(-2px);color:#F5F7FA;">
+          Lihat cara kerjanya
+        </a>
+      </div>
+      <p style="font-size:12.5px;color:#5C6474;margin:18px 0 0;">[ISI DATA ASLI &#183; syarat uji coba, mis. durasi trial &amp; ketentuan kartu]</p>
+
+      <div data-pillars="true" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;max-width:1000px;margin:56px auto 0;">
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;margin-bottom:6px;">01</div>
+          <div style="font-size:12px;font-weight:500;letter-spacing:-0.01em;">Rencana bisnis</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;margin-bottom:6px;">02</div>
+          <div style="font-size:12px;font-weight:500;letter-spacing:-0.01em;">Keuangan</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;margin-bottom:6px;">03</div>
+          <div style="font-size:12px;font-weight:500;letter-spacing:-0.01em;">Promosi</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;margin-bottom:6px;">04</div>
+          <div style="font-size:12px;font-weight:500;letter-spacing:-0.01em;">Kelola tim</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.02);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;margin-bottom:6px;">05</div>
+          <div style="font-size:12px;font-weight:500;letter-spacing:-0.01em;">Kepatuhan</div>
+        </div>
+        <div style="border:1px dashed rgba(255,255,255,0.18);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.015);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#5C6474;margin-bottom:6px;">06</div>
+          <div style="font-size:11px;font-weight:500;color:#5C6474;letter-spacing:-0.01em;">[ISI DATA ASLI]</div>
+        </div>
+        <div style="border:1px dashed rgba(255,255,255,0.18);border-radius:8px;padding:11px 6px;background:rgba(255,255,255,0.015);">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#5C6474;margin-bottom:6px;">07</div>
+          <div style="font-size:11px;font-weight:500;color:#5C6474;letter-spacing:-0.01em;">[ISI DATA ASLI]</div>
+        </div>
+      </div>
+    </div>
+
+    <div data-pad="true" style="position:relative;z-index:3;max-width:1200px;margin:64px auto 0;padding:0 28px;perspective:2000px;">
+      <div aria-hidden="true" style="position:absolute;left:50%;top:30px;transform:translateX(-50%);width:880px;height:440px;background:radial-gradient(closest-side, rgba(0,88,190,0.4), rgba(0,88,190,0.07) 58%, rgba(6,8,12,0) 100%);filter:blur(50px);pointer-events:none;"></div>
+
+      <div style="position:relative;transform:rotateX(var(--tilt, 6deg));transform-origin:50% 0%;border:1px solid rgba(255,255,255,0.1);border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#10141C 0%,#0B0E14 100%);box-shadow:0 46px 130px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.02) inset,0 0 90px rgba(0,88,190,0.14);">
+        <div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0) 0%,rgba(78,155,255,0.7) 50%,rgba(78,155,255,0) 100%);z-index:4;"></div>
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:96px;background:linear-gradient(180deg,rgba(78,155,255,0.11),rgba(78,155,255,0));animation:klirScan 7s ease-in-out infinite;pointer-events:none;z-index:3;"></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.015);">
+          <div style="display:flex;gap:6px;">
+            <span style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);"></span>
+            <span style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.14);"></span>
+          </div>
+          <div style="flex:1;display:flex;justify-content:center;">
+            <div style="font-size:11.5px;color:#5C6474;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:4px 14px;border-radius:6px;">klir.id/ruang/[nama-usaha]</div>
+          </div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#5C6474;border:1px dashed rgba(255,255,255,0.18);border-radius:5px;padding:3px 8px;">Data contoh</div>
+        </div>
+
+        <div data-mock-body="true" style="display:grid;grid-template-columns:216px 1fr;min-height:460px;">
+          <aside data-mock-side="true" style="border-right:1px solid rgba(255,255,255,0.07);padding:16px 12px;display:flex;flex-direction:column;gap:22px;background:rgba(0,0,0,0.22);">
+            <div style="display:flex;align-items:center;gap:9px;padding:0 6px;">
+              <div style="width:21px;height:21px;border-radius:6px;background:var(--accent, #0058BE);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">K</div>
+              <div style="font-size:12.5px;font-weight:600;color:#8A93A3;">[Nama usaha]</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;background:rgba(0,88,190,0.16);border:1px solid rgba(78,155,255,0.22);font-size:12.5px;color:#F5F7FA;">
+                <span style="width:5px;height:5px;border-radius:50%;background:#4E9BFF;"></span>Ringkasan
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#8A93A3;"><span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.16);"></span>Rencana</div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#8A93A3;"><span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.16);"></span>Keuangan</div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#8A93A3;"><span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.16);"></span>Promosi</div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#8A93A3;"><span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.16);"></span>Tim</div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#8A93A3;"><span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.16);"></span>Kepatuhan</div>
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:6px;font-size:12.5px;color:#5C6474;"><span style="width:5px;height:5px;border-radius:50%;border:1px dashed rgba(255,255,255,0.3);"></span>[Pilar 6 &amp; 7]</div>
+            </div>
+            <div style="margin-top:auto;border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px;background:rgba(255,255,255,0.02);">
+              <div style="font-size:11px;color:#5C6474;margin-bottom:6px;">Kesehatan usaha</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px;">82<span style="font-size:12px;color:#5C6474;">/100</span></div>
+              <div style="height:4px;border-radius:99px;background:rgba(255,255,255,0.08);overflow:hidden;"><div style="width:82%;height:100%;background:linear-gradient(90deg,var(--accent, #0058BE),#4E9BFF);"></div></div>
+            </div>
+          </aside>
+
+          <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+              <div>
+                <div style="font-family:'Outfit',sans-serif;font-size:15.5px;font-weight:600;letter-spacing:-0.015em;">Ringkasan usaha</div>
+                <div style="font-size:11.5px;color:#5C6474;margin-top:3px;">Diperbarui 2 menit lalu</div>
+              </div>
+              <div style="display:flex;gap:7px;">
+                <div style="font-size:11.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:5px 11px;border-radius:6px;">Periode berjalan</div>
+                <div style="font-size:11.5px;color:#fff;background:rgba(0,88,190,0.2);border:1px solid rgba(78,155,255,0.35);padding:5px 11px;border-radius:6px;">Ekspor</div>
+              </div>
+            </div>
+
+            <div data-cols-4="true" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;background:rgba(255,255,255,0.02);">
+                <div style="font-size:11px;color:#5C6474;">Pendapatan</div>
+                <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px;">Rp 148,2jt</div>
+                <div style="font-size:11px;color:#3FBF8F;">+12,4%</div>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;background:rgba(255,255,255,0.02);">
+                <div style="font-size:11px;color:#5C6474;">Laba kotor</div>
+                <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px;">Rp 51,7jt</div>
+                <div style="font-size:11px;color:#3FBF8F;">+6,1%</div>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;background:rgba(255,255,255,0.02);">
+                <div style="font-size:11px;color:#5C6474;">Arus kas</div>
+                <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px;">Rp 23,9jt</div>
+                <div style="font-size:11px;color:#8A93A3;">Aman 4 bulan</div>
+              </div>
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px;background:rgba(255,255,255,0.02);">
+                <div style="font-size:11px;color:#5C6474;">Kepatuhan</div>
+                <div style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;letter-spacing:-0.02em;margin:6px 0 4px;">9/10</div>
+                <div style="font-size:11px;color:#D8A33C;">1 tenggat dekat</div>
+              </div>
+            </div>
+
+            <div data-mock-split="true" style="display:grid;grid-template-columns:1.65fr 1fr;gap:12px;flex:1;">
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:15px;background:rgba(255,255,255,0.02);display:flex;flex-direction:column;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                  <div style="font-size:12.5px;font-weight:600;">Pendapatan 12 minggu</div>
+                  <div style="display:flex;gap:12px;font-size:10.5px;color:#5C6474;">
+                    <span style="display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:2px;background:rgba(255,255,255,0.16);"></span>Realisasi</span>
+                    <span style="display:flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:2px;background:var(--accent, #0058BE);"></span>Proyeksi</span>
+                  </div>
+                </div>
+                <div data-bars="true" style="display:flex;align-items:flex-end;gap:7px;height:136px;">
+                  <div style="flex:1;height:38%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:47%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:42%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:58%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:53%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:66%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:61%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:74%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:70%;border-radius:3px;background:rgba(255,255,255,0.12);"></div>
+                  <div style="flex:1;height:84%;border-radius:3px;background:linear-gradient(180deg,#4E9BFF,var(--accent, #0058BE));box-shadow:0 0 14px rgba(0,88,190,0.5);"></div>
+                  <div style="flex:1;height:92%;border-radius:3px;background:linear-gradient(180deg,#4E9BFF,var(--accent, #0058BE));box-shadow:0 0 14px rgba(0,88,190,0.5);"></div>
+                  <div style="flex:1;height:100%;border-radius:3px;background:linear-gradient(180deg,#4E9BFF,var(--accent, #0058BE));box-shadow:0 0 14px rgba(0,88,190,0.5);"></div>
+                </div>
+              </div>
+
+              <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:15px;background:rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:11px;">
+                <div style="font-size:12.5px;font-weight:600;">Saran KLIR</div>
+                <div style="display:flex;gap:9px;">
+                  <span style="width:5px;height:5px;border-radius:50%;background:#4E9BFF;margin-top:5px;flex-shrink:0;box-shadow:0 0 8px rgba(78,155,255,0.8);"></span>
+                  <div style="font-size:11.5px;color:#8A93A3;line-height:1.45;">Margin produk terlaris turun 3% sejak harga bahan baku naik.</div>
+                </div>
+                <div style="display:flex;gap:9px;">
+                  <span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);margin-top:5px;flex-shrink:0;"></span>
+                  <div style="font-size:11.5px;color:#8A93A3;line-height:1.45;">Satu kewajiban pajak mendekati tenggat. Draf sudah siap ditinjau.</div>
+                </div>
+                <div style="display:flex;gap:9px;">
+                  <span style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);margin-top:5px;flex-shrink:0;"></span>
+                  <div style="font-size:11.5px;color:#8A93A3;line-height:1.45;">Satu shift akhir pekan belum terisi di cabang kedua.</div>
+                </div>
+                <div style="margin-top:auto;font-size:11.5px;color:#F5F7FA;border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:8px 11px;text-align:center;background:rgba(255,255,255,0.03);">Lihat saran lain</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:12px;color:#5C6474;margin:20px 0 0;">Antarmuka di atas memakai data contoh untuk ilustrasi. [ISI DATA ASLI &#183; tangkapan layar produk sebenarnya]</p>
+    </div>
+  </header>
+
+  <section id="produk" data-pad="true" style="max-width:1200px;margin:0 auto;padding:130px 28px 0;">
+    <div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;">
+      <div data-reveal="true" style="background:#090C11;padding:30px 26px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),background 180ms ease;" style-hover="background:#0D1119;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" style="margin-bottom:18px;display:block;">
+          <path d="M9 1l7 4v8l-7 4-7-4V5z" stroke="#4E9BFF" stroke-width="1.4" stroke-linejoin="round"></path>
+          <path d="M9 5.4l3.6 2.1v4.2L9 13.8 5.4 11.7V7.5z" fill="rgba(78,155,255,0.25)"></path>
+        </svg>
+        <h3 style="font-size:16px;font-weight:600;letter-spacing:-0.015em;margin:0 0 9px;">Dibangun menyatu</h3>
+        <p style="font-size:14px;line-height:1.6;color:#8A93A3;margin:0;">Setiap pilar memakai basis data yang sama, jadi angka di pembukuan dan target di rencana tidak pernah berbeda.</p>
+      </div>
+      <div data-reveal="true" style="background:#090C11;padding:30px 26px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),background 180ms ease;" style-hover="background:#0D1119;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" style="margin-bottom:18px;display:block;">
+          <path d="M10.2 1L3 9.9h4.9L7 17l7.4-9.2H9.4z" stroke="#4E9BFF" stroke-width="1.4" stroke-linejoin="round" fill="rgba(78,155,255,0.16)"></path>
+        </svg>
+        <h3 style="font-size:16px;font-weight:600;letter-spacing:-0.015em;margin:0 0 9px;">AI yang paham konteks</h3>
+        <p style="font-size:14px;line-height:1.6;color:#8A93A3;margin:0;">Saran KLIR dibaca dari transaksi, dokumen, dan riwayat usahamu sendiri, bukan template umum.</p>
+      </div>
+      <div data-reveal="true" style="background:#090C11;padding:30px 26px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),background 180ms ease;" style-hover="background:#0D1119;">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" style="margin-bottom:18px;display:block;">
+          <path d="M2 13.5l4.2-5.2 3.1 2.6L16 4" stroke="#4E9BFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M11.6 4H16v4.3" stroke="#4E9BFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <h3 style="font-size:16px;font-weight:600;letter-spacing:-0.015em;margin:0 0 9px;">Dirancang untuk cepat</h3>
+        <p style="font-size:14px;line-height:1.6;color:#8A93A3;margin:0;">Perintah keyboard, sinkronisasi instan, dan laporan yang siap sebelum kamu memintanya.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="position:relative;max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div aria-hidden="true" style="position:absolute;left:-140px;top:180px;width:520px;height:2px;background:linear-gradient(90deg,rgba(0,88,190,0),rgba(78,155,255,0.35),rgba(0,88,190,0));transform:rotate(-24deg);filter:blur(1px);pointer-events:none;"></div>
+    <div data-split="true" style="display:grid;grid-template-columns:1fr 1.12fr;gap:76px;align-items:center;">
+      <div data-copy="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="width:24px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:0.18em;color:#4E9BFF;">01 / RENCANA</span>
+        </div>
+        <h2 data-sec-title="true" style="font-size:42px;line-height:1.08;letter-spacing:-0.03em;font-weight:600;margin:0 0 18px;">Dari ide jadi rencana yang bisa dijalankan</h2>
+        <p style="font-size:16px;line-height:1.65;color:#8A93A3;margin:0 0 24px;max-width:440px;">Susun model usaha, target, dan proyeksi arus kas dalam satu dokumen hidup. KLIR menandai asumsi yang belum punya dasar angka.</p>
+        <a href="#rencana" style="font-size:14px;font-weight:600;color:#F5F7FA;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#4E9BFF;">Pelajari rencana bisnis <span>&#8594;</span></a>
+      </div>
+      <div data-visual="true" data-reveal="true" style="position:relative;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);" style-hover="border-color:rgba(78,155,255,0.28);">
+        <span aria-hidden="true" style="position:absolute;top:-1px;left:22px;width:56px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF,rgba(78,155,255,0));"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div style="font-size:13px;font-weight:600;">Rencana Bisnis &#183; [Nama usaha]</div>
+          <div style="font-size:11px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:3px 9px;border-radius:5px;">Draf v3</div>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:22px;">01</span>
+            <span style="font-size:13.5px;flex:1;">Ringkasan eksekutif</span>
+            <span style="font-size:11px;color:#3FBF8F;">Lengkap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:22px;">02</span>
+            <span style="font-size:13.5px;flex:1;">Analisis pasar</span>
+            <span style="font-size:11px;color:#3FBF8F;">Lengkap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:22px;">03</span>
+            <span style="font-size:13.5px;flex:1;">Struktur biaya &amp; harga pokok</span>
+            <span style="font-size:11px;color:#D8A33C;">Perlu revisi</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:22px;">04</span>
+            <span style="font-size:13.5px;flex:1;color:#8A93A3;">Proyeksi arus kas 12 bulan</span>
+            <span style="font-size:11px;color:#5C6474;">Kosong</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:11px;align-items:flex-start;border:1px solid rgba(78,155,255,0.28);background:linear-gradient(180deg,rgba(0,88,190,0.16),rgba(0,88,190,0.06));border-radius:10px;padding:12px 13px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#4E9BFF;margin-top:5px;flex-shrink:0;box-shadow:0 0 10px rgba(78,155,255,0.9);"></span>
+          <div style="font-size:12.5px;line-height:1.5;color:#C6D2E4;">Harga pokok masih memakai angka periode lalu. KLIR bisa memuat ulang dari pembukuan berjalan.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div data-split="true" style="display:grid;grid-template-columns:1.12fr 1fr;gap:76px;align-items:center;">
+      <div data-visual="true" data-reveal="true" style="position:relative;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);" style-hover="border-color:rgba(78,155,255,0.28);">
+        <span aria-hidden="true" style="position:absolute;top:-1px;right:22px;width:56px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF,rgba(78,155,255,0));"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div style="font-size:13px;font-weight:600;">Buku Besar &#183; periode berjalan</div>
+          <div style="font-size:11px;color:#3FBF8F;border:1px solid rgba(63,191,143,0.3);background:rgba(63,191,143,0.1);padding:3px 9px;border-radius:5px;">Selisih Rp 0</div>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:38px;">14/08</span>
+            <span style="font-size:13px;flex:1;">Penjualan kasir cabang</span>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Pendapatan</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#3FBF8F;width:88px;text-align:right;">+4.820.000</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:38px;">13/08</span>
+            <span style="font-size:13px;flex:1;">Pembelian bahan baku</span>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">HPP</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#8A93A3;width:88px;text-align:right;">-9.150.000</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:38px;">12/08</span>
+            <span style="font-size:13px;flex:1;">Gaji pegawai paruh waktu</span>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Operasional</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#8A93A3;width:88px;text-align:right;">-6.400.000</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 2px;">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#5C6474;width:38px;">11/08</span>
+            <span style="font-size:13px;flex:1;">Pelunasan tagihan pelanggan</span>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Piutang</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#3FBF8F;width:88px;text-align:right;">+12.500.000</span>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.07);padding-top:13px;">
+          <div style="font-size:12px;color:#5C6474;">Transaksi tercocokkan otomatis</div>
+          <div style="font-size:12px;color:#F5F7FA;">Tutup buku &#8594;</div>
+        </div>
+      </div>
+      <div data-copy="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="width:24px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:0.18em;color:#4E9BFF;">02 / KEUANGAN</span>
+        </div>
+        <h2 data-sec-title="true" style="font-size:42px;line-height:1.08;letter-spacing:-0.03em;font-weight:600;margin:0 0 18px;">Pembukuan yang menutup dirinya sendiri</h2>
+        <p style="font-size:16px;line-height:1.65;color:#8A93A3;margin:0 0 24px;max-width:440px;">Transaksi masuk dari kasir, rekening, dan dompet digital langsung tercocokkan. Laporan laba rugi dan arus kas selalu siap tanpa entri ulang.</p>
+        <a href="#keuangan" style="font-size:14px;font-weight:600;color:#F5F7FA;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#4E9BFF;">Pelajari keuangan <span>&#8594;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="position:relative;max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div aria-hidden="true" style="position:absolute;right:-160px;top:220px;width:560px;height:2px;background:linear-gradient(90deg,rgba(0,88,190,0),rgba(78,155,255,0.3),rgba(0,88,190,0));transform:rotate(22deg);filter:blur(1px);pointer-events:none;"></div>
+    <div data-split="true" style="display:grid;grid-template-columns:1fr 1.12fr;gap:76px;align-items:center;">
+      <div data-copy="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="width:24px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:0.18em;color:#4E9BFF;">03 / PROMOSI</span>
+        </div>
+        <h2 data-sec-title="true" style="font-size:42px;line-height:1.08;letter-spacing:-0.03em;font-weight:600;margin:0 0 18px;">Promosi yang tahu siapa pelangganmu</h2>
+        <p style="font-size:16px;line-height:1.65;color:#8A93A3;margin:0 0 24px;max-width:440px;">KLIR menulis materi promosi dari data penjualan nyata, lalu menjadwalkannya ke kanal yang paling ramai untuk usahamu.</p>
+        <a href="#promosi" style="font-size:14px;font-weight:600;color:#F5F7FA;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#4E9BFF;">Pelajari promosi <span>&#8594;</span></a>
+      </div>
+      <div data-visual="true" data-reveal="true" style="position:relative;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);" style-hover="border-color:rgba(78,155,255,0.28);">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <div style="font-size:11.5px;color:#fff;background:rgba(0,88,190,0.22);border:1px solid rgba(78,155,255,0.4);padding:5px 11px;border-radius:6px;">Instagram</div>
+          <div style="font-size:11.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:5px 11px;border-radius:6px;">WhatsApp</div>
+          <div style="font-size:11.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:5px 11px;border-radius:6px;">TikTok</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:15px;background:rgba(255,255,255,0.02);margin-bottom:12px;">
+          <div style="font-size:11px;color:#5C6474;margin-bottom:9px;">Draf naskah</div>
+          <div style="font-size:13.5px;line-height:1.6;color:#F5F7FA;">Produk terlaris kami paling ramai tiap Jumat sore. Minggu ini beli dua gratis satu, khusus pukul 15.00&#8211;18.00.</div>
+        </div>
+        <div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+          <div style="border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px;background:rgba(255,255,255,0.02);">
+            <div style="font-size:10.5px;color:#5C6474;">Jangkauan perkiraan</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;margin-top:5px;letter-spacing:-0.02em;">4.100</div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px;background:rgba(255,255,255,0.02);">
+            <div style="font-size:10.5px;color:#5C6474;">Jam terbaik</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;margin-top:5px;letter-spacing:-0.02em;">14.30</div>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:11px;background:rgba(255,255,255,0.02);">
+            <div style="font-size:10.5px;color:#5C6474;">Biaya iklan</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:600;margin-top:5px;letter-spacing:-0.02em;">Rp 150rb</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-size:11.5px;color:#5C6474;">Disusun dari transaksi 30 hari terakhir</div>
+          <div style="font-size:12px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--accent, #0058BE));padding:8px 15px;border-radius:7px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22);">Jadwalkan</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div data-split="true" style="display:grid;grid-template-columns:1.12fr 1fr;gap:76px;align-items:center;">
+      <div data-visual="true" data-reveal="true" style="position:relative;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);" style-hover="border-color:rgba(78,155,255,0.28);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div style="font-size:13px;font-weight:600;">Jadwal tim &#183; minggu ini</div>
+          <div style="font-size:11px;color:#D8A33C;">1 shift kosong</div>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#0F6FE0,#003C82);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0;">01</div>
+            <div style="flex:1;"><div style="font-size:13px;">[Nama anggota tim]</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Penanggung jawab operasional</div></div>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Pagi</span>
+            <span style="font-size:11px;color:#5C6474;width:52px;text-align:right;">6 tugas</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#39414F,#20252E);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0;">02</div>
+            <div style="flex:1;"><div style="font-size:13px;">[Nama anggota tim]</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Kasir &amp; stok</div></div>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Siang</span>
+            <span style="font-size:11px;color:#5C6474;width:52px;text-align:right;">4 tugas</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <div style="width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#39414F,#20252E);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;flex-shrink:0;">03</div>
+            <div style="flex:1;"><div style="font-size:13px;">[Nama anggota tim]</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Media sosial</div></div>
+            <span style="font-size:10.5px;color:#8A93A3;border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:5px;">Fleksibel</span>
+            <span style="font-size:11px;color:#5C6474;width:52px;text-align:right;">3 tugas</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;">
+            <div style="width:27px;height:27px;border-radius:50%;border:1px dashed rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:12px;color:#5C6474;flex-shrink:0;">+</div>
+            <div style="flex:1;font-size:13px;color:#5C6474;">Sabtu 15.00&#8211;21.00 &#183; cabang kedua</div>
+            <span style="font-size:11px;font-weight:600;color:#4E9BFF;">Isi shift</span>
+          </div>
+        </div>
+      </div>
+      <div data-copy="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="width:24px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:0.18em;color:#4E9BFF;">04 / TIM</span>
+        </div>
+        <h2 data-sec-title="true" style="font-size:42px;line-height:1.08;letter-spacing:-0.03em;font-weight:600;margin:0 0 18px;">Tim, jadwal, dan tanggung jawab di satu papan</h2>
+        <p style="font-size:16px;line-height:1.65;color:#8A93A3;margin:0 0 24px;max-width:440px;">Atur shift, bagi tugas, dan hitung gaji dari jam kerja yang tercatat. Perubahan jadwal langsung masuk ke proyeksi biaya operasional.</p>
+        <a href="#tim" style="font-size:14px;font-weight:600;color:#F5F7FA;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#4E9BFF;">Pelajari kelola tim <span>&#8594;</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div data-split="true" style="display:grid;grid-template-columns:1fr 1.12fr;gap:76px;align-items:center;">
+      <div data-copy="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="width:24px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF);"></span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:0.18em;color:#4E9BFF;">05 / KEPATUHAN</span>
+        </div>
+        <h2 data-sec-title="true" style="font-size:42px;line-height:1.08;letter-spacing:-0.03em;font-weight:600;margin:0 0 18px;">Kepatuhan yang mengingatkan sebelum terlambat</h2>
+        <p style="font-size:16px;line-height:1.65;color:#8A93A3;margin:0 0 24px;max-width:440px;">Perizinan, kontrak, dan kewajiban pajak dipantau dengan tenggat masing-masing. Draf laporan disusun dari pembukuan yang sudah ada.</p>
+        <a href="#kepatuhan" style="font-size:14px;font-weight:600;color:#F5F7FA;display:inline-flex;align-items:center;gap:8px;" style-hover="color:#4E9BFF;">Pelajari kepatuhan <span>&#8594;</span></a>
+        <div style="margin-top:28px;display:inline-flex;align-items:center;gap:9px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:#5C6474;border:1px dashed rgba(255,255,255,0.18);border-radius:6px;padding:7px 11px;background:rgba(255,255,255,0.02);">Pilar 06 &amp; 07 &#183; [ISI DATA ASLI]</div>
+      </div>
+      <div data-visual="true" data-reveal="true" style="position:relative;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.09);border-radius:18px;background:linear-gradient(180deg,#10141C,#0B0E14);padding:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);" style-hover="border-color:rgba(78,155,255,0.28);">
+        <span aria-hidden="true" style="position:absolute;top:-1px;left:22px;width:56px;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),#4E9BFF,rgba(78,155,255,0));"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.07);">
+          <div style="font-size:13px;font-weight:600;">Kewajiban aktif</div>
+          <div style="font-size:11px;color:#8A93A3;">9 dari 10 aman</div>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="width:6px;height:6px;border-radius:50%;background:#D8A33C;flex-shrink:0;box-shadow:0 0 9px rgba(216,163,60,0.7);"></span>
+            <div style="flex:1;"><div style="font-size:13px;">SPT Masa PPh 21</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Draf siap ditinjau</div></div>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#D8A33C;">6 hari lagi</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="width:6px;height:6px;border-radius:50%;background:#3FBF8F;flex-shrink:0;"></span>
+            <div style="flex:1;"><div style="font-size:13px;">Sertifikat halal</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Masa berlaku terpantau</div></div>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#5C6474;">Aman</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid rgba(255,255,255,0.05);">
+            <span style="width:6px;height:6px;border-radius:50%;background:#3FBF8F;flex-shrink:0;"></span>
+            <div style="flex:1;"><div style="font-size:13px;">NIB &amp; izin usaha</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Terdaftar OSS</div></div>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#5C6474;">Aman</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 2px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#3FBF8F;flex-shrink:0;"></span>
+            <div style="flex:1;"><div style="font-size:13px;">Kontrak sewa tempat usaha</div><div style="font-size:11px;color:#5C6474;margin-top:2px;">Perpanjangan otomatis</div></div>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#5C6474;">Terjadwal</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="max-width:1200px;margin:0 auto;padding:160px 28px 0;text-align:center;">
+    <div data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:0.18em;color:#4E9BFF;text-transform:uppercase;margin-bottom:20px;">Dipakai di seluruh Indonesia</div>
+      <div data-stat="true" style="font-family:'Outfit',sans-serif;font-size:58px;font-weight:600;letter-spacing:-0.035em;line-height:1.05;color:#5C6474;border:1px dashed rgba(255,255,255,0.18);border-radius:14px;display:inline-block;padding:18px 34px;background:rgba(255,255,255,0.015);">[ISI DATA ASLI]</div>
+      <p style="font-size:15px;color:#8A93A3;margin:18px auto 0;max-width:460px;line-height:1.6;">Jumlah usaha aktif dan sebaran wilayah. Isi setelah angka final tersedia, jangan pakai perkiraan.</p>
+    </div>
+    <div data-cols-5="true" data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:56px;padding-top:44px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="border:1px dashed rgba(255,255,255,0.14);border-radius:9px;padding:18px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.1em;color:#4A5261;">[LOGO KLIEN]</div>
+      <div style="border:1px dashed rgba(255,255,255,0.14);border-radius:9px;padding:18px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.1em;color:#4A5261;">[LOGO KLIEN]</div>
+      <div style="border:1px dashed rgba(255,255,255,0.14);border-radius:9px;padding:18px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.1em;color:#4A5261;">[LOGO KLIEN]</div>
+      <div style="border:1px dashed rgba(255,255,255,0.14);border-radius:9px;padding:18px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.1em;color:#4A5261;">[LOGO KLIEN]</div>
+      <div style="border:1px dashed rgba(255,255,255,0.14);border-radius:9px;padding:18px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;letter-spacing:0.1em;color:#4A5261;">[LOGO KLIEN]</div>
+    </div>
+  </section>
+
+  <section data-pad="true" style="max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+    <div data-cols-3="true" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;">
+      <div data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease,transform 180ms ease;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:26px 24px;background:linear-gradient(180deg,#0D1119,#0A0D12);display:flex;flex-direction:column;" style-hover="border-color:rgba(78,155,255,0.26);">
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#4E9BFF;margin-bottom:16px;">Kutipan 01</div>
+        <p style="font-size:15px;line-height:1.65;color:#8A93A3;margin:0 0 24px;flex:1;border-left:2px solid rgba(78,155,255,0.35);padding-left:14px;">[ISI DATA ASLI &#183; kutipan asli dari pelanggan. Disarankan menyoroti perpindahan dari banyak aplikasi terpisah ke satu sistem.]</p>
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div style="width:32px;height:32px;border-radius:50%;border:1px dashed rgba(255,255,255,0.2);"></div>
+          <div><div style="font-size:13px;color:#8A93A3;">[Nama]</div><div style="font-size:11.5px;color:#5C6474;margin-top:2px;">[Jabatan, nama usaha]</div></div>
+        </div>
+      </div>
+      <div data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:26px 24px;background:linear-gradient(180deg,#0D1119,#0A0D12);display:flex;flex-direction:column;" style-hover="border-color:rgba(78,155,255,0.26);">
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#4E9BFF;margin-bottom:16px;">Kutipan 02</div>
+        <p style="font-size:15px;line-height:1.65;color:#8A93A3;margin:0 0 24px;flex:1;border-left:2px solid rgba(78,155,255,0.35);padding-left:14px;">[ISI DATA ASLI &#183; kutipan asli dari pelanggan. Disarankan menyoroti konsistensi angka antar tim.]</p>
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div style="width:32px;height:32px;border-radius:50%;border:1px dashed rgba(255,255,255,0.2);"></div>
+          <div><div style="font-size:13px;color:#8A93A3;">[Nama]</div><div style="font-size:11.5px;color:#5C6474;margin-top:2px;">[Jabatan, nama usaha]</div></div>
+        </div>
+      </div>
+      <div data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1),border-color 180ms ease;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:26px 24px;background:linear-gradient(180deg,#0D1119,#0A0D12);display:flex;flex-direction:column;" style-hover="border-color:rgba(78,155,255,0.26);">
+        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#4E9BFF;margin-bottom:16px;">Kutipan 03</div>
+        <p style="font-size:15px;line-height:1.65;color:#8A93A3;margin:0 0 24px;flex:1;border-left:2px solid rgba(78,155,255,0.35);padding-left:14px;">[ISI DATA ASLI &#183; kutipan asli dari pelanggan. Disarankan menyoroti kepatuhan yang selesai sebelum tenggat.]</p>
+        <div style="display:flex;align-items:center;gap:11px;">
+          <div style="width:32px;height:32px;border-radius:50%;border:1px dashed rgba(255,255,255,0.2);"></div>
+          <div><div style="font-size:13px;color:#8A93A3;">[Nama]</div><div style="font-size:11.5px;color:#5C6474;margin-top:2px;">[Jabatan, nama usaha]</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <sc-if value="{{ showChangelog }}" hint-placeholder-val="{{ true }}">
+    <section id="changelog" data-pad="true" style="max-width:1200px;margin:0 auto;padding:140px 28px 0;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:30px;">
+        <h2 data-sec-title="true" style="font-size:32px;line-height:1.1;letter-spacing:-0.03em;font-weight:600;margin:0;">Yang baru di KLIR</h2>
+        <a href="#semua-catatan" style="font-size:13.5px;color:#8A93A3;" style-hover="color:#F5F7FA;">Semua catatan rilis &#8594;</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;">
+        <div data-reveal="true" style="opacity:0;transform:translateY(14px);transition:opacity 620ms cubic-bezier(0.16,1,0.3,1),transform 620ms cubic-bezier(0.16,1,0.3,1),background 170ms ease;background:#090C11;padding:19px 24px;display:flex;align-items:center;gap:20px;" style-hover="background:#0D1119;">
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#4E9BFF;border:1px solid rgba(78,155,255,0.28);border-radius:5px;padding:3px 8px;white-space:nowrap;">Keuangan</span>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#8A93A3;">[JUDUL UPDATE &#183; ISI DATA ASLI]</div><div style="font-size:13px;color:#5C6474;margin-top:4px;">[Ringkasan satu baris]</div></div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#4A5261;white-space:nowrap;">[TANGGAL]</div>
+        </div>
+        <div data-reveal="true" style="opacity:0;transform:translateY(14px);transition:opacity 620ms cubic-bezier(0.16,1,0.3,1),transform 620ms cubic-bezier(0.16,1,0.3,1),background 170ms ease;background:#090C11;padding:19px 24px;display:flex;align-items:center;gap:20px;" style-hover="background:#0D1119;">
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#4E9BFF;border:1px solid rgba(78,155,255,0.28);border-radius:5px;padding:3px 8px;white-space:nowrap;">Promosi</span>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#8A93A3;">[JUDUL UPDATE &#183; ISI DATA ASLI]</div><div style="font-size:13px;color:#5C6474;margin-top:4px;">[Ringkasan satu baris]</div></div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#4A5261;white-space:nowrap;">[TANGGAL]</div>
+        </div>
+        <div data-reveal="true" style="opacity:0;transform:translateY(14px);transition:opacity 620ms cubic-bezier(0.16,1,0.3,1),transform 620ms cubic-bezier(0.16,1,0.3,1),background 170ms ease;background:#090C11;padding:19px 24px;display:flex;align-items:center;gap:20px;" style-hover="background:#0D1119;">
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#4E9BFF;border:1px solid rgba(78,155,255,0.28);border-radius:5px;padding:3px 8px;white-space:nowrap;">Platform</span>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#8A93A3;">[JUDUL UPDATE &#183; ISI DATA ASLI]</div><div style="font-size:13px;color:#5C6474;margin-top:4px;">[Ringkasan satu baris]</div></div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#4A5261;white-space:nowrap;">[TANGGAL]</div>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <section id="demo" data-pad="true" style="max-width:1200px;margin:0 auto;padding:160px 28px 0;">
+    <div data-reveal="true" style="opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);position:relative;border:1px solid rgba(255,255,255,0.09);border-radius:20px;background:linear-gradient(180deg,#10141C,#080B10);padding:80px 32px;text-align:center;overflow:hidden;">
+      <div aria-hidden="true" style="position:absolute;left:50%;bottom:-200px;transform:translateX(-50%);width:800px;height:400px;background:radial-gradient(closest-side, rgba(0,88,190,0.42), rgba(6,8,12,0) 100%);filter:blur(38px);pointer-events:none;"></div>
+      <div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(78,155,255,0),rgba(78,155,255,0.6),rgba(78,155,255,0));"></div>
+      <div aria-hidden="true" style="position:absolute;top:0;bottom:0;left:0;width:180px;background:linear-gradient(90deg,rgba(78,155,255,0.1),rgba(78,155,255,0));animation:klirSweep 7s ease-in-out infinite;pointer-events:none;"></div>
+      <div style="position:relative;">
+        <h2 data-banner-title="true" style="font-size:48px;line-height:1.06;letter-spacing:-0.035em;font-weight:600;margin:0 0 18px;">Rapikan operasi usahamu<br>mulai minggu ini</h2>
+        <p style="font-size:16.5px;color:#8A93A3;margin:0 auto 34px;max-width:520px;line-height:1.6;">Tim KLIR akan memetakan proses usahamu dan menunjukkan bagaimana ketujuh pilarnya tersambung.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a href="#form-demo" style="font-size:15px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--accent, #0058BE));padding:13px 24px;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease;" style-hover="transform:translateY(-2px);filter:brightness(1.12);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28),0 14px 38px rgba(0,88,190,0.5);">Minta demo</a>
+          <a href="#harga" style="font-size:15px;font-weight:600;color:#F5F7FA;border:1px solid rgba(255,255,255,0.14);padding:13px 24px;border-radius:10px;transition:background 180ms ease,border-color 180ms ease,transform 180ms ease;" style-hover="background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.26);transform:translateY(-2px);color:#F5F7FA;">Lihat harga</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="margin-top:140px;border-top:1px solid rgba(255,255,255,0.08);">
+    <div data-pad="true" style="max-width:1200px;margin:0 auto;padding:64px 28px 40px;">
+      <div data-cols-5="true" style="display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:36px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="var(--accent, #0058BE)"></path>
+              <path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#F5F7FA" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">KLIR</span>
+          </div>
+          <p style="font-size:13px;color:#5C6474;line-height:1.6;margin:0;max-width:230px;">Ekosistem AI untuk operasi usaha di Indonesia.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div style="font-size:12.5px;color:#F5F7FA;font-weight:600;margin-bottom:3px;">Produk</div>
+          <a href="#rencana" style="font-size:13px;color:#8A93A3;">Rencana bisnis</a>
+          <a href="#keuangan" style="font-size:13px;color:#8A93A3;">Keuangan</a>
+          <a href="#promosi" style="font-size:13px;color:#8A93A3;">Promosi</a>
+          <a href="#tim" style="font-size:13px;color:#8A93A3;">Kelola tim</a>
+          <a href="#kepatuhan" style="font-size:13px;color:#8A93A3;">Kepatuhan</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div style="font-size:12.5px;color:#F5F7FA;font-weight:600;margin-bottom:3px;">Perusahaan</div>
+          <a href="#tentang" style="font-size:13px;color:#8A93A3;">Tentang</a>
+          <a href="#karier" style="font-size:13px;color:#8A93A3;">Karier</a>
+          <a href="#blog" style="font-size:13px;color:#8A93A3;">Blog</a>
+          <a href="#kontak" style="font-size:13px;color:#8A93A3;">Kontak</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div style="font-size:12.5px;color:#F5F7FA;font-weight:600;margin-bottom:3px;">Sumber Daya</div>
+          <a href="#docs" style="font-size:13px;color:#8A93A3;">Dokumentasi</a>
+          <a href="#panduan" style="font-size:13px;color:#8A93A3;">Panduan UMKM</a>
+          <a href="#changelog" style="font-size:13px;color:#8A93A3;">Catatan rilis</a>
+          <a href="#status" style="font-size:13px;color:#8A93A3;">Status sistem</a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:11px;">
+          <div style="font-size:12.5px;color:#F5F7FA;font-weight:600;margin-bottom:3px;">Legal</div>
+          <a href="#privasi" style="font-size:13px;color:#8A93A3;">Kebijakan privasi</a>
+          <a href="#syarat" style="font-size:13px;color:#8A93A3;">Syarat layanan</a>
+          <a href="#keamanan" style="font-size:13px;color:#8A93A3;">Keamanan data</a>
+          <a href="#dpa" style="font-size:13px;color:#8A93A3;">Perjanjian data</a>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:56px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.08);">
+        <div style="font-size:12px;color:#4A5261;">&#169; [TAHUN] KLIR. [ISI DATA ASLI &#183; badan hukum &amp; alamat]</div>
+        <div style="display:flex;gap:20px;">
+          <a href="#x" style="font-size:12px;color:#4A5261;">X</a>
+          <a href="#linkedin" style="font-size:12px;color:#4A5261;">LinkedIn</a>
+          <a href="#instagram" style="font-size:12px;color:#4A5261;">Instagram</a>
+          <a href="#youtube" style="font-size:12px;color:#4A5261;">YouTube</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#0058BE&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#0058BE&quot;,&quot;#0F6FE0&quot;,&quot;#3B4FD8&quot;,&quot;#1E7A9E&quot;],&quot;section&quot;:&quot;Merek&quot;},&quot;heroTilt&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:6,&quot;min&quot;:0,&quot;max&quot;:14,&quot;step&quot;:1,&quot;unit&quot;:&quot;deg&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;motion3d&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;particleDensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.2,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Hero&quot;},&quot;showChangelog&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Konten&quot;},&quot;animate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Konten&quot;}}">
+class Component extends DCLogic {
+  state = { menuOpen: false };
+
+  componentDidMount() {
+    this.applyVars();
+    this.focus = -1;
+    this.scrollN = 0;
+    this.onScroll = () => {
+      const y = window.scrollY || 0;
+      const nav = document.querySelector('[data-nav]');
+      if (nav) {
+        const on = y > 50;
+        nav.style.background = on ? 'rgba(6,8,12,0.74)' : 'transparent';
+        nav.style.backdropFilter = on ? 'saturate(180%) blur(16px)' : 'none';
+        nav.style.webkitBackdropFilter = on ? 'saturate(180%) blur(16px)' : 'none';
+        nav.style.borderBottomColor = on ? 'rgba(255,255,255,0.08)' : 'transparent';
+      }
+      const bar = document.querySelector('[data-progress]');
+      if (bar) {
+        const max = Math.max(1, document.body.scrollHeight - window.innerHeight);
+        bar.style.width = Math.min(100, (y / max) * 100).toFixed(2) + '%';
+      }
+      this.scrollN = Math.min(1.5, y / 900);
+    };
+    window.addEventListener('scroll', this.onScroll, { passive: true });
+    this.onScroll();
+    this.initReveal();
+    this.enhanceDom();
+    this.waitForThree();
+  }
+
+  componentDidUpdate(prev) {
+    this.applyVars();
+    if (!prev) return;
+    if (prev.accent !== this.props.accent) this.applySceneColor();
+    if (prev.particleDensity !== this.props.particleDensity) { this.disposeScene(); this.waitForThree(); }
+    if (prev.motion3d !== this.props.motion3d) this.setMotion();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
+    clearTimeout(this.failsafe);
+    if (this.io) this.io.disconnect();
+    this.disposeScene();
+  }
+
+  applyVars() {
+    const r = document.documentElement;
+    r.style.setProperty('--accent', this.props.accent || '#0058BE');
+    r.style.setProperty('--tilt', (this.props.heroTilt ?? 6) + 'deg');
+  }
+
+  initReveal() {
+    const els = Array.from(document.querySelectorAll('[data-reveal]'));
+    const show = (el) => { el.style.opacity = '1'; el.style.transform = 'none'; el.style.filter = 'none'; };
+    if (this.props.animate === false || !('IntersectionObserver' in window)) { els.forEach(show); return; }
+    const counts = new Map();
+    els.forEach((el) => {
+      const p = el.parentElement;
+      const n = counts.get(p) || 0;
+      counts.set(p, n + 1);
+      el.style.transitionDelay = Math.min(n, 6) * 70 + 'ms';
+      el.style.filter = 'blur(7px)';
+      el.style.transition = el.style.transition + ',filter 760ms cubic-bezier(0.16,1,0.3,1)';
+    });
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { show(e.target); this.io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
+    els.forEach((el) => this.io.observe(el));
+    this.failsafe = setTimeout(() => els.forEach(show), 3500);
+  }
+
+  enhanceDom() {
+    const bars = Array.from(document.querySelectorAll('[data-bars] > div'));
+    bars.forEach((b, i) => {
+      b.style.transformOrigin = 'bottom';
+      b.style.transform = 'scaleY(0.03)';
+      b.style.transition = 'transform 950ms cubic-bezier(0.16,1,0.3,1)';
+      setTimeout(() => { b.style.transform = 'scaleY(1)'; }, 480 + i * 58);
+    });
+
+    const chips = Array.from(document.querySelectorAll('[data-pillars] > div'));
+    chips.forEach((c, i) => {
+      const ghost = i > 4;
+      c.style.transition = 'border-color 190ms ease,background 190ms ease,transform 190ms ease,box-shadow 190ms ease';
+      c.style.cursor = 'default';
+      c.addEventListener('pointerenter', () => {
+        this.focus = i;
+        c.style.borderColor = 'rgba(78,155,255,0.55)';
+        c.style.background = 'rgba(0,88,190,0.16)';
+        c.style.transform = 'translateY(-3px)';
+        c.style.boxShadow = '0 10px 30px rgba(0,88,190,0.28)';
+      });
+      c.addEventListener('pointerleave', () => {
+        this.focus = -1;
+        c.style.borderColor = ghost ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.08)';
+        c.style.background = ghost ? 'rgba(255,255,255,0.015)' : 'rgba(255,255,255,0.02)';
+        c.style.transform = 'none';
+        c.style.boxShadow = 'none';
+      });
+    });
+  }
+
+  waitForThree() {
+    const host = document.querySelector('[data-hero-canvas]');
+    if (!host) return;
+    const started = Date.now();
+    const tick = () => {
+      if (window.THREE) { try { this.buildScene(host); } catch (e) { console.warn('KLIR hero 3D dilewati:', e && e.message); } return; }
+      if (Date.now() - started > 12000) return;
+      this.threeWait = setTimeout(tick, 90);
+    };
+    tick();
+  }
+
+  glowTexture(THREE) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d');
+    const rg = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    rg.addColorStop(0, 'rgba(255,255,255,1)');
+    rg.addColorStop(0.25, 'rgba(255,255,255,0.55)');
+    rg.addColorStop(0.6, 'rgba(255,255,255,0.12)');
+    rg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, 128, 128);
+    const t = new THREE.CanvasTexture(c);
+    t.needsUpdate = true;
+    return t;
+  }
+
+  buildScene(host) {
+    const THREE = window.THREE;
+    if (this.renderer) return;
+    const w = host.clientWidth || 1200;
+    const h = host.clientHeight || 820;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h);
+    renderer.setClearAlpha(0);
+    renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;';
+    host.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+    camera.position.set(0, 0.5, 9.4);
+
+    const accent = new THREE.Color(this.props.accent || '#0058BE');
+    const bright = accent.clone().lerp(new THREE.Color('#ffffff'), 0.6);
+    const tex = this.glowTexture(THREE);
+
+    const world = new THREE.Group();
+    world.rotation.x = -0.34;
+    scene.add(world);
+
+    const N = 7;
+    const R = 3.15;
+    const nodes = [];
+    const nodePts = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      const p = new THREE.Vector3(Math.cos(a) * R, Math.sin(a * 2) * 0.62, Math.sin(a) * R * 0.66);
+      nodePts.push(p);
+      const g = new THREE.Group();
+      g.position.copy(p);
+      const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.13 + (i % 3) * 0.016, 0), new THREE.MeshBasicMaterial({ color: bright }));
+      const shell = new THREE.Mesh(new THREE.OctahedronGeometry(0.34, 0), new THREE.MeshBasicMaterial({ color: accent, wireframe: true, transparent: true, opacity: 0.8 }));
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.52, 0.005, 6, 44),
+        new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.rotation.y = i * 0.42;
+      const sat = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: bright, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+      sat.scale.setScalar(0.22);
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: accent, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }));
+      halo.scale.setScalar(1.5);
+      g.add(core, shell, ring, sat, halo);
+      g.scale.setScalar(0.001);
+      world.add(g);
+      nodes.push({ g, core, shell, ring, sat, halo, baseY: p.y, phase: i, spin: 0.34 + i * 0.05, focus: 0 });
+    }
+
+    const coreGroup = new THREE.Group();
+    const hub = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95, 0), new THREE.MeshBasicMaterial({ color: accent, wireframe: true, transparent: true, opacity: 0.5 }));
+    const cage = new THREE.Mesh(new THREE.DodecahedronGeometry(1.5, 0), new THREE.MeshBasicMaterial({ color: accent, wireframe: true, transparent: true, opacity: 0.2 }));
+    const hubCore = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), new THREE.MeshBasicMaterial({ color: bright }));
+    const hubGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: accent, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
+    hubGlow.scale.setScalar(4.6);
+    coreGroup.add(hub, cage, hubCore, hubGlow);
+    world.add(coreGroup);
+
+    const waves = [0, 0.34, 0.68].map((off) => {
+      const m = new THREE.MeshBasicMaterial({ color: bright, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(new THREE.TorusGeometry(1, 0.011, 6, 96), m);
+      mesh.rotation.x = Math.PI / 2;
+      world.add(mesh);
+      return { mesh, m, off };
+    });
+
+    const grid = new THREE.PolarGridHelper(7.6, N, 4, 72, accent, accent);
+    grid.material.transparent = true;
+    grid.material.opacity = 0.13;
+    grid.material.blending = THREE.AdditiveBlending;
+    grid.material.depthWrite = false;
+    grid.position.y = -2.6;
+    world.add(grid);
+
+    const shardMat = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, wireframe: true });
+    const shards = [];
+    for (let i = 0; i < 10; i++) {
+      const m = new THREE.Mesh(new THREE.TetrahedronGeometry(0.12 + Math.random() * 0.1, 0), shardMat);
+      const a = Math.random() * Math.PI * 2;
+      const r = 5.4 + Math.random() * 2.4;
+      const up = Math.random() < 0.5 ? -1 : 1;
+      m.position.set(Math.cos(a) * r, up * (1.9 + Math.random() * 1.3), Math.sin(a) * r * 0.68);
+      const glint = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: bright, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+      glint.scale.setScalar(0.5);
+      m.add(glint);
+      world.add(m);
+      shards.push({ m, glint, sp: 0.18 + Math.random() * 0.5, ph: Math.random() * 6.28, y0: m.position.y });
+    }
+
+    const curves = [];
+    const addCurve = (a, b, bulge) => {
+      const mid = a.clone().add(b).multiplyScalar(0.5).multiplyScalar(bulge);
+      curves.push(new THREE.QuadraticBezierCurve3(a.clone(), mid, b.clone()));
+    };
+    for (let i = 0; i < N; i++) {
+      addCurve(nodePts[i], nodePts[(i + 1) % N], 1.16);
+      addCurve(nodePts[i], nodePts[(i + 3) % N], 0.42);
+      addCurve(nodePts[i], new THREE.Vector3(0, 0, 0), 0.9);
+    }
+
+    const lineMat = new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false });
+    const LINE_SEG = 46;
+    const lines = curves.map((c) => {
+      const geo = new THREE.BufferGeometry().setFromPoints(c.getPoints(LINE_SEG));
+      geo.setDrawRange(0, 2);
+      world.add(new THREE.Line(geo, lineMat));
+      return geo;
+    });
+
+    const TRAIL = 15;
+    const pulses = curves.map((c, i) => {
+      const arr = new Float32Array(TRAIL * 3);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+      const mat = new THREE.LineBasicMaterial({ color: bright, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+      world.add(new THREE.Line(geo, mat));
+      const head = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: bright, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false }));
+      head.scale.setScalar(0.38);
+      world.add(head);
+      return { c, geo, arr, mat, head, off: (i * 0.137) % 1, speed: 0.075 + (i % 5) * 0.021, back: i % 3 === 2 };
+    });
+
+    const density = this.props.particleDensity ?? 1;
+    const count = Math.max(80, Math.round(560 * density));
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const r = 3.2 + Math.random() * 5.6;
+      const th = Math.random() * Math.PI * 2;
+      const ph = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = Math.sin(ph) * Math.cos(th) * r;
+      pos[i * 3 + 1] = (Math.cos(ph) * r) * 0.5;
+      pos[i * 3 + 2] = Math.sin(ph) * Math.sin(th) * r;
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const dust = new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.075, map: tex, color: bright, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+    scene.add(dust);
+
+    this.renderer = renderer; this.scene = scene; this.camera = camera; this.host = host;
+    this.world = world; this.nodes = nodes; this.pulses = pulses; this.coreGroup = coreGroup;
+    this.lines = lines; this.lineSeg = LINE_SEG; this.trail = TRAIL;
+    this.waves = waves; this.shards = shards; this.dust = dust; this.tex = tex;
+    this.accentMats = [lineMat, hub.material, cage.material, grid.material, hubGlow.material];
+    this.accentShardMat = shardMat;
+    this.brightMats = [dust.material, hubCore.material].concat(waves.map((wv) => wv.m), shards.map((s) => s.glint.material));
+    this.tmp = new THREE.Vector3();
+    this.target = { x: 0, y: 0.5 };
+    this.clock = new THREE.Clock();
+
+    this.onPointer = (e) => {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      this.target.x = nx * 1.1;
+      this.target.y = 0.5 - ny * 0.55;
+    };
+    window.addEventListener('pointermove', this.onPointer, { passive: true });
+
+    this.onResize = () => {
+      if (!this.renderer) return;
+      const nw = host.clientWidth, nh = host.clientHeight;
+      if (!nw || !nh) return;
+      this.camera.aspect = nw / nh;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(nw, nh);
+    };
+    window.addEventListener('resize', this.onResize, { passive: true });
+
+    this.setMotion();
+  }
+
+  setMotion() {
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const wants = this.props.motion3d !== false && !reduce;
+    if (this.raf) { cancelAnimationFrame(this.raf); this.raf = null; }
+    if (!this.renderer) return;
+    if (!wants) { this.frame(0, true); return; }
+    const loop = () => { this.raf = requestAnimationFrame(loop); this.frame(this.clock.getElapsedTime(), false); };
+    loop();
+  }
+
+  frame(t, still) {
+    const { world, nodes, pulses, coreGroup, waves, shards, lines, dust, camera, renderer, scene, tmp } = this;
+    if (!renderer) return;
+    const tt = still ? 0 : t;
+    const ease = (x) => 1 - Math.pow(1 - x, 3);
+    const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+    const intro = still ? 1 : clamp01(tt / 2.2);
+
+    const seg = this.lineSeg + 1;
+    lines.forEach((geo, i) => {
+      const local = ease(clamp01((intro - 0.2 - (i % 7) * 0.028) / 0.6));
+      geo.setDrawRange(0, Math.max(2, Math.round(local * seg)));
+    });
+
+    nodes.forEach((n, i) => {
+      const pop = ease(clamp01((intro - i * 0.055) / 0.5));
+      const want = this.focus === i ? 1 : 0;
+      n.focus += (want - n.focus) * 0.12;
+      const breathe = 1 + Math.sin(tt * 1.4 + i) * 0.035;
+      n.g.scale.setScalar(Math.max(0.001, pop * breathe * (1 + n.focus * 0.4)));
+      n.g.position.y = n.baseY + Math.sin(tt * 0.85 + n.phase) * 0.1;
+      n.shell.rotation.y = tt * 0.5 + i;
+      n.shell.rotation.x = tt * 0.3;
+      n.ring.rotation.z = tt * n.spin;
+      const orbit = tt * (0.75 + i * 0.09) + i;
+      n.sat.position.set(Math.cos(orbit) * 0.52, 0, Math.sin(orbit) * 0.52);
+      const glow = 0.66 + Math.sin(tt * 1.6 + i * 0.9) * 0.22 + n.focus * 0.32;
+      n.halo.material.opacity = glow;
+      n.halo.scale.setScalar(1.32 + glow * 0.38 + n.focus * 0.55);
+      n.ring.material.opacity = 0.36 + n.focus * 0.5;
+      n.shell.material.opacity = 0.62 + n.focus * 0.35;
+    });
+
+    const hubIn = ease(clamp01(intro / 0.45));
+    coreGroup.scale.setScalar(hubIn * (1 + Math.sin(tt * 1.1) * 0.03));
+    coreGroup.rotation.y = -tt * 0.24;
+    coreGroup.rotation.x = tt * 0.13;
+    coreGroup.children[1].rotation.y = tt * 0.4;
+    coreGroup.children[1].rotation.z = -tt * 0.18;
+
+    waves.forEach((wv) => {
+      const u = (tt * 0.2 + wv.off) % 1;
+      const s = 0.7 + u * 5.6;
+      wv.mesh.scale.set(s, s, 1);
+      wv.m.opacity = Math.max(0, 0.32 * (1 - u) * intro);
+    });
+
+    shards.forEach((s) => {
+      s.m.rotation.x = tt * s.sp;
+      s.m.rotation.y = tt * s.sp * 0.7;
+      s.m.position.y = s.y0 + Math.sin(tt * 0.5 + s.ph) * 0.36;
+      s.glint.material.opacity = (0.3 + Math.abs(Math.sin(tt * 0.7 + s.ph)) * 0.45) * intro;
+    });
+
+    pulses.forEach((p) => {
+      const base = (tt * p.speed + p.off) % 1;
+      for (let j = 0; j < this.trail; j++) {
+        const raw = clamp01(base - j * 0.013);
+        p.c.getPoint(p.back ? 1 - raw : raw, tmp);
+        p.arr[j * 3] = tmp.x; p.arr[j * 3 + 1] = tmp.y; p.arr[j * 3 + 2] = tmp.z;
+        if (j === 0) p.head.position.copy(tmp);
+      }
+      p.geo.attributes.position.needsUpdate = true;
+      const vis = (0.3 + Math.sin(base * Math.PI) * 0.62) * intro;
+      p.mat.opacity = vis * 0.85;
+      p.head.material.opacity = vis;
+      p.head.scale.setScalar(0.28 + vis * 0.22);
+    });
+
+    dust.rotation.y = tt * 0.016;
+    world.rotation.y = tt * 0.075 + this.scrollN * 0.55;
+    world.position.y = this.scrollN * 0.75;
+
+    if (!still) {
+      camera.position.x += (this.target.x - camera.position.x) * 0.045;
+      camera.position.y += (this.target.y - camera.position.y) * 0.045;
+      camera.position.z += ((9.4 + this.scrollN * 2.6) - camera.position.z) * 0.05;
+      camera.lookAt(0, 0, 0);
+    }
+    renderer.render(scene, camera);
+  }
+
+  applySceneColor() {
+    if (!this.renderer || !window.THREE) return;
+    const THREE = window.THREE;
+    const accent = new THREE.Color(this.props.accent || '#0058BE');
+    const bright = accent.clone().lerp(new THREE.Color('#ffffff'), 0.6);
+    this.accentMats.concat([this.accentShardMat]).forEach((m) => m.color && m.color.copy(accent));
+    this.brightMats.forEach((m) => m.color && m.color.copy(bright));
+    this.nodes.forEach((n) => {
+      n.core.material.color.copy(bright);
+      n.shell.material.color.copy(accent);
+      n.ring.material.color.copy(accent);
+      n.sat.material.color.copy(bright);
+      n.halo.material.color.copy(accent);
+    });
+    this.pulses.forEach((p) => { p.mat.color.copy(bright); p.head.material.color.copy(bright); });
+    if (!this.raf) this.frame(0, true);
+  }
+
+  disposeScene() {
+    clearTimeout(this.threeWait);
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = null;
+    window.removeEventListener('pointermove', this.onPointer);
+    window.removeEventListener('resize', this.onResize);
+    if (this.renderer) {
+      const el = this.renderer.domElement;
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+      this.renderer.dispose();
+    }
+    if (this.tex) this.tex.dispose();
+    this.renderer = null; this.scene = null;
+  }
+
+  renderVals() {
+    return {
+      menuOpen: this.state.menuOpen,
+      showChangelog: this.props.showChangelog ?? true,
+      toggleMenu: () => this.setState((s) => ({ menuOpen: !s.menuOpen }))
+    };
+  }
+}
+</script>
+</body>
+</html>

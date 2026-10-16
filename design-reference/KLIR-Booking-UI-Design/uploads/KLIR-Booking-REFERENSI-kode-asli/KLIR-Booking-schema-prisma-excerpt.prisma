@@ -1,0 +1,60 @@
+// SUMBER ASLI: prisma/schema.prisma (repo KLIR-main, snapshot 23 Agustus 2026)
+// Potongan model Prisma yang relevan, disertakan sebagai referensi struktur data (field apa yang ada),
+// BUKAN untuk didesain field-per-field secara literal di UI.
+
+enum BookingStatus {
+  CONFIRMED
+  PENDING_DEPOSIT
+  COMPLETED
+  CANCELLED
+}
+
+model BookingReservation {
+  id              String        @id @default(uuid()) @db.Uuid
+  workspaceId     String        @map("workspace_id") @db.Uuid
+  bookingCode     String        @unique @map("booking_code") @db.VarChar(50)
+  customerName    String        @map("customer_name") @db.VarChar(100)
+  customerPhone   String        @map("customer_phone") @db.VarChar(50)
+  customerEmail   String?       @map("customer_email") @db.VarChar(100)
+  serviceName     String        @map("service_name") @db.VarChar(100)
+  bookingDate     DateTime      @map("booking_date")
+  bookingTime     String        @map("booking_time") @db.VarChar(20)
+  durationMinutes Int           @default(60) @map("duration_minutes")
+  totalPrice      Float         @map("total_price")
+  depositAmount   Float         @default(0) @map("deposit_amount")
+  isDepositPaid   Boolean       @default(false) @map("is_deposit_paid")
+  status          BookingStatus @default(CONFIRMED)
+  notes           String?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  workspace       Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, bookingDate])
+  @@index([workspaceId, status])
+  @@map("booking_reservations")
+}
+
+enum QueueStatus {
+  WAITING
+  SERVING
+  COMPLETED
+  SKIPPED
+}
+
+model QueueTicket {
+  id                   String      @id @default(uuid()) @db.Uuid
+  workspaceId          String      @map("workspace_id") @db.Uuid
+  queueNumber          String      @map("queue_number") @db.VarChar(20)
+  customerName         String      @map("customer_name") @db.VarChar(100)
+  serviceType          String      @default("Layanan Umum") @map("service_type") @db.VarChar(100)
+  status               QueueStatus @default(WAITING)
+  estimatedWaitMinutes Int         @default(15) @map("estimated_wait_minutes")
+  createdAt            DateTime    @default(now()) @map("created_at")
+
+  workspace            Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@map("queue_tickets")
+}
+

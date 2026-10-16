@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com"></link>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"></link>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
+  <style>
+    body { margin: 0; background: #06080C; }
+    a { color: #4E9BFF; text-decoration: none; }
+    a:hover { color: #F5F7FA; text-decoration: underline; }
+    @keyframes kpFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes kpPulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+    @keyframes kpSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</helmet>
+<div style="background: #06080C; min-height: 100vh; position: relative; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; padding: 48px 32px 90px;">
+  <div style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: #0058BE; filter: blur(130px); opacity: 0.35; top: -240px; right: -160px; pointer-events: none; animation: {{ pulseAnim }};"></div>
+  <div style="position: absolute; width: 420px; height: 420px; border-radius: 50%; background: #4E9BFF; filter: blur(140px); opacity: 0.3; bottom: -200px; left: -140px; pointer-events: none; animation: {{ pulseAnim }};"></div>
+
+  <div style="max-width: 1360px; margin: 0 auto; position: relative; z-index: 1;">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; padding-bottom: 24px; margin-bottom: 32px; border-bottom: 1px solid rgba(245,247,250,0.08);">
+      <div style="max-width: 560px;">
+        <h1 style="font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 30px; color: #F5F7FA; margin: 0 0 8px;">KLIR Promo</h1>
+        <p style="font-size: 14px; line-height: 1.6; color: #8A93A3; margin: 0;">Bikin materi promosi, atur jadwal konten, kelola voucher diskon, dan bio link digital usaha kamu — semua dari satu tempat.</p>
+      </div>
+      <div style="display: inline-flex; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 4px; gap: 4px; flex-wrap: wrap;">
+        <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="3">
+          <button onClick="{{ tab.onClick }}" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{ tab.bg }}; color: {{ tab.fg }}; box-shadow: {{ tab.shadow }};">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 6px; background: rgba(245,247,250,0.1); font-family: ui-monospace, 'SF Mono', 'Roboto Mono', monospace; font-size: 10px; font-weight: 700; color: {{ tab.fg }};">{{ tab.num }}</span>
+            <span>{{ tab.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{ isCopyTab }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Generator Materi Promosi" style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+        <div style="flex: 1 1 340px; max-width: 400px; position: relative; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 24px; box-sizing: border-box;">
+          <div style="position: absolute; top: -1px; left: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 6px 0 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 6px 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 0 6px; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; right: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 6px 0; pointer-events: none;"></div>
+
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0 0 4px;">Generator Materi Promosi</h3>
+          <p style="font-size: 12.5px; color: #8A93A3; margin: 0 0 18px; line-height: 1.5;">Isi info produk atau layanan, sistem akan menyiapkan teks promosi untuk beberapa platform sekaligus.</p>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Nama Produk atau Layanan</label>
+              <input type="text" value="{{ promoProdName }}" onChange="{{ onProdName }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Deskripsi Singkat atau Keunggulan</label>
+              <textarea value="{{ promoProdDesc }}" onChange="{{ onProdDesc }}" rows="3" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA; resize: vertical;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"></textarea>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Gaya Bahasa atau Tone Lokal</label>
+              <select value="{{ promoTone }}" onChange="{{ onTone }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;">
+                <option value="SKENA_JAKSEL">Skena Jaksel atau Santai Gaul Kekinian</option>
+                <option value="RAMAH_SELLER">Ramah Seller E-Commerce</option>
+                <option value="FORMAL_KORPORAT">Formal Korporat dan B2B Profesional</option>
+                <option value="STORYTELLING">Storytelling Emosional</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Sudut Promosi atau Angle</label>
+              <select value="{{ promoAngle }}" onChange="{{ onAngle }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;">
+                <option value="DISKON_GAJIAN">Promo Gajian atau Payday Sale</option>
+                <option value="TANGGAL_KEMBAR">Flash Sale Tanggal Kembar</option>
+                <option value="PELUNCURAN_BARU">Peluncuran Menu atau Produk Baru</option>
+                <option value="SOLUSI_MASALAH">Solusi Tuntas Masalah Konsumen</option>
+              </select>
+            </div>
+
+            <button onClick="{{ generateCopy }}" disabled="{{ isGeneratingCopy }}" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; background: #0058BE; box-shadow: 0 8px 24px rgba(78,155,255,0.16); font-family: 'Plus Jakarta Sans', sans-serif;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <sc-if value="{{ isGeneratingCopy }}" hint-placeholder-val="{{ false }}">
+                  <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); border-top-color: #F5F7FA; animation: kpSpin 0.8s linear infinite;"></span>
+                </sc-if>
+                <span style="font-size: 14px; font-weight: 600; color: #F5F7FA;">Buat Materi Promosi</span>
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(216,163,60,0.16); border: 1px solid rgba(216,163,60,0.4); border-radius: 999px; padding: 4px 10px; flex-shrink: 0;">
+                <span style="width: 7px; height: 7px; border-radius: 2px; background: #D8A33C; transform: rotate(45deg);"></span>
+                <span style="font-size: 11px; font-weight: 700; color: #D8A33C; letter-spacing: 0.02em;">Kredit</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div style="flex: 2 1 480px; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 28px; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+            <div>
+              <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0 0 6px;">Hasil Copywriting Siap Pakai</h3>
+              <span style="display: inline-block; font-size: 11px; font-weight: 700; color: #4E9BFF; background: rgba(78,155,255,0.12); border: 1px solid rgba(78,155,255,0.3); border-radius: 999px; padding: 3px 10px;">Multi-Platform</span>
+            </div>
+            <div style="flex-shrink: 0; width: 96px; height: 88px; position: relative; animation: {{ floatAnim }};">
+              <div style="position: absolute; width: 54px; height: 66px; top: 14px; left: 6px; border-radius: 12px; background: linear-gradient(160deg,#0058BE,#073B82); border: 1px solid rgba(245,247,250,0.12); box-shadow: 0 10px 20px rgba(0,0,0,0.35); transform: rotate(-14deg);"></div>
+              <div style="position: absolute; width: 56px; height: 68px; top: 10px; left: 22px; border-radius: 12px; background: linear-gradient(160deg,#0A66D6,#0058BE); border: 1px solid rgba(245,247,250,0.14); box-shadow: 0 10px 22px rgba(0,0,0,0.35); transform: rotate(4deg);">
+                <div style="width: 60%; height: 3px; border-radius: 2px; background: rgba(245,247,250,0.4); margin: 12px auto 0;"></div>
+                <div style="width: 40%; height: 3px; border-radius: 2px; background: rgba(245,247,250,0.3); margin: 6px auto 0;"></div>
+              </div>
+              <div style="position: absolute; width: 58px; height: 70px; top: 6px; left: 14px; border-radius: 12px; background: linear-gradient(160deg,#4E9BFF,#0058BE); border: 1px solid rgba(245,247,250,0.2); box-shadow: 0 14px 28px rgba(0,0,0,0.4), 0 0 26px rgba(78,155,255,0.14); transform: rotate(-5deg);">
+                <div style="width: 70%; height: 3px; border-radius: 2px; background: rgba(245,247,250,0.75); margin: 13px auto 0;"></div>
+                <div style="width: 55%; height: 3px; border-radius: 2px; background: rgba(245,247,250,0.5); margin: 6px auto 0;"></div>
+                <div style="width: 38%; height: 3px; border-radius: 2px; background: rgba(245,247,250,0.35); margin: 6px auto 0;"></div>
+              </div>
+            </div>
+          </div>
+
+          <sc-if value="{{ noCopyResults }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align: center; padding: 56px 24px; border: 1px dashed rgba(245,247,250,0.14); border-radius: 14px;">
+              <p style="font-size: 13px; color: #5C6474; margin: 0; font-style: italic;">Belum ada hasil. Isi formulir di sebelah kiri, lalu buat materi promosinya.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasCopyResults }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="background: #0A0D13; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+                  <span style="font-size: 12px; font-weight: 700; color: #4E9BFF;">Instagram — Feed &amp; Caption</span>
+                  <span style="font-size: 10px; font-weight: 600; color: #5C6474; background: rgba(245,247,250,0.06); border-radius: 6px; padding: 3px 8px; cursor: pointer;">Salin Teks</span>
+                </div>
+                <div style="font-size: 13px; font-weight: 700; color: #F5F7FA; margin-bottom: 6px;">Gajian Cair, Saatnya Ngopi Cantik</div>
+                <p style="font-size: 12.5px; line-height: 1.6; color: #8A93A3; margin: 0 0 8px;">Kopi susu gula aren favoritmu, sekarang lebih hemat khusus minggu gajian. Racikan gula aren asli tanpa gula pasir, manisnya pas dan tetap nagih.</p>
+                <p style="font-size: 12px; font-weight: 600; color: #3FBF8F; margin: 0 0 8px;">Buruan mampir, stok terbatas tiap hari.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  <sc-for list="{{ igHashtags }}" as="tag" hint-placeholder-count="4">
+                    <span style="font-size: 11px; color: #4E9BFF; background: rgba(78,155,255,0.1); border-radius: 6px; padding: 3px 8px;">{{ tag }}</span>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="background: #0A0D13; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 16px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3FBF8F;">TikTok / Reels — Hook &amp; Naskah</span>
+                <div style="margin-top: 10px; padding: 10px 12px; background: rgba(63,191,143,0.08); border: 1px solid rgba(63,191,143,0.2); border-radius: 10px; font-size: 12.5px; font-weight: 600; color: #F5F7FA;">Hook (3 detik): "POV: gajian baru cair dan kamu udah tahu harus ke mana."</div>
+                <p style="font-size: 12.5px; line-height: 1.6; color: #8A93A3; margin: 10px 0 0;"><strong style="color: #F5F7FA;">Arahan video:</strong> Mulai dari close-up tuang gula aren, lanjut ekspresi puas waktu nyicip, tutup dengan harga promo muncul di layar.</p>
+              </div>
+
+              <div style="background: #0A0D13; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 16px;">
+                <span style="font-size: 12px; font-weight: 700; color: #D8A33C;">Poster / Spanduk Promosi</span>
+                <div style="margin-top: 10px;">
+                  <div style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: #F5F7FA; letter-spacing: 0.01em;">PROMO GAJIAN</div>
+                  <div style="font-size: 12.5px; color: #8A93A3; margin-top: 4px;">Kopi Susu Gula Aren, diskon spesial minggu ini di Kedai Kopi Aroma.</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCalTab }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Kalender Konten" style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+        <div style="flex: 1 1 340px; max-width: 400px; position: relative; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 24px; box-sizing: border-box;">
+          <div style="position: absolute; top: -1px; left: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 6px 0 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 6px 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 0 6px; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; right: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 6px 0; pointer-events: none;"></div>
+
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0 0 4px;">Kalender Konten</h3>
+          <p style="font-size: 12.5px; color: #8A93A3; margin: 0 0 18px; line-height: 1.5;">Isi info brand dan tema kampanye, sistem akan menyusun rencana konten untuk 7 hari ke depan.</p>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Nama Brand atau Usaha</label>
+              <input type="text" value="{{ calBrand }}" onChange="{{ onCalBrand }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Kategori Industri</label>
+              <input type="text" value="{{ calIndustry }}" onChange="{{ onCalIndustry }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Tema Kampanye Utama</label>
+              <input type="text" value="{{ calCampaign }}" onChange="{{ onCalCampaign }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+
+            <button onClick="{{ generateCalendar }}" disabled="{{ isGeneratingCal }}" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; background: #0058BE; box-shadow: 0 8px 24px rgba(78,155,255,0.16); font-family: 'Plus Jakarta Sans', sans-serif;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <sc-if value="{{ isGeneratingCal }}" hint-placeholder-val="{{ false }}">
+                  <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); border-top-color: #F5F7FA; animation: kpSpin 0.8s linear infinite;"></span>
+                </sc-if>
+                <span style="font-size: 14px; font-weight: 600; color: #F5F7FA;">Susun Kalender 7 Hari</span>
+              </span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(216,163,60,0.16); border: 1px solid rgba(216,163,60,0.4); border-radius: 999px; padding: 4px 10px; flex-shrink: 0;">
+                <span style="width: 7px; height: 7px; border-radius: 2px; background: #D8A33C; transform: rotate(45deg);"></span>
+                <span style="font-size: 11px; font-weight: 700; color: #D8A33C; letter-spacing: 0.02em;">Kredit</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div style="flex: 2 1 480px; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 28px; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0;">Rencana Konten Mingguan Terjadwal</h3>
+            <div style="flex-shrink: 0; width: 92px; height: 92px; position: relative; animation: {{ floatAnim }};">
+              <div style="position: absolute; width: 76px; height: 76px; top: 14px; left: 8px; border-radius: 16px; background: #0E1219; border: 1px solid rgba(245,247,250,0.18); box-shadow: 0 12px 24px rgba(0,0,0,0.4); transform: rotate(-6deg); overflow: hidden;">
+                <div style="height: 18px; background: linear-gradient(90deg,#0058BE,#4E9BFF);"></div>
+                <div style="display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; padding: 8px;">
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: #3FBF8F; box-shadow: 0 0 8px rgba(63,191,143,0.5);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                  <div style="height: 9px; border-radius: 3px; background: rgba(245,247,250,0.1);"></div>
+                </div>
+              </div>
+              <div style="position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #06080C; border: 2px solid #4E9BFF; top: 8px; left: 26px;"></div>
+              <div style="position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #06080C; border: 2px solid #4E9BFF; top: 8px; left: 60px;"></div>
+            </div>
+          </div>
+
+          <sc-if value="{{ noCalResults }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align: center; padding: 56px 24px; border: 1px dashed rgba(245,247,250,0.14); border-radius: 14px;">
+              <p style="font-size: 13px; color: #5C6474; margin: 0; font-style: italic;">Belum ada rencana konten. Isi formulir di sebelah kiri, lalu susun kalendernya.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasCalResults }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <sc-for list="{{ calendarDays }}" as="day" hint-placeholder-count="7">
+                <div style="display: flex; align-items: center; gap: 14px; background: #0A0D13; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 14px 16px; flex-wrap: wrap;">
+                  <div style="flex-shrink: 0; width: 44px; text-align: center;">
+                    <div style="font-size: 10px; font-weight: 700; color: #5C6474; letter-spacing: 0.05em;">{{ day.dayAbbr }}</div>
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #F5F7FA;">{{ day.dayNum }}</div>
+                  </div>
+                  <div style="flex: 1; min-width: 200px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                      <span style="font-size: 10.5px; font-weight: 700; color: #4E9BFF; background: rgba(78,155,255,0.1); border-radius: 999px; padding: 2px 9px;">{{ day.pillar }}</span>
+                      <span style="font-size: 10.5px; font-weight: 600; color: #D8A33C; background: rgba(216,163,60,0.1); border-radius: 999px; padding: 2px 9px;">{{ day.bestTime }}</span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: #F5F7FA; margin-bottom: 3px;">{{ day.headline }}</div>
+                    <div style="font-size: 11.5px; color: #8A93A3;">{{ day.format }} — {{ day.visual }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isCoupTab }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Kupon Diskon" style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+        <div style="flex: 1 1 340px; max-width: 400px; position: relative; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 24px; box-sizing: border-box;">
+          <div style="position: absolute; top: -1px; left: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 6px 0 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 6px 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 0 6px; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; right: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 6px 0; pointer-events: none;"></div>
+
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0 0 4px;">Kupon Diskon</h3>
+          <p style="font-size: 12.5px; color: #8A93A3; margin: 0 0 18px; line-height: 1.5;">Buat kode voucher, atur nilai diskonnya, dan pantau berapa yang sudah dipakai pelanggan.</p>
+
+          <form onSubmit="{{ addCoupon }}" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Kode Voucher</label>
+              <input type="text" value="{{ couponCode }}" onChange="{{ onCouponCode }}" placeholder="CONTOH: DISKON25" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: ui-monospace, 'SF Mono', 'Roboto Mono', monospace; font-size: 13px; color: #F5F7FA; text-transform: uppercase; letter-spacing: 0.04em;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1; min-width: 0;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Tipe Diskon</label>
+                <select value="{{ couponType }}" onChange="{{ onCouponType }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;">
+                  <option value="PERCENTAGE">Persen</option>
+                  <option value="FIXED_AMOUNT">Nominal Rupiah</option>
+                </select>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Nilai Diskon</label>
+                <div style="position: relative;">
+                  <input type="number" value="{{ couponValue }}" onChange="{{ onCouponValue }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 34px 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+                  <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11.5px; color: #5C6474; pointer-events: none;">{{ couponValueSuffix }}</span>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1; min-width: 0;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Minimal Belanja (Rp)</label>
+                <input type="number" value="{{ couponMin }}" onChange="{{ onCouponMin }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Kuota Klaim</label>
+                <input type="number" value="{{ couponQuota }}" onChange="{{ onCouponQuota }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+              </div>
+            </div>
+            <button type="submit" style="width: 100%; box-sizing: border-box; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; background: #0058BE; box-shadow: 0 8px 24px rgba(78,155,255,0.16); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: #F5F7FA; margin-top: 2px;">Terbitkan Voucher Diskon</button>
+          </form>
+        </div>
+
+        <div style="flex: 2 1 480px; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 28px; box-sizing: border-box;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0;">Daftar Voucher Diskon Aktif</h3>
+            <div style="flex-shrink: 0; width: 96px; height: 80px; position: relative; animation: {{ floatAnim }};">
+              <div style="position: absolute; width: 86px; height: 52px; top: 14px; left: 5px; border-radius: 10px; background: linear-gradient(135deg,#1B5C48,#3FBF8F); border: 1px solid rgba(245,247,250,0.16); box-shadow: 0 12px 24px rgba(0,0,0,0.4); transform: rotate(6deg);"></div>
+              <div style="position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #0E1219; top: 33px; left: -3px;"></div>
+              <div style="position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #0E1219; top: 33px; left: 78px;"></div>
+              <div style="position: absolute; top: 20px; bottom: 20px; left: 47px; border-left: 2px dashed rgba(6,8,12,0.4); transform: rotate(6deg);"></div>
+              <div style="position: absolute; width: 15px; height: 15px; border-radius: 4px; background: #D8A33C; box-shadow: 0 0 10px rgba(216,163,60,0.4); top: 2px; right: 12px; transform: rotate(45deg);"></div>
+            </div>
+          </div>
+
+          <sc-if value="{{ noCoupons }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align: center; padding: 56px 24px; border: 1px dashed rgba(245,247,250,0.14); border-radius: 14px;">
+              <p style="font-size: 13px; color: #5C6474; margin: 0; font-style: italic;">Belum ada voucher yang diterbitkan.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasCoupons }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <sc-for list="{{ couponsView }}" as="cp" hint-placeholder-count="3">
+                <div style="background: #0A0D13; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 16px;">
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                    <span style="font-family: ui-monospace, 'SF Mono', 'Roboto Mono', monospace; font-size: 14px; font-weight: 800; letter-spacing: 0.03em; color: #F5F7FA; background: rgba(0,88,190,0.18); border: 1px solid rgba(0,88,190,0.4); border-radius: 8px; padding: 3px 10px;">{{ cp.code }}</span>
+                    <span style="font-size: 11px; font-weight: 700; color: #3FBF8F; background: rgba(63,191,143,0.1); border-radius: 999px; padding: 3px 9px;">Diskon {{ cp.discountDisplay }}</span>
+                    <span style="font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 3px 9px; background: {{ cp.statusBg }}; border: 1px solid {{ cp.statusBorder }}; color: {{ cp.statusColor }};">{{ cp.statusLabel }}</span>
+                  </div>
+                  <div style="font-size: 11.5px; color: #8A93A3; margin-bottom: 10px;">Min. belanja {{ cp.minPurchaseDisplay }} — berlaku sampai {{ cp.validUntilDisplay }}</div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 120px; height: 5px; border-radius: 999px; background: rgba(245,247,250,0.08); overflow: hidden;">
+                      <div style="height: 100%; border-radius: 999px; background: #4E9BFF; width: {{ cp.quotaPct }}%;"></div>
+                    </div>
+                    <span style="font-size: 11px; color: #5C6474;">{{ cp.quotaText }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isBioTab }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Bio Link dan Chat" style="display: flex; gap: 24px; flex-wrap: wrap;">
+
+        <div style="flex: 1 1 340px; max-width: 400px; position: relative; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 24px; box-sizing: border-box;">
+          <div style="position: absolute; top: -1px; left: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 6px 0 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 6px 0 0; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-left: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 0 6px; pointer-events: none;"></div>
+          <div style="position: absolute; bottom: -1px; right: -1px; width: 16px; height: 16px; border-bottom: 1.5px solid rgba(216,163,60,0.75); border-right: 1.5px solid rgba(216,163,60,0.75); border-radius: 0 0 6px 0; pointer-events: none;"></div>
+
+          <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0 0 4px;">Generator Bio Link &amp; Chat Dalam Aplikasi</h3>
+          <p style="font-size: 12.5px; color: #8A93A3; margin: 0 0 18px; line-height: 1.5;">Buat halaman bio publik untuk usaha kamu. Pelanggan menyapa dan bertanya lewat chat dalam aplikasi KLIR, bukan lewat nomor pribadi.</p>
+
+          <form onSubmit="{{ generateBio }}" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Nama Usaha atau Brand</label>
+              <input type="text" value="{{ bioName }}" onChange="{{ onBioName }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Tagline Bisnis</label>
+              <input type="text" value="{{ bioTagline }}" onChange="{{ onBioTagline }}" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12px; font-weight: 600; color: #8A93A3; margin-bottom: 6px;">Lokasi Bisnis (Google Maps)</label>
+              <input type="text" value="{{ bioLocation }}" onChange="{{ onBioLocation }}" placeholder="Alamat atau tautan lokasi" style="width: 100%; box-sizing: border-box; background: #0A0D13; border: 1px solid rgba(245,247,250,0.12); border-radius: 10px; padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; color: #F5F7FA;" style-focus="border-color: #4E9BFF; box-shadow: 0 0 0 3px rgba(78,155,255,0.12);"/>
+            </div>
+            <button type="submit" style="width: 100%; box-sizing: border-box; padding: 12px 16px; border-radius: 12px; border: none; cursor: pointer; background: #0058BE; box-shadow: 0 8px 24px rgba(78,155,255,0.16); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; color: #F5F7FA; margin-top: 2px;">Buat Tautan Bio Publik</button>
+          </form>
+        </div>
+
+        <div style="flex: 2 1 480px; background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 20px; padding: 28px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center;">
+          <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+            <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: #F5F7FA; margin: 0;">Preview Tautan Bio Publik</h3>
+            <span style="font-size: 10.5px; font-weight: 700; color: #4E9BFF; background: rgba(78,155,255,0.1); border-radius: 999px; padding: 3px 10px;">Tampilan Ponsel</span>
+          </div>
+
+          <sc-if value="{{ noBioResult }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align: center; padding: 56px 24px; border: 1px dashed rgba(245,247,250,0.14); border-radius: 14px; width: 100%; box-sizing: border-box;">
+              <p style="font-size: 13px; color: #5C6474; margin: 0; font-style: italic;">Belum ada preview. Isi formulir di sebelah kiri, lalu buat tautan bio-nya.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ hasBioResult }}" hint-placeholder-val="{{ true }}">
+            <div style="width: 260px; padding: 22px 20px; background: #0A0D13; border: 2px solid rgba(245,247,250,0.14); border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); box-sizing: border-box;">
+
+              <sc-if value="{{ bioShowProfile }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align: center;">
+                  <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #0058BE, #4E9BFF); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #F5F7FA;">{{ bioInitial }}</div>
+                  <div style="font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; color: #F5F7FA;">{{ bioName }}</div>
+                  <p style="font-size: 11px; color: #8A93A3; margin: 4px 0 0;">{{ bioTagline }}</p>
+                  <sc-if value="{{ hasBioLocation }}" hint-placeholder-val="{{ false }}">
+                    <p style="font-size: 10.5px; color: #5C6474; margin: 8px 0 0;">📍 {{ bioLocation }}</p>
+                  </sc-if>
+                  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+                    <button onClick="{{ openBioChat }}" style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 12px; border: none; cursor: pointer; background: #3FBF8F; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11.5px; font-weight: 700; color: #06080C;">💬 Chat di Aplikasi</button>
+                    <button style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 12px; border: 1px solid rgba(245,247,250,0.14); cursor: pointer; background: transparent; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11.5px; font-weight: 700; color: #F5F7FA;">📍 Lihat Lokasi</button>
+                  </div>
+                  <p style="font-size: 9px; color: #3A4050; margin: 14px 0 0;">Didukung oleh KLIR OS Bio Link</p>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ bioShowChatPanel }}" hint-placeholder-val="{{ false }}">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                    <button onClick="{{ closeBioChat }}" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(245,247,250,0.14); background: transparent; color: #F5F7FA; cursor: pointer; font-size: 12px; line-height: 1; flex-shrink: 0;">←</button>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 11.5px; font-weight: 700; color: #F5F7FA;">{{ bioName }}</div>
+                      <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #3FBF8F;"></span>
+                        <span style="font-size: 9.5px; color: #5C6474;">Chat dalam Aplikasi KLIR</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="background: #0E1219; border: 1px solid rgba(245,247,250,0.08); border-radius: 14px; padding: 12px; margin-bottom: 10px;">
+                    <p style="font-size: 11.5px; line-height: 1.5; color: #F5F7FA; margin: 0;">{{ bioChatMessage }}</p>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px; background: #0E1219; border: 1px solid rgba(245,247,250,0.1); border-radius: 999px; padding: 8px 8px 8px 14px;">
+                    <span style="flex: 1; font-size: 11px; color: #5C6474;">Tulis pesan…</span>
+                    <span style="width: 26px; height: 26px; border-radius: 50%; background: #0058BE; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #F5F7FA; flex-shrink: 0;">➤</span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    activeTab: this.props.defaultTab || 'copywriting',
+
+    promoProdName: 'Kopi Susu Gula Aren — Kedai Kopi Aroma',
+    promoProdDesc: 'Kopi susu kekinian dengan gula aren asli, tanpa gula pasir. Best seller bulan ini.',
+    promoTone: 'RAMAH_SELLER',
+    promoAngle: 'DISKON_GAJIAN',
+    isGeneratingCopy: false,
+    hasCopyResults: this.props.showExampleResults !== false,
+
+    calBrand: 'Kedai Kopi Aroma',
+    calIndustry: 'Food & Beverage — Kedai Kopi',
+    calCampaign: 'Promo Gajian Akhir Bulan',
+    isGeneratingCal: false,
+    hasCalResults: this.props.showExampleResults !== false,
+
+    couponCode: '',
+    couponType: 'PERCENTAGE',
+    couponValue: '',
+    couponMin: '',
+    couponQuota: '',
+    coupons: this.props.showExampleResults !== false ? [
+      { id: 1, code: 'GAJIAN25', discountType: 'PERCENTAGE', discountValue: 25, minPurchase: 50000, quota: 100, usedCount: 40, validUntil: '2026-08-31' },
+      { id: 2, code: 'ONGKIR10K', discountType: 'FIXED_AMOUNT', discountValue: 10000, minPurchase: 30000, quota: 100, usedCount: 100, validUntil: '2026-09-10' },
+      { id: 3, code: 'NEWCUST15', discountType: 'PERCENTAGE', discountValue: 15, minPurchase: 0, quota: 50, usedCount: 12, validUntil: '2026-09-15' }
+    ] : [],
+
+    bioName: 'Kedai Kopi Aroma',
+    bioTagline: 'Kopi Susu Gula Aren Asli, Racikan Setiap Hari',
+    bioLocation: 'Jl. Kemang Raya No. 10, Jakarta Selatan',
+    hasBioResult: this.props.showExampleResults !== false,
+    bioView: 'profile'
+  };
+
+  fmtRupiah(n) {
+    return 'Rp' + Number(n || 0).toLocaleString('id-ID');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const floatAnim = this.props.motionEnabled === false ? 'none' : 'kpFloat 6s ease-in-out infinite';
+    const pulseAnim = this.props.motionEnabled === false ? 'none' : 'kpPulse 9s ease-in-out infinite';
+
+    const tabsBase = [
+      { id: 'copywriting', num: '01', label: 'Generator Materi Promosi' },
+      { id: 'calendar', num: '02', label: 'Kalender Konten' },
+      { id: 'coupons', num: '03', label: 'Kupon Diskon' },
+      { id: 'biolink', num: '04', label: 'Bio Link & Chat' }
+    ];
+    const tabs = tabsBase.map((t) => {
+      const isActive = s.activeTab === t.id;
+      return {
+        ...t,
+        bg: isActive ? '#0058BE' : 'transparent',
+        fg: isActive ? '#F5F7FA' : '#8A93A3',
+        shadow: isActive ? '0 4px 20px rgba(78,155,255,0.18)' : 'none',
+        onClick: () => this.setState({ activeTab: t.id })
+      };
+    });
+
+    const couponsView = s.coupons.map((c) => {
+      const full = c.usedCount >= c.quota;
+      return {
+        ...c,
+        discountDisplay: c.discountType === 'PERCENTAGE' ? (c.discountValue + '%') : this.fmtRupiah(c.discountValue),
+        minPurchaseDisplay: c.minPurchase > 0 ? this.fmtRupiah(c.minPurchase) : 'Tanpa minimum belanja',
+        quotaText: c.usedCount + ' / ' + c.quota + ' klaim',
+        quotaPct: Math.min(100, Math.round((c.usedCount / Math.max(1, c.quota)) * 100)),
+        statusLabel: full ? 'Kuota Penuh' : 'Aktif',
+        statusBg: full ? 'rgba(216,163,60,0.14)' : 'rgba(63,191,143,0.14)',
+        statusBorder: full ? 'rgba(216,163,60,0.4)' : 'rgba(63,191,143,0.4)',
+        statusColor: full ? '#D8A33C' : '#3FBF8F',
+        validUntilDisplay: new Date(c.validUntil + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+      };
+    });
+
+    const calendarDays = [
+      { dayAbbr: 'SEN', dayNum: '1', pillar: 'Edukasi Produk', bestTime: '08.00', headline: 'Kenalan Sama Menu Andalan Kita', format: 'Foto Produk', visual: 'Foto close-up kopi susu gula aren dengan lighting hangat' },
+      { dayAbbr: 'SEL', dayNum: '2', pillar: 'Interaksi', bestTime: '12.00', headline: 'Voting: Kopi Favorit Kamu yang Mana?', format: 'Polling Story', visual: 'Story dengan dua pilihan menu' },
+      { dayAbbr: 'RAB', dayNum: '3', pillar: 'Testimoni', bestTime: '10.00', headline: 'Kata Pelanggan Soal Kopi Susu Gula Aren', format: 'Repost Testimoni', visual: 'Tangkapan layar chat atau ulasan pelanggan' },
+      { dayAbbr: 'KAM', dayNum: '4', pillar: 'Di Balik Layar', bestTime: '09.00', headline: 'Proses Bikin Gula Aren Cair Setiap Pagi', format: 'Video Pendek', visual: 'Video proses memasak gula aren' },
+      { dayAbbr: 'JUM', dayNum: '5', pillar: 'Teaser Promo', bestTime: '16.00', headline: 'Siap-Siap, Promo Gajian Meletus Besok', format: 'Countdown Story', visual: 'Story dengan hitung mundur' },
+      { dayAbbr: 'SAB', dayNum: '6', pillar: 'Promo Utama', bestTime: '11.00', headline: 'Promo Gajian Cair Hari Ini', format: 'Feed & Poster', visual: 'Poster promo dengan harga coret' },
+      { dayAbbr: 'MIN', dayNum: '7', pillar: 'Rekap & Ajakan', bestTime: '17.00', headline: 'Masih Ada Waktu Sampai Malam Ini', format: 'Story Reminder', visual: 'Story dengan jam mundur penutupan promo' }
+    ];
+
+    const igHashtags = ['#KopiSusuGulaAren', '#PromoGajian', '#KedaiKopiAroma', '#KopiKekinian'];
+
+    return {
+      floatAnim, pulseAnim, tabs,
+      isCopyTab: s.activeTab === 'copywriting',
+      isCalTab: s.activeTab === 'calendar',
+      isCoupTab: s.activeTab === 'coupons',
+
+      promoProdName: s.promoProdName,
+      promoProdDesc: s.promoProdDesc,
+      promoTone: s.promoTone,
+      promoAngle: s.promoAngle,
+      onProdName: (e) => this.setState({ promoProdName: e.target.value }),
+      onProdDesc: (e) => this.setState({ promoProdDesc: e.target.value }),
+      onTone: (e) => this.setState({ promoTone: e.target.value }),
+      onAngle: (e) => this.setState({ promoAngle: e.target.value }),
+      isGeneratingCopy: s.isGeneratingCopy,
+      hasCopyResults: s.hasCopyResults,
+      noCopyResults: !s.hasCopyResults,
+      generateCopy: () => {
+        this.setState({ isGeneratingCopy: true });
+        setTimeout(() => this.setState({ isGeneratingCopy: false, hasCopyResults: true }), 750);
+      },
+      igHashtags,
+
+      calBrand: s.calBrand,
+      calIndustry: s.calIndustry,
+      calCampaign: s.calCampaign,
+      onCalBrand: (e) => this.setState({ calBrand: e.target.value }),
+      onCalIndustry: (e) => this.setState({ calIndustry: e.target.value }),
+      onCalCampaign: (e) => this.setState({ calCampaign: e.target.value }),
+      isGeneratingCal: s.isGeneratingCal,
+      hasCalResults: s.hasCalResults,
+      noCalResults: !s.hasCalResults,
+      generateCalendar: () => {
+        this.setState({ isGeneratingCal: true });
+        setTimeout(() => this.setState({ isGeneratingCal: false, hasCalResults: true }), 750);
+      },
+      calendarDays,
+
+      couponCode: s.couponCode,
+      couponType: s.couponType,
+      couponValue: s.couponValue,
+      couponMin: s.couponMin,
+      couponQuota: s.couponQuota,
+      couponValueSuffix: s.couponType === 'PERCENTAGE' ? '%' : 'Rp',
+      onCouponCode: (e) => this.setState({ couponCode: e.target.value }),
+      onCouponType: (e) => this.setState({ couponType: e.target.value }),
+      onCouponValue: (e) => this.setState({ couponValue: e.target.value }),
+      onCouponMin: (e) => this.setState({ couponMin: e.target.value }),
+      onCouponQuota: (e) => this.setState({ couponQuota: e.target.value }),
+      addCoupon: (e) => {
+        e.preventDefault();
+        if (!this.state.couponCode.trim()) return;
+        const nc = {
+          id: Date.now(),
+          code: this.state.couponCode.trim().toUpperCase(),
+          discountType: this.state.couponType,
+          discountValue: Number(this.state.couponValue) || 0,
+          minPurchase: Number(this.state.couponMin) || 0,
+          quota: Number(this.state.couponQuota) || 0,
+          usedCount: 0,
+          validUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)
+        };
+        this.setState((st) => ({ coupons: [nc, ...st.coupons], couponCode: '', couponValue: '', couponMin: '', couponQuota: '' }));
+      },
+      couponsView,
+      hasCoupons: couponsView.length > 0,
+      noCoupons: couponsView.length === 0,
+
+      isBioTab: s.activeTab === 'biolink',
+      bioName: s.bioName,
+      bioTagline: s.bioTagline,
+      bioLocation: s.bioLocation,
+      onBioName: (e) => this.setState({ bioName: e.target.value }),
+      onBioTagline: (e) => this.setState({ bioTagline: e.target.value }),
+      onBioLocation: (e) => this.setState({ bioLocation: e.target.value }),
+      bioInitial: (s.bioName.trim().charAt(0) || '?').toUpperCase(),
+      hasBioLocation: !!s.bioLocation.trim(),
+      hasBioResult: s.hasBioResult,
+      noBioResult: !s.hasBioResult,
+      generateBio: (e) => {
+        e.preventDefault();
+        this.setState({ hasBioResult: true, bioView: 'profile' });
+      },
+      bioShowProfile: s.bioView !== 'chat',
+      bioShowChatPanel: s.bioView === 'chat',
+      bioChatMessage: 'Halo! Terima kasih sudah menyapa ' + (s.bioName || 'kami') + '. ' + (s.bioTagline || '') + ' Ada yang bisa kami bantu hari ini?',
+      openBioChat: () => this.setState({ bioView: 'chat' }),
+      closeBioChat: () => this.setState({ bioView: 'profile' })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,671 @@
+﻿Tanggal,Jam,Cabang,No Transaksi,Item,Kategori,Qty,Harga Satuan,Subtotal,Metode Bayar
+2026-08-05,17:23,MMM Kemang,KMG-20260805-001,Waffle Mantap,Dessert,1,18000,18000,Tunai
+2026-08-05,12:42,MMM Kemang,KMG-20260805-002,Rendang Rice Bowl,Makanan Utama,2,32000,64000,QRIS
+2026-08-05,12:42,MMM Kemang,KMG-20260805-002,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-05,12:42,MMM Kemang,KMG-20260805-002,Soto Ayam Kampung,Makanan Utama,2,24000,48000,QRIS
+2026-08-05,19:32,MMM Kemang,KMG-20260805-003,Puding Coklat Mania,Dessert,1,10000,10000,GrabFood
+2026-08-05,19:16,MMM Kemang,KMG-20260805-004,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Kartu Debit
+2026-08-05,15:41,MMM Kemang,KMG-20260805-005,Mie Goreng Spesial,Makanan Utama,1,27000,27000,QRIS
+2026-08-05,20:17,MMM Kemang,KMG-20260805-006,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-05,11:48,MMM Kemang,KMG-20260805-007,Kopi Susu Mania,Minuman,1,15000,15000,GrabFood
+2026-08-05,11:48,MMM Kemang,KMG-20260805-007,Air Mineral,Minuman,1,5000,5000,GrabFood
+2026-08-05,11:48,MMM Kemang,KMG-20260805-007,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GrabFood
+2026-08-05,13:20,MMM Kemang,KMG-20260805-008,Soto Ayam Kampung,Makanan Utama,1,24000,24000,QRIS
+2026-08-05,13:20,MMM Kemang,KMG-20260805-008,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-05,20:17,MMM Kemang,KMG-20260805-009,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,17:36,MMM Kemang,KMG-20260805-010,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-05,17:36,MMM Kemang,KMG-20260805-010,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Kartu Debit
+2026-08-05,17:52,MMM Kemang,KMG-20260805-011,Soto Ayam Kampung,Makanan Utama,3,24000,72000,QRIS
+2026-08-05,17:52,MMM Kemang,KMG-20260805-011,Es Jeruk Peras,Minuman,2,10000,20000,QRIS
+2026-08-05,11:07,MMM Kemang,KMG-20260805-012,Lemon Tea,Minuman,2,12000,24000,GoFood
+2026-08-05,11:07,MMM Kemang,KMG-20260805-012,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,GoFood
+2026-08-05,11:07,MMM Kemang,KMG-20260805-012,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-05,20:43,MMM Kemang,KMG-20260805-013,Es Krim Goreng,Dessert,1,15000,15000,Tunai
+2026-08-05,20:43,MMM Kemang,KMG-20260805-013,Kopi Susu Mania,Minuman,2,15000,30000,Tunai
+2026-08-05,20:43,MMM Kemang,KMG-20260805-013,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,Tunai
+2026-08-05,20:26,MMM Kemang,KMG-20260805-014,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-05,20:26,MMM Kemang,KMG-20260805-014,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-05,20:26,MMM Kemang,KMG-20260805-014,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-05,17:58,MMM Kemang,KMG-20260805-015,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Kartu Debit
+2026-08-05,17:58,MMM Kemang,KMG-20260805-015,Thai Tea,Minuman,2,14000,28000,Kartu Debit
+2026-08-05,20:15,MMM Kemang,KMG-20260805-016,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-05,20:11,MMM Kemang,KMG-20260805-017,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,GoFood
+2026-08-05,19:56,MMM Kemang,KMG-20260805-018,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-05,19:56,MMM Kemang,KMG-20260805-018,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-05,19:56,MMM Kemang,KMG-20260805-018,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,12:07,MMM Kemang,KMG-20260805-019,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-05,15:56,MMM Kemang,KMG-20260805-020,Air Mineral,Minuman,1,5000,5000,Tunai
+2026-08-05,15:56,MMM Kemang,KMG-20260805-020,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-05,17:48,MMM Kemang,KMG-20260805-021,Waffle Mantap,Dessert,1,18000,18000,GoFood
+2026-08-05,17:48,MMM Kemang,KMG-20260805-021,Onion Rings,Snack & Appetizer,1,16000,16000,GoFood
+2026-08-05,12:57,MMM Kemang,KMG-20260805-022,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,12:57,MMM Kemang,KMG-20260805-022,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,12:57,MMM Kemang,KMG-20260805-022,Pisang Goreng Keju,Dessert,1,12000,12000,QRIS
+2026-08-05,12:27,MMM Kemang,KMG-20260805-023,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,QRIS
+2026-08-05,12:27,MMM Kemang,KMG-20260805-023,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-05,12:27,MMM Kemang,KMG-20260805-023,Lemon Tea,Minuman,1,12000,12000,QRIS
+2026-08-05,11:42,MMM Kemang,KMG-20260805-024,Es Krim Goreng,Dessert,2,15000,30000,QRIS
+2026-08-05,11:42,MMM Kemang,KMG-20260805-024,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-05,13:14,MMM Kemang,KMG-20260805-025,Pisang Goreng Keju,Dessert,2,12000,24000,GrabFood
+2026-08-05,11:42,MMM Kemang,KMG-20260805-026,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-05,11:42,MMM Kemang,KMG-20260805-026,Lemon Tea,Minuman,1,12000,12000,QRIS
+2026-08-05,11:42,MMM Kemang,KMG-20260805-026,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-05,17:14,MMM Bintaro,BTR-20260805-001,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,GrabFood
+2026-08-05,20:13,MMM Bintaro,BTR-20260805-002,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,GrabFood
+2026-08-05,19:32,MMM Bintaro,BTR-20260805-003,Tahu Crispy Sambal Matah,Snack & Appetizer,2,13000,26000,QRIS
+2026-08-05,19:03,MMM Bintaro,BTR-20260805-004,Es Jeruk Peras,Minuman,2,10000,20000,QRIS
+2026-08-05,19:03,MMM Bintaro,BTR-20260805-004,Air Mineral,Minuman,2,5000,10000,QRIS
+2026-08-05,19:03,MMM Bintaro,BTR-20260805-004,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,QRIS
+2026-08-05,12:23,MMM Bintaro,BTR-20260805-005,Thai Tea,Minuman,1,14000,14000,QRIS
+2026-08-05,12:23,MMM Bintaro,BTR-20260805-005,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,12:23,MMM Bintaro,BTR-20260805-005,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-05,19:46,MMM Bintaro,BTR-20260805-006,Ayam Geprek Mania,Makanan Utama,1,25000,25000,GoFood
+2026-08-05,17:07,MMM Bintaro,BTR-20260805-007,Lemon Tea,Minuman,1,12000,12000,QRIS
+2026-08-05,20:42,MMM Bintaro,BTR-20260805-008,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-05,20:42,MMM Bintaro,BTR-20260805-008,Waffle Mantap,Dessert,2,18000,36000,Kartu Debit
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-009,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-009,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-009,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-05,18:48,MMM Bintaro,BTR-20260805-010,Thai Tea,Minuman,1,14000,14000,QRIS
+2026-08-05,18:48,MMM Bintaro,BTR-20260805-010,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-05,19:07,MMM Bintaro,BTR-20260805-011,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,19:07,MMM Bintaro,BTR-20260805-011,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-05,12:01,MMM Bintaro,BTR-20260805-012,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-05,20:08,MMM Bintaro,BTR-20260805-013,Es Kopi Mantap,Minuman,1,16000,16000,Tunai
+2026-08-05,20:08,MMM Bintaro,BTR-20260805-013,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-05,20:08,MMM Bintaro,BTR-20260805-013,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-05,12:15,MMM Bintaro,BTR-20260805-014,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-05,20:23,MMM Bintaro,BTR-20260805-015,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Kartu Debit
+2026-08-05,20:23,MMM Bintaro,BTR-20260805-015,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-05,20:23,MMM Bintaro,BTR-20260805-015,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,Kartu Debit
+2026-08-05,19:30,MMM Bintaro,BTR-20260805-016,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,19:30,MMM Bintaro,BTR-20260805-016,Air Mineral,Minuman,3,5000,15000,QRIS
+2026-08-05,13:29,MMM Bintaro,BTR-20260805-017,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-05,13:29,MMM Bintaro,BTR-20260805-017,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-018,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-018,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-05,19:38,MMM Bintaro,BTR-20260805-018,Jus Alpukat,Minuman,2,17000,34000,QRIS
+2026-08-05,15:30,MMM Bintaro,BTR-20260805-019,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,Tunai
+2026-08-05,15:30,MMM Bintaro,BTR-20260805-019,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-05,15:30,MMM Bintaro,BTR-20260805-019,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-05,13:28,MMM Bintaro,BTR-20260805-020,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,GoFood
+2026-08-05,13:28,MMM Bintaro,BTR-20260805-020,Es Krim Goreng,Dessert,1,15000,15000,GoFood
+2026-08-05,12:37,MMM Bintaro,BTR-20260805-021,Es Kopi Mantap,Minuman,1,16000,16000,Tunai
+2026-08-05,12:37,MMM Bintaro,BTR-20260805-021,Air Mineral,Minuman,2,5000,10000,Tunai
+2026-08-05,12:37,MMM Bintaro,BTR-20260805-021,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-05,19:06,MMM Bintaro,BTR-20260805-022,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,19:06,MMM Bintaro,BTR-20260805-022,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-05,13:18,MMM Bintaro,BTR-20260805-023,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-05,20:13,MMM Dago Bandung,DGO-20260805-001,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Tunai
+2026-08-05,20:13,MMM Dago Bandung,DGO-20260805-001,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Tunai
+2026-08-05,17:59,MMM Dago Bandung,DGO-20260805-002,Lemon Tea,Minuman,2,12000,24000,Tunai
+2026-08-05,17:59,MMM Dago Bandung,DGO-20260805-002,Jus Alpukat,Minuman,1,17000,17000,Tunai
+2026-08-05,17:59,MMM Dago Bandung,DGO-20260805-002,Jus Alpukat,Minuman,1,17000,17000,Tunai
+2026-08-05,19:02,MMM Dago Bandung,DGO-20260805-003,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-05,19:02,MMM Dago Bandung,DGO-20260805-003,Thai Tea,Minuman,2,14000,28000,QRIS
+2026-08-05,12:35,MMM Dago Bandung,DGO-20260805-004,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-05,12:35,MMM Dago Bandung,DGO-20260805-004,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-05,11:46,MMM Dago Bandung,DGO-20260805-005,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-05,11:46,MMM Dago Bandung,DGO-20260805-005,Mie Goreng Spesial,Makanan Utama,3,27000,81000,Tunai
+2026-08-05,19:16,MMM Dago Bandung,DGO-20260805-006,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-05,19:16,MMM Dago Bandung,DGO-20260805-006,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-05,19:16,MMM Dago Bandung,DGO-20260805-006,Pisang Goreng Keju,Dessert,2,12000,24000,QRIS
+2026-08-05,18:17,MMM Dago Bandung,DGO-20260805-007,Puding Coklat Mania,Dessert,2,10000,20000,GrabFood
+2026-08-05,21:17,MMM Dago Bandung,DGO-20260805-008,Es Teh Manis,Minuman,1,8000,8000,Kartu Debit
+2026-08-05,21:17,MMM Dago Bandung,DGO-20260805-008,Puding Coklat Mania,Dessert,1,10000,10000,Kartu Debit
+2026-08-05,21:17,MMM Dago Bandung,DGO-20260805-008,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,Kartu Debit
+2026-08-05,19:53,MMM Dago Bandung,DGO-20260805-009,Air Mineral,Minuman,1,5000,5000,QRIS
+2026-08-05,12:48,MMM Dago Bandung,DGO-20260805-010,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Kartu Debit
+2026-08-05,12:48,MMM Dago Bandung,DGO-20260805-010,Ayam Geprek Mania,Makanan Utama,2,25000,50000,Kartu Debit
+2026-08-05,12:48,MMM Dago Bandung,DGO-20260805-010,Kopi Susu Mania,Minuman,1,15000,15000,Kartu Debit
+2026-08-05,16:24,MMM Dago Bandung,DGO-20260805-011,Es Kopi Mantap,Minuman,2,16000,32000,Tunai
+2026-08-05,16:24,MMM Dago Bandung,DGO-20260805-011,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-05,16:24,MMM Dago Bandung,DGO-20260805-011,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-05,12:41,MMM Dago Bandung,DGO-20260805-012,Air Mineral,Minuman,1,5000,5000,Tunai
+2026-08-05,13:43,MMM Dago Bandung,DGO-20260805-013,Jus Alpukat,Minuman,1,17000,17000,GoFood
+2026-08-05,13:43,MMM Dago Bandung,DGO-20260805-013,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,GoFood
+2026-08-05,13:43,MMM Dago Bandung,DGO-20260805-013,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,GoFood
+2026-08-05,17:51,MMM Dago Bandung,DGO-20260805-014,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-05,17:51,MMM Dago Bandung,DGO-20260805-014,Pisang Goreng Keju,Dessert,2,12000,24000,Tunai
+2026-08-05,21:15,MMM Dago Bandung,DGO-20260805-015,Kopi Susu Mania,Minuman,2,15000,30000,GoFood
+2026-08-05,21:15,MMM Dago Bandung,DGO-20260805-015,Chicken Katsu Curry,Makanan Utama,2,33000,66000,GoFood
+2026-08-05,21:15,MMM Dago Bandung,DGO-20260805-015,Pisang Goreng Keju,Dessert,1,12000,12000,GoFood
+2026-08-05,13:14,MMM Dago Bandung,DGO-20260805-016,Waffle Mantap,Dessert,1,18000,18000,Tunai
+2026-08-05,13:14,MMM Dago Bandung,DGO-20260805-016,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-05,13:14,MMM Dago Bandung,DGO-20260805-016,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-05,18:08,MMM Dago Bandung,DGO-20260805-017,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,GrabFood
+2026-08-05,18:08,MMM Dago Bandung,DGO-20260805-017,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,GrabFood
+2026-08-05,18:08,MMM Dago Bandung,DGO-20260805-017,Air Mineral,Minuman,1,5000,5000,GrabFood
+2026-08-05,19:02,MMM Dago Bandung,DGO-20260805-018,Es Krim Goreng,Dessert,2,15000,30000,Kartu Debit
+2026-08-05,19:02,MMM Dago Bandung,DGO-20260805-018,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Kartu Debit
+2026-08-05,17:33,MMM Dago Bandung,DGO-20260805-019,Jus Alpukat,Minuman,1,17000,17000,QRIS
+2026-08-05,17:33,MMM Dago Bandung,DGO-20260805-019,Tahu Crispy Sambal Matah,Snack & Appetizer,2,13000,26000,QRIS
+2026-08-05,17:33,MMM Dago Bandung,DGO-20260805-019,Puding Coklat Mania,Dessert,2,10000,20000,QRIS
+2026-08-05,20:00,MMM Darmo Surabaya,SBY-20260805-001,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-05,20:00,MMM Darmo Surabaya,SBY-20260805-001,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-05,19:57,MMM Darmo Surabaya,SBY-20260805-002,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,17:29,MMM Darmo Surabaya,SBY-20260805-003,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-05,17:29,MMM Darmo Surabaya,SBY-20260805-003,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-05,17:29,MMM Darmo Surabaya,SBY-20260805-003,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-05,12:01,MMM Darmo Surabaya,SBY-20260805-004,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Kartu Debit
+2026-08-05,12:01,MMM Darmo Surabaya,SBY-20260805-004,Es Kopi Mantap,Minuman,1,16000,16000,Kartu Debit
+2026-08-05,12:01,MMM Darmo Surabaya,SBY-20260805-004,Es Kopi Mantap,Minuman,1,16000,16000,Kartu Debit
+2026-08-05,20:01,MMM Darmo Surabaya,SBY-20260805-005,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-05,12:02,MMM Darmo Surabaya,SBY-20260805-006,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-05,12:02,MMM Darmo Surabaya,SBY-20260805-006,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-05,12:11,MMM Darmo Surabaya,SBY-20260805-007,Pisang Goreng Keju,Dessert,2,12000,24000,Tunai
+2026-08-05,20:01,MMM Darmo Surabaya,SBY-20260805-008,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-05,20:01,MMM Darmo Surabaya,SBY-20260805-008,Mie Goreng Spesial,Makanan Utama,3,27000,81000,Tunai
+2026-08-05,20:01,MMM Darmo Surabaya,SBY-20260805-008,Ayam Geprek Mania,Makanan Utama,2,25000,50000,Tunai
+2026-08-05,19:56,MMM Darmo Surabaya,SBY-20260805-009,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,Tunai
+2026-08-05,14:42,MMM Darmo Surabaya,SBY-20260805-010,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-05,14:42,MMM Darmo Surabaya,SBY-20260805-010,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-05,14:42,MMM Darmo Surabaya,SBY-20260805-010,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-05,13:05,MMM Darmo Surabaya,SBY-20260805-011,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,QRIS
+2026-08-05,13:05,MMM Darmo Surabaya,SBY-20260805-011,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,QRIS
+2026-08-05,10:49,MMM Darmo Surabaya,SBY-20260805-012,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Tunai
+2026-08-05,10:49,MMM Darmo Surabaya,SBY-20260805-012,Puding Coklat Mania,Dessert,1,10000,10000,Tunai
+2026-08-05,10:49,MMM Darmo Surabaya,SBY-20260805-012,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-05,18:24,MMM Darmo Surabaya,SBY-20260805-013,Kopi Susu Mania,Minuman,2,15000,30000,Kartu Debit
+2026-08-05,18:24,MMM Darmo Surabaya,SBY-20260805-013,Thai Tea,Minuman,2,14000,28000,Kartu Debit
+2026-08-05,18:24,MMM Darmo Surabaya,SBY-20260805-013,Es Teh Manis,Minuman,1,8000,8000,Kartu Debit
+2026-08-05,17:03,MMM Darmo Surabaya,SBY-20260805-014,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-05,21:52,MMM Darmo Surabaya,SBY-20260805-015,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-05,21:52,MMM Darmo Surabaya,SBY-20260805-015,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-05,21:52,MMM Darmo Surabaya,SBY-20260805-015,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-05,20:10,MMM Darmo Surabaya,SBY-20260805-016,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,QRIS
+2026-08-05,20:10,MMM Darmo Surabaya,SBY-20260805-016,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-05,18:09,MMM Malioboro Yogyakarta,YGY-20260805-001,Kopi Susu Mania,Minuman,3,15000,45000,QRIS
+2026-08-05,18:09,MMM Malioboro Yogyakarta,YGY-20260805-001,Es Jeruk Peras,Minuman,2,10000,20000,QRIS
+2026-08-05,18:09,MMM Malioboro Yogyakarta,YGY-20260805-001,Air Mineral,Minuman,1,5000,5000,QRIS
+2026-08-05,13:19,MMM Malioboro Yogyakarta,YGY-20260805-002,Tahu Crispy Sambal Matah,Snack & Appetizer,2,13000,26000,GrabFood
+2026-08-05,13:19,MMM Malioboro Yogyakarta,YGY-20260805-002,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,GrabFood
+2026-08-05,12:41,MMM Malioboro Yogyakarta,YGY-20260805-003,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-05,12:41,MMM Malioboro Yogyakarta,YGY-20260805-003,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-05,12:41,MMM Malioboro Yogyakarta,YGY-20260805-003,Air Mineral,Minuman,1,5000,5000,Tunai
+2026-08-05,17:41,MMM Malioboro Yogyakarta,YGY-20260805-004,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GoFood
+2026-08-05,17:41,MMM Malioboro Yogyakarta,YGY-20260805-004,Waffle Mantap,Dessert,1,18000,18000,GoFood
+2026-08-05,17:41,MMM Malioboro Yogyakarta,YGY-20260805-004,Lemon Tea,Minuman,1,12000,12000,GoFood
+2026-08-05,18:04,MMM Malioboro Yogyakarta,YGY-20260805-005,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,GoFood
+2026-08-05,18:04,MMM Malioboro Yogyakarta,YGY-20260805-005,Thai Tea,Minuman,1,14000,14000,GoFood
+2026-08-05,18:08,MMM Malioboro Yogyakarta,YGY-20260805-006,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-05,18:08,MMM Malioboro Yogyakarta,YGY-20260805-006,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-05,14:24,MMM Malioboro Yogyakarta,YGY-20260805-007,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,GoFood
+2026-08-05,14:24,MMM Malioboro Yogyakarta,YGY-20260805-007,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,GoFood
+2026-08-05,19:55,MMM Malioboro Yogyakarta,YGY-20260805-008,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-05,19:55,MMM Malioboro Yogyakarta,YGY-20260805-008,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-05,19:55,MMM Malioboro Yogyakarta,YGY-20260805-008,Soto Ayam Kampung,Makanan Utama,1,24000,24000,QRIS
+2026-08-05,12:55,MMM Malioboro Yogyakarta,YGY-20260805-009,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-05,12:55,MMM Malioboro Yogyakarta,YGY-20260805-009,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-05,12:55,MMM Malioboro Yogyakarta,YGY-20260805-009,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-05,11:20,MMM Malioboro Yogyakarta,YGY-20260805-010,Air Mineral,Minuman,1,5000,5000,Tunai
+2026-08-05,19:11,MMM Malioboro Yogyakarta,YGY-20260805-011,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-05,17:29,MMM Malioboro Yogyakarta,YGY-20260805-012,Es Teh Manis,Minuman,1,8000,8000,GrabFood
+2026-08-05,17:29,MMM Malioboro Yogyakarta,YGY-20260805-012,Nasi Goreng Mantap,Makanan Utama,3,28000,84000,GrabFood
+2026-08-05,17:29,MMM Malioboro Yogyakarta,YGY-20260805-012,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,GrabFood
+2026-08-15,13:23,MMM Kemang,KMG-20260815-001,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-15,13:23,MMM Kemang,KMG-20260815-001,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-15,11:58,MMM Kemang,KMG-20260815-002,Chicken Katsu Curry,Makanan Utama,1,33000,33000,GrabFood
+2026-08-15,17:02,MMM Kemang,KMG-20260815-003,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Kartu Debit
+2026-08-15,17:02,MMM Kemang,KMG-20260815-003,Es Teh Manis,Minuman,3,8000,24000,Kartu Debit
+2026-08-15,17:02,MMM Kemang,KMG-20260815-003,Air Mineral,Minuman,1,5000,5000,Kartu Debit
+2026-08-15,12:58,MMM Kemang,KMG-20260815-004,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-15,12:58,MMM Kemang,KMG-20260815-004,Soto Ayam Kampung,Makanan Utama,2,24000,48000,QRIS
+2026-08-15,12:58,MMM Kemang,KMG-20260815-004,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,12:20,MMM Kemang,KMG-20260815-005,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,12:20,MMM Kemang,KMG-20260815-005,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-15,13:49,MMM Kemang,KMG-20260815-006,Es Teh Manis,Minuman,1,8000,8000,Kartu Debit
+2026-08-15,13:49,MMM Kemang,KMG-20260815-006,Es Kopi Mantap,Minuman,1,16000,16000,Kartu Debit
+2026-08-15,13:49,MMM Kemang,KMG-20260815-006,Soto Ayam Kampung,Makanan Utama,1,24000,24000,Kartu Debit
+2026-08-15,12:50,MMM Kemang,KMG-20260815-007,Es Kopi Mantap,Minuman,1,16000,16000,Kartu Debit
+2026-08-15,12:50,MMM Kemang,KMG-20260815-007,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Kartu Debit
+2026-08-15,13:09,MMM Kemang,KMG-20260815-008,Mie Goreng Spesial,Makanan Utama,1,27000,27000,QRIS
+2026-08-15,13:15,MMM Kemang,KMG-20260815-009,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,Tunai
+2026-08-15,13:15,MMM Kemang,KMG-20260815-009,Pisang Goreng Keju,Dessert,2,12000,24000,Tunai
+2026-08-15,12:30,MMM Kemang,KMG-20260815-010,Jus Alpukat,Minuman,2,17000,34000,QRIS
+2026-08-15,14:24,MMM Kemang,KMG-20260815-011,Es Krim Goreng,Dessert,1,15000,15000,GrabFood
+2026-08-15,21:10,MMM Kemang,KMG-20260815-012,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-15,20:00,MMM Kemang,KMG-20260815-013,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,20:00,MMM Kemang,KMG-20260815-013,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-15,20:00,MMM Kemang,KMG-20260815-013,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,17:01,MMM Kemang,KMG-20260815-014,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,QRIS
+2026-08-15,12:06,MMM Kemang,KMG-20260815-015,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-15,12:06,MMM Kemang,KMG-20260815-015,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-15,12:06,MMM Kemang,KMG-20260815-015,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-15,16:34,MMM Kemang,KMG-20260815-016,Lemon Tea,Minuman,1,12000,12000,GoFood
+2026-08-15,16:34,MMM Kemang,KMG-20260815-016,Es Krim Goreng,Dessert,1,15000,15000,GoFood
+2026-08-15,12:35,MMM Kemang,KMG-20260815-017,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-15,17:53,MMM Kemang,KMG-20260815-018,Pisang Goreng Keju,Dessert,1,12000,12000,QRIS
+2026-08-15,21:06,MMM Kemang,KMG-20260815-019,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-15,11:23,MMM Kemang,KMG-20260815-020,Lemon Tea,Minuman,1,12000,12000,QRIS
+2026-08-15,11:23,MMM Kemang,KMG-20260815-020,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-15,10:03,MMM Kemang,KMG-20260815-021,Soto Ayam Kampung,Makanan Utama,1,24000,24000,Kartu Debit
+2026-08-15,20:28,MMM Kemang,KMG-20260815-022,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-15,12:38,MMM Kemang,KMG-20260815-023,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,11:06,MMM Kemang,KMG-20260815-024,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-15,13:09,MMM Kemang,KMG-20260815-025,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-15,13:51,MMM Kemang,KMG-20260815-026,Es Teh Manis,Minuman,1,8000,8000,GoFood
+2026-08-15,13:51,MMM Kemang,KMG-20260815-026,Es Kopi Mantap,Minuman,1,16000,16000,GoFood
+2026-08-15,13:51,MMM Kemang,KMG-20260815-026,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-15,12:44,MMM Kemang,KMG-20260815-027,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,12:44,MMM Kemang,KMG-20260815-027,Air Mineral,Minuman,1,5000,5000,QRIS
+2026-08-15,20:52,MMM Kemang,KMG-20260815-028,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-15,20:26,MMM Kemang,KMG-20260815-029,Jus Alpukat,Minuman,1,17000,17000,GoFood
+2026-08-15,20:26,MMM Kemang,KMG-20260815-029,Pisang Goreng Keju,Dessert,1,12000,12000,GoFood
+2026-08-15,12:20,MMM Kemang,KMG-20260815-030,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,12:20,MMM Kemang,KMG-20260815-030,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,12:20,MMM Kemang,KMG-20260815-030,Soto Ayam Kampung,Makanan Utama,1,24000,24000,QRIS
+2026-08-15,19:52,MMM Kemang,KMG-20260815-031,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GoFood
+2026-08-15,11:38,MMM Kemang,KMG-20260815-032,Lemon Tea,Minuman,1,12000,12000,GoFood
+2026-08-15,13:36,MMM Kemang,KMG-20260815-033,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-15,17:10,MMM Kemang,KMG-20260815-034,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,Tunai
+2026-08-15,17:10,MMM Kemang,KMG-20260815-034,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-15,17:10,MMM Kemang,KMG-20260815-034,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-15,11:05,MMM Kemang,KMG-20260815-035,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-15,13:25,MMM Kemang,KMG-20260815-036,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-15,13:25,MMM Kemang,KMG-20260815-036,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-15,13:25,MMM Kemang,KMG-20260815-036,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-15,18:40,MMM Kemang,KMG-20260815-037,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-15,18:40,MMM Kemang,KMG-20260815-037,Kopi Susu Mania,Minuman,1,15000,15000,QRIS
+2026-08-15,18:40,MMM Kemang,KMG-20260815-037,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-15,19:34,MMM Kemang,KMG-20260815-038,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,19:34,MMM Kemang,KMG-20260815-038,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,QRIS
+2026-08-15,17:23,MMM Kemang,KMG-20260815-039,Soto Ayam Kampung,Makanan Utama,3,24000,72000,Tunai
+2026-08-15,20:59,MMM Kemang,KMG-20260815-040,Mie Goreng Spesial,Makanan Utama,1,27000,27000,GoFood
+2026-08-15,20:59,MMM Kemang,KMG-20260815-040,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,GoFood
+2026-08-15,13:25,MMM Kemang,KMG-20260815-041,Waffle Mantap,Dessert,2,18000,36000,GoFood
+2026-08-15,12:57,MMM Bintaro,BTR-20260815-001,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-15,12:57,MMM Bintaro,BTR-20260815-001,Jus Alpukat,Minuman,3,17000,51000,Tunai
+2026-08-15,12:57,MMM Bintaro,BTR-20260815-001,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-15,15:28,MMM Bintaro,BTR-20260815-002,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-15,17:09,MMM Bintaro,BTR-20260815-003,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-15,20:09,MMM Bintaro,BTR-20260815-004,Es Krim Goreng,Dessert,2,15000,30000,Kartu Debit
+2026-08-15,20:09,MMM Bintaro,BTR-20260815-004,Puding Coklat Mania,Dessert,2,10000,20000,Kartu Debit
+2026-08-15,20:09,MMM Bintaro,BTR-20260815-004,Mie Goreng Spesial,Makanan Utama,2,27000,54000,Kartu Debit
+2026-08-15,20:02,MMM Bintaro,BTR-20260815-005,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,20:02,MMM Bintaro,BTR-20260815-005,Soto Ayam Kampung,Makanan Utama,1,24000,24000,QRIS
+2026-08-15,20:02,MMM Bintaro,BTR-20260815-005,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-15,18:26,MMM Bintaro,BTR-20260815-006,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,Tunai
+2026-08-15,18:26,MMM Bintaro,BTR-20260815-006,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-15,13:51,MMM Bintaro,BTR-20260815-007,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-15,19:08,MMM Bintaro,BTR-20260815-008,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-15,19:43,MMM Bintaro,BTR-20260815-009,Pisang Goreng Keju,Dessert,1,12000,12000,QRIS
+2026-08-15,17:16,MMM Bintaro,BTR-20260815-010,Air Mineral,Minuman,1,5000,5000,GoFood
+2026-08-15,17:16,MMM Bintaro,BTR-20260815-010,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,GoFood
+2026-08-15,11:48,MMM Bintaro,BTR-20260815-011,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Kartu Debit
+2026-08-15,11:48,MMM Bintaro,BTR-20260815-011,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-15,11:48,MMM Bintaro,BTR-20260815-011,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,Kartu Debit
+2026-08-15,14:29,MMM Bintaro,BTR-20260815-012,Es Kopi Mantap,Minuman,2,16000,32000,Kartu Debit
+2026-08-15,14:29,MMM Bintaro,BTR-20260815-012,Es Kopi Mantap,Minuman,1,16000,16000,Kartu Debit
+2026-08-15,14:15,MMM Bintaro,BTR-20260815-013,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,Kartu Debit
+2026-08-15,19:23,MMM Bintaro,BTR-20260815-014,Puding Coklat Mania,Dessert,1,10000,10000,GrabFood
+2026-08-15,19:23,MMM Bintaro,BTR-20260815-014,Jus Alpukat,Minuman,1,17000,17000,GrabFood
+2026-08-15,19:23,MMM Bintaro,BTR-20260815-014,Chicken Katsu Curry,Makanan Utama,2,33000,66000,GrabFood
+2026-08-15,11:29,MMM Bintaro,BTR-20260815-015,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Kartu Debit
+2026-08-15,11:29,MMM Bintaro,BTR-20260815-015,Puding Coklat Mania,Dessert,1,10000,10000,Kartu Debit
+2026-08-15,17:55,MMM Bintaro,BTR-20260815-016,Onion Rings,Snack & Appetizer,2,16000,32000,Kartu Debit
+2026-08-15,19:59,MMM Bintaro,BTR-20260815-017,Soto Ayam Kampung,Makanan Utama,1,24000,24000,GrabFood
+2026-08-15,17:18,MMM Bintaro,BTR-20260815-018,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-15,17:21,MMM Bintaro,BTR-20260815-019,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-15,17:21,MMM Bintaro,BTR-20260815-019,Es Teh Manis,Minuman,2,8000,16000,QRIS
+2026-08-15,17:21,MMM Bintaro,BTR-20260815-019,Rendang Rice Bowl,Makanan Utama,2,32000,64000,QRIS
+2026-08-15,16:47,MMM Bintaro,BTR-20260815-020,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,11:15,MMM Bintaro,BTR-20260815-021,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,QRIS
+2026-08-15,11:15,MMM Bintaro,BTR-20260815-021,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,11:15,MMM Bintaro,BTR-20260815-021,Rendang Rice Bowl,Makanan Utama,3,32000,96000,QRIS
+2026-08-15,12:10,MMM Bintaro,BTR-20260815-022,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,GoFood
+2026-08-15,11:13,MMM Bintaro,BTR-20260815-023,Waffle Mantap,Dessert,1,18000,18000,Tunai
+2026-08-15,11:13,MMM Bintaro,BTR-20260815-023,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-15,11:13,MMM Bintaro,BTR-20260815-023,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Tunai
+2026-08-15,12:09,MMM Bintaro,BTR-20260815-024,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-15,12:09,MMM Bintaro,BTR-20260815-024,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-15,12:09,MMM Bintaro,BTR-20260815-024,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-15,12:51,MMM Bintaro,BTR-20260815-025,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-15,12:51,MMM Bintaro,BTR-20260815-025,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-15,16:34,MMM Bintaro,BTR-20260815-026,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,Tunai
+2026-08-15,16:34,MMM Bintaro,BTR-20260815-026,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-15,17:03,MMM Bintaro,BTR-20260815-027,Es Krim Goreng,Dessert,1,15000,15000,Tunai
+2026-08-15,17:03,MMM Bintaro,BTR-20260815-027,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-15,17:03,MMM Bintaro,BTR-20260815-027,Lemon Tea,Minuman,2,12000,24000,Tunai
+2026-08-15,11:17,MMM Bintaro,BTR-20260815-028,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,Tunai
+2026-08-15,11:17,MMM Bintaro,BTR-20260815-028,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,Tunai
+2026-08-15,11:02,MMM Bintaro,BTR-20260815-029,Onion Rings,Snack & Appetizer,2,16000,32000,GoFood
+2026-08-15,11:02,MMM Bintaro,BTR-20260815-029,Thai Tea,Minuman,1,14000,14000,GoFood
+2026-08-15,11:13,MMM Bintaro,BTR-20260815-030,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GrabFood
+2026-08-15,11:00,MMM Dago Bandung,DGO-20260815-001,Thai Tea,Minuman,1,14000,14000,QRIS
+2026-08-15,12:46,MMM Dago Bandung,DGO-20260815-002,Kopi Susu Mania,Minuman,1,15000,15000,QRIS
+2026-08-15,12:46,MMM Dago Bandung,DGO-20260815-002,Mie Goreng Spesial,Makanan Utama,1,27000,27000,QRIS
+2026-08-15,18:51,MMM Dago Bandung,DGO-20260815-003,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Kartu Debit
+2026-08-15,13:06,MMM Dago Bandung,DGO-20260815-004,Rendang Rice Bowl,Makanan Utama,2,32000,64000,Kartu Debit
+2026-08-15,13:06,MMM Dago Bandung,DGO-20260815-004,Thai Tea,Minuman,3,14000,42000,Kartu Debit
+2026-08-15,13:06,MMM Dago Bandung,DGO-20260815-004,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-15,12:09,MMM Dago Bandung,DGO-20260815-005,Thai Tea,Minuman,1,14000,14000,QRIS
+2026-08-15,11:08,MMM Dago Bandung,DGO-20260815-006,Puding Coklat Mania,Dessert,1,10000,10000,Kartu Debit
+2026-08-15,11:08,MMM Dago Bandung,DGO-20260815-006,Air Mineral,Minuman,1,5000,5000,Kartu Debit
+2026-08-15,20:45,MMM Dago Bandung,DGO-20260815-007,Pisang Goreng Keju,Dessert,1,12000,12000,GoFood
+2026-08-15,20:45,MMM Dago Bandung,DGO-20260815-007,Es Kopi Mantap,Minuman,1,16000,16000,GoFood
+2026-08-15,20:45,MMM Dago Bandung,DGO-20260815-007,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,GoFood
+2026-08-15,09:33,MMM Dago Bandung,DGO-20260815-008,Kopi Susu Mania,Minuman,1,15000,15000,QRIS
+2026-08-15,09:33,MMM Dago Bandung,DGO-20260815-008,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,11:40,MMM Dago Bandung,DGO-20260815-009,Jus Alpukat,Minuman,1,17000,17000,GrabFood
+2026-08-15,11:40,MMM Dago Bandung,DGO-20260815-009,Lemon Tea,Minuman,1,12000,12000,GrabFood
+2026-08-15,12:39,MMM Dago Bandung,DGO-20260815-010,Es Jeruk Peras,Minuman,1,10000,10000,GoFood
+2026-08-15,12:39,MMM Dago Bandung,DGO-20260815-010,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,GoFood
+2026-08-15,12:39,MMM Dago Bandung,DGO-20260815-010,Mie Goreng Spesial,Makanan Utama,1,27000,27000,GoFood
+2026-08-15,18:30,MMM Dago Bandung,DGO-20260815-011,Air Mineral,Minuman,1,5000,5000,QRIS
+2026-08-15,18:30,MMM Dago Bandung,DGO-20260815-011,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-15,17:54,MMM Dago Bandung,DGO-20260815-012,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,QRIS
+2026-08-15,17:54,MMM Dago Bandung,DGO-20260815-012,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-15,20:59,MMM Dago Bandung,DGO-20260815-013,Thai Tea,Minuman,1,14000,14000,Kartu Debit
+2026-08-15,20:59,MMM Dago Bandung,DGO-20260815-013,Jus Alpukat,Minuman,2,17000,34000,Kartu Debit
+2026-08-15,20:59,MMM Dago Bandung,DGO-20260815-013,Nasi Ayam Bakar Madu,Makanan Utama,3,30000,90000,Kartu Debit
+2026-08-15,13:29,MMM Dago Bandung,DGO-20260815-014,Air Mineral,Minuman,1,5000,5000,GoFood
+2026-08-15,13:29,MMM Dago Bandung,DGO-20260815-014,Thai Tea,Minuman,1,14000,14000,GoFood
+2026-08-15,13:29,MMM Dago Bandung,DGO-20260815-014,Es Kopi Mantap,Minuman,2,16000,32000,GoFood
+2026-08-15,18:52,MMM Dago Bandung,DGO-20260815-015,Es Jeruk Peras,Minuman,1,10000,10000,GoFood
+2026-08-15,13:33,MMM Dago Bandung,DGO-20260815-016,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GoFood
+2026-08-15,13:33,MMM Dago Bandung,DGO-20260815-016,Es Kopi Mantap,Minuman,1,16000,16000,GoFood
+2026-08-15,11:26,MMM Dago Bandung,DGO-20260815-017,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,GoFood
+2026-08-15,11:26,MMM Dago Bandung,DGO-20260815-017,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,GoFood
+2026-08-15,11:26,MMM Dago Bandung,DGO-20260815-017,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-15,11:53,MMM Dago Bandung,DGO-20260815-018,Onion Rings,Snack & Appetizer,2,16000,32000,QRIS
+2026-08-15,11:53,MMM Dago Bandung,DGO-20260815-018,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-15,11:53,MMM Dago Bandung,DGO-20260815-018,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-15,19:25,MMM Dago Bandung,DGO-20260815-019,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-15,19:25,MMM Dago Bandung,DGO-20260815-019,Soto Ayam Kampung,Makanan Utama,2,24000,48000,QRIS
+2026-08-15,19:25,MMM Dago Bandung,DGO-20260815-019,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-15,11:16,MMM Dago Bandung,DGO-20260815-020,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-15,13:15,MMM Dago Bandung,DGO-20260815-021,Pisang Goreng Keju,Dessert,2,12000,24000,GoFood
+2026-08-15,13:15,MMM Dago Bandung,DGO-20260815-021,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,GoFood
+2026-08-15,12:03,MMM Dago Bandung,DGO-20260815-022,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-15,12:03,MMM Dago Bandung,DGO-20260815-022,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,Tunai
+2026-08-15,12:03,MMM Dago Bandung,DGO-20260815-022,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-15,11:33,MMM Dago Bandung,DGO-20260815-023,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-15,19:54,MMM Dago Bandung,DGO-20260815-024,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,GoFood
+2026-08-15,14:07,MMM Dago Bandung,DGO-20260815-025,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-15,14:07,MMM Dago Bandung,DGO-20260815-025,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-15,18:01,MMM Dago Bandung,DGO-20260815-026,Onion Rings,Snack & Appetizer,2,16000,32000,Tunai
+2026-08-15,20:35,MMM Dago Bandung,DGO-20260815-027,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-15,20:35,MMM Dago Bandung,DGO-20260815-027,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-15,20:35,MMM Dago Bandung,DGO-20260815-027,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-15,12:29,MMM Darmo Surabaya,SBY-20260815-001,Ayam Geprek Mania,Makanan Utama,1,25000,25000,GoFood
+2026-08-15,19:03,MMM Darmo Surabaya,SBY-20260815-002,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-15,09:31,MMM Darmo Surabaya,SBY-20260815-003,Soto Ayam Kampung,Makanan Utama,2,24000,48000,QRIS
+2026-08-15,13:27,MMM Darmo Surabaya,SBY-20260815-004,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-15,13:27,MMM Darmo Surabaya,SBY-20260815-004,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,13:27,MMM Darmo Surabaya,SBY-20260815-004,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,18:32,MMM Darmo Surabaya,SBY-20260815-005,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,Tunai
+2026-08-15,19:04,MMM Darmo Surabaya,SBY-20260815-006,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,GoFood
+2026-08-15,20:25,MMM Darmo Surabaya,SBY-20260815-007,Ayam Geprek Mania,Makanan Utama,1,25000,25000,GrabFood
+2026-08-15,19:29,MMM Darmo Surabaya,SBY-20260815-008,Onion Rings,Snack & Appetizer,1,16000,16000,Kartu Debit
+2026-08-15,19:29,MMM Darmo Surabaya,SBY-20260815-008,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,Kartu Debit
+2026-08-15,16:31,MMM Darmo Surabaya,SBY-20260815-009,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-15,16:31,MMM Darmo Surabaya,SBY-20260815-009,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-15,16:31,MMM Darmo Surabaya,SBY-20260815-009,Jus Alpukat,Minuman,1,17000,17000,QRIS
+2026-08-15,11:35,MMM Darmo Surabaya,SBY-20260815-010,Pisang Goreng Keju,Dessert,1,12000,12000,QRIS
+2026-08-15,13:29,MMM Darmo Surabaya,SBY-20260815-011,Rendang Rice Bowl,Makanan Utama,2,32000,64000,QRIS
+2026-08-15,13:29,MMM Darmo Surabaya,SBY-20260815-011,Kopi Susu Mania,Minuman,1,15000,15000,QRIS
+2026-08-15,13:29,MMM Darmo Surabaya,SBY-20260815-011,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-15,20:20,MMM Darmo Surabaya,SBY-20260815-012,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-15,20:20,MMM Darmo Surabaya,SBY-20260815-012,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-15,19:43,MMM Darmo Surabaya,SBY-20260815-013,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-15,17:44,MMM Darmo Surabaya,SBY-20260815-014,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-15,17:44,MMM Darmo Surabaya,SBY-20260815-014,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-15,17:44,MMM Darmo Surabaya,SBY-20260815-014,Lemon Tea,Minuman,2,12000,24000,QRIS
+2026-08-15,19:52,MMM Darmo Surabaya,SBY-20260815-015,Jus Alpukat,Minuman,1,17000,17000,QRIS
+2026-08-15,19:52,MMM Darmo Surabaya,SBY-20260815-015,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-15,19:52,MMM Darmo Surabaya,SBY-20260815-015,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-15,16:05,MMM Darmo Surabaya,SBY-20260815-016,Onion Rings,Snack & Appetizer,2,16000,32000,Tunai
+2026-08-15,16:05,MMM Darmo Surabaya,SBY-20260815-016,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Tunai
+2026-08-15,16:05,MMM Darmo Surabaya,SBY-20260815-016,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-15,19:20,MMM Darmo Surabaya,SBY-20260815-017,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-15,19:10,MMM Darmo Surabaya,SBY-20260815-018,Chicken Katsu Curry,Makanan Utama,2,33000,66000,Kartu Debit
+2026-08-15,19:10,MMM Darmo Surabaya,SBY-20260815-018,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-15,19:10,MMM Darmo Surabaya,SBY-20260815-018,Waffle Mantap,Dessert,2,18000,36000,Kartu Debit
+2026-08-15,14:51,MMM Darmo Surabaya,SBY-20260815-019,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-15,14:51,MMM Darmo Surabaya,SBY-20260815-019,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-15,12:23,MMM Darmo Surabaya,SBY-20260815-020,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-15,12:34,MMM Darmo Surabaya,SBY-20260815-021,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,QRIS
+2026-08-15,12:34,MMM Darmo Surabaya,SBY-20260815-021,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-15,13:40,MMM Darmo Surabaya,SBY-20260815-022,Es Kopi Mantap,Minuman,2,16000,32000,GoFood
+2026-08-15,13:40,MMM Darmo Surabaya,SBY-20260815-022,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,GoFood
+2026-08-15,13:40,MMM Darmo Surabaya,SBY-20260815-022,Chicken Katsu Curry,Makanan Utama,2,33000,66000,GoFood
+2026-08-15,19:09,MMM Darmo Surabaya,SBY-20260815-023,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-15,19:09,MMM Darmo Surabaya,SBY-20260815-023,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,QRIS
+2026-08-15,19:16,MMM Darmo Surabaya,SBY-20260815-024,Thai Tea,Minuman,1,14000,14000,GrabFood
+2026-08-15,17:17,MMM Darmo Surabaya,SBY-20260815-025,Mie Goreng Spesial,Makanan Utama,1,27000,27000,GrabFood
+2026-08-15,17:17,MMM Darmo Surabaya,SBY-20260815-025,Kopi Susu Mania,Minuman,1,15000,15000,GrabFood
+2026-08-15,17:17,MMM Darmo Surabaya,SBY-20260815-025,Pangsit Goreng Mantap,Snack & Appetizer,2,14000,28000,GrabFood
+2026-08-15,18:28,MMM Malioboro Yogyakarta,YGY-20260815-001,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-15,18:28,MMM Malioboro Yogyakarta,YGY-20260815-001,Pisang Goreng Keju,Dessert,1,12000,12000,QRIS
+2026-08-15,13:41,MMM Malioboro Yogyakarta,YGY-20260815-002,Lemon Tea,Minuman,1,12000,12000,GoFood
+2026-08-15,18:26,MMM Malioboro Yogyakarta,YGY-20260815-003,Jus Alpukat,Minuman,1,17000,17000,GoFood
+2026-08-15,12:09,MMM Malioboro Yogyakarta,YGY-20260815-004,Air Mineral,Minuman,2,5000,10000,GoFood
+2026-08-15,12:09,MMM Malioboro Yogyakarta,YGY-20260815-004,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,GoFood
+2026-08-15,12:09,MMM Malioboro Yogyakarta,YGY-20260815-004,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,GoFood
+2026-08-15,21:26,MMM Malioboro Yogyakarta,YGY-20260815-005,Lemon Tea,Minuman,2,12000,24000,Tunai
+2026-08-15,13:53,MMM Malioboro Yogyakarta,YGY-20260815-006,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,QRIS
+2026-08-15,13:53,MMM Malioboro Yogyakarta,YGY-20260815-006,Soto Ayam Kampung,Makanan Utama,2,24000,48000,QRIS
+2026-08-15,18:02,MMM Malioboro Yogyakarta,YGY-20260815-007,Thai Tea,Minuman,1,14000,14000,GoFood
+2026-08-15,18:02,MMM Malioboro Yogyakarta,YGY-20260815-007,Soto Ayam Kampung,Makanan Utama,1,24000,24000,GoFood
+2026-08-15,18:02,MMM Malioboro Yogyakarta,YGY-20260815-007,Puding Coklat Mania,Dessert,2,10000,20000,GoFood
+2026-08-15,17:03,MMM Malioboro Yogyakarta,YGY-20260815-008,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,GrabFood
+2026-08-15,19:44,MMM Malioboro Yogyakarta,YGY-20260815-009,Soto Ayam Kampung,Makanan Utama,1,24000,24000,GoFood
+2026-08-15,19:44,MMM Malioboro Yogyakarta,YGY-20260815-009,Chicken Katsu Curry,Makanan Utama,1,33000,33000,GoFood
+2026-08-15,17:53,MMM Malioboro Yogyakarta,YGY-20260815-010,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-15,17:53,MMM Malioboro Yogyakarta,YGY-20260815-010,Kopi Susu Mania,Minuman,3,15000,45000,QRIS
+2026-08-15,13:08,MMM Malioboro Yogyakarta,YGY-20260815-011,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,GrabFood
+2026-08-15,13:08,MMM Malioboro Yogyakarta,YGY-20260815-011,Jus Alpukat,Minuman,1,17000,17000,GrabFood
+2026-08-15,13:08,MMM Malioboro Yogyakarta,YGY-20260815-011,Air Mineral,Minuman,1,5000,5000,GrabFood
+2026-08-15,12:22,MMM Malioboro Yogyakarta,YGY-20260815-012,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,GrabFood
+2026-08-15,12:22,MMM Malioboro Yogyakarta,YGY-20260815-012,Onion Rings,Snack & Appetizer,2,16000,32000,GrabFood
+2026-08-15,12:22,MMM Malioboro Yogyakarta,YGY-20260815-012,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,GrabFood
+2026-08-15,13:50,MMM Malioboro Yogyakarta,YGY-20260815-013,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-15,13:50,MMM Malioboro Yogyakarta,YGY-20260815-013,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-15,17:51,MMM Malioboro Yogyakarta,YGY-20260815-014,Mie Goreng Spesial,Makanan Utama,1,27000,27000,GrabFood
+2026-08-15,17:51,MMM Malioboro Yogyakarta,YGY-20260815-014,Thai Tea,Minuman,1,14000,14000,GrabFood
+2026-08-15,17:51,MMM Malioboro Yogyakarta,YGY-20260815-014,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,GrabFood
+2026-08-15,11:48,MMM Malioboro Yogyakarta,YGY-20260815-015,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,11:48,MMM Malioboro Yogyakarta,YGY-20260815-015,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-15,11:48,MMM Malioboro Yogyakarta,YGY-20260815-015,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-15,19:45,MMM Malioboro Yogyakarta,YGY-20260815-016,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,17:56,MMM Kemang,KMG-20260826-001,Thai Tea,Minuman,3,14000,42000,QRIS
+2026-08-26,17:56,MMM Kemang,KMG-20260826-001,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,20:39,MMM Kemang,KMG-20260826-002,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,Tunai
+2026-08-26,20:39,MMM Kemang,KMG-20260826-002,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-26,20:55,MMM Kemang,KMG-20260826-003,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-26,20:55,MMM Kemang,KMG-20260826-003,Rendang Rice Bowl,Makanan Utama,2,32000,64000,Tunai
+2026-08-26,20:55,MMM Kemang,KMG-20260826-003,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Tunai
+2026-08-26,12:15,MMM Kemang,KMG-20260826-004,Chicken Katsu Curry,Makanan Utama,3,33000,99000,Tunai
+2026-08-26,12:15,MMM Kemang,KMG-20260826-004,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-26,13:51,MMM Kemang,KMG-20260826-005,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-26,13:51,MMM Kemang,KMG-20260826-005,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-26,20:33,MMM Kemang,KMG-20260826-006,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,Tunai
+2026-08-26,14:48,MMM Kemang,KMG-20260826-007,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-26,17:58,MMM Kemang,KMG-20260826-008,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-26,17:58,MMM Kemang,KMG-20260826-008,Kentang Goreng Mania,Snack & Appetizer,2,15000,30000,QRIS
+2026-08-26,17:58,MMM Kemang,KMG-20260826-008,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,14:59,MMM Kemang,KMG-20260826-009,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Tunai
+2026-08-26,14:59,MMM Kemang,KMG-20260826-009,Puding Coklat Mania,Dessert,1,10000,10000,Tunai
+2026-08-26,14:59,MMM Kemang,KMG-20260826-009,Jus Alpukat,Minuman,1,17000,17000,Tunai
+2026-08-26,19:58,MMM Kemang,KMG-20260826-010,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-26,19:58,MMM Kemang,KMG-20260826-010,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-26,21:28,MMM Kemang,KMG-20260826-011,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,21:28,MMM Kemang,KMG-20260826-011,Mie Goreng Spesial,Makanan Utama,3,27000,81000,QRIS
+2026-08-26,21:28,MMM Kemang,KMG-20260826-011,Ayam Geprek Mania,Makanan Utama,1,25000,25000,QRIS
+2026-08-26,20:18,MMM Kemang,KMG-20260826-012,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-26,11:00,MMM Kemang,KMG-20260826-013,Kopi Susu Mania,Minuman,1,15000,15000,GoFood
+2026-08-26,11:01,MMM Kemang,KMG-20260826-014,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-26,11:08,MMM Kemang,KMG-20260826-015,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-26,11:08,MMM Kemang,KMG-20260826-015,Kentang Goreng Mania,Snack & Appetizer,3,15000,45000,Tunai
+2026-08-26,11:08,MMM Kemang,KMG-20260826-015,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-26,19:50,MMM Kemang,KMG-20260826-016,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-26,19:50,MMM Kemang,KMG-20260826-016,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-26,19:50,MMM Kemang,KMG-20260826-016,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-26,13:13,MMM Kemang,KMG-20260826-017,Air Mineral,Minuman,1,5000,5000,GrabFood
+2026-08-26,13:13,MMM Kemang,KMG-20260826-017,Kopi Susu Mania,Minuman,2,15000,30000,GrabFood
+2026-08-26,13:13,MMM Kemang,KMG-20260826-017,Es Teh Manis,Minuman,1,8000,8000,GrabFood
+2026-08-26,19:31,MMM Kemang,KMG-20260826-018,Es Krim Goreng,Dessert,1,15000,15000,Tunai
+2026-08-26,11:30,MMM Kemang,KMG-20260826-019,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,Tunai
+2026-08-26,11:30,MMM Kemang,KMG-20260826-019,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-26,18:45,MMM Kemang,KMG-20260826-020,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,Kartu Debit
+2026-08-26,18:45,MMM Kemang,KMG-20260826-020,Thai Tea,Minuman,1,14000,14000,Kartu Debit
+2026-08-26,18:06,MMM Kemang,KMG-20260826-021,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,QRIS
+2026-08-26,12:42,MMM Kemang,KMG-20260826-022,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-26,19:02,MMM Kemang,KMG-20260826-023,Ayam Geprek Mania,Makanan Utama,2,25000,50000,Kartu Debit
+2026-08-26,19:02,MMM Kemang,KMG-20260826-023,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Kartu Debit
+2026-08-26,21:44,MMM Kemang,KMG-20260826-024,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-26,21:44,MMM Kemang,KMG-20260826-024,Kopi Susu Mania,Minuman,1,15000,15000,QRIS
+2026-08-26,11:49,MMM Kemang,KMG-20260826-025,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-26,11:49,MMM Kemang,KMG-20260826-025,Es Krim Goreng,Dessert,1,15000,15000,Tunai
+2026-08-26,11:49,MMM Kemang,KMG-20260826-025,Nasi Ayam Bakar Madu,Makanan Utama,3,30000,90000,Tunai
+2026-08-26,19:05,MMM Kemang,KMG-20260826-026,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-26,18:28,MMM Kemang,KMG-20260826-027,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-26,18:28,MMM Kemang,KMG-20260826-027,Mie Goreng Spesial,Makanan Utama,1,27000,27000,QRIS
+2026-08-26,19:58,MMM Kemang,KMG-20260826-028,Lemon Tea,Minuman,1,12000,12000,Kartu Debit
+2026-08-26,19:58,MMM Kemang,KMG-20260826-028,Thai Tea,Minuman,2,14000,28000,Kartu Debit
+2026-08-26,13:43,MMM Bintaro,BTR-20260826-001,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,GrabFood
+2026-08-26,19:58,MMM Bintaro,BTR-20260826-002,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,QRIS
+2026-08-26,19:58,MMM Bintaro,BTR-20260826-002,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-26,18:54,MMM Bintaro,BTR-20260826-003,Es Jeruk Peras,Minuman,1,10000,10000,GoFood
+2026-08-26,12:28,MMM Bintaro,BTR-20260826-004,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,GrabFood
+2026-08-26,12:28,MMM Bintaro,BTR-20260826-004,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,GrabFood
+2026-08-26,12:28,MMM Bintaro,BTR-20260826-004,Onion Rings,Snack & Appetizer,1,16000,16000,GrabFood
+2026-08-26,21:11,MMM Bintaro,BTR-20260826-005,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-26,21:11,MMM Bintaro,BTR-20260826-005,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-26,12:43,MMM Bintaro,BTR-20260826-006,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-26,12:43,MMM Bintaro,BTR-20260826-006,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,QRIS
+2026-08-26,12:43,MMM Bintaro,BTR-20260826-006,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-26,11:24,MMM Bintaro,BTR-20260826-007,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-008,Kopi Susu Mania,Minuman,3,15000,45000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-008,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-008,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-26,17:49,MMM Bintaro,BTR-20260826-009,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-26,17:49,MMM Bintaro,BTR-20260826-009,Es Krim Goreng,Dessert,1,15000,15000,Tunai
+2026-08-26,17:49,MMM Bintaro,BTR-20260826-009,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Tunai
+2026-08-26,13:59,MMM Bintaro,BTR-20260826-010,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-26,18:07,MMM Bintaro,BTR-20260826-011,Thai Tea,Minuman,1,14000,14000,Kartu Debit
+2026-08-26,20:43,MMM Bintaro,BTR-20260826-012,Waffle Mantap,Dessert,1,18000,18000,Tunai
+2026-08-26,20:43,MMM Bintaro,BTR-20260826-012,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-26,17:37,MMM Bintaro,BTR-20260826-013,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-26,17:37,MMM Bintaro,BTR-20260826-013,Chicken Wings (5pcs),Snack & Appetizer,1,22000,22000,Tunai
+2026-08-26,17:37,MMM Bintaro,BTR-20260826-013,Es Jeruk Peras,Minuman,1,10000,10000,Tunai
+2026-08-26,21:31,MMM Bintaro,BTR-20260826-014,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GoFood
+2026-08-26,21:31,MMM Bintaro,BTR-20260826-014,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,GoFood
+2026-08-26,21:31,MMM Bintaro,BTR-20260826-014,Es Krim Goreng,Dessert,1,15000,15000,GoFood
+2026-08-26,12:10,MMM Bintaro,BTR-20260826-015,Jus Alpukat,Minuman,1,17000,17000,Tunai
+2026-08-26,12:10,MMM Bintaro,BTR-20260826-015,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Tunai
+2026-08-26,12:10,MMM Bintaro,BTR-20260826-015,Chicken Katsu Curry,Makanan Utama,1,33000,33000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-016,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-016,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-26,12:25,MMM Bintaro,BTR-20260826-016,Kopi Susu Mania,Minuman,1,15000,15000,Tunai
+2026-08-26,11:28,MMM Bintaro,BTR-20260826-017,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-26,11:28,MMM Bintaro,BTR-20260826-017,Chicken Katsu Curry,Makanan Utama,2,33000,66000,QRIS
+2026-08-26,11:28,MMM Bintaro,BTR-20260826-017,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-26,18:09,MMM Bintaro,BTR-20260826-018,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-26,18:09,MMM Bintaro,BTR-20260826-018,Es Teh Manis,Minuman,2,8000,16000,Tunai
+2026-08-26,18:09,MMM Bintaro,BTR-20260826-018,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-26,11:03,MMM Bintaro,BTR-20260826-019,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-26,11:03,MMM Bintaro,BTR-20260826-019,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-26,11:03,MMM Bintaro,BTR-20260826-019,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,18:15,MMM Bintaro,BTR-20260826-020,Rendang Rice Bowl,Makanan Utama,1,32000,32000,QRIS
+2026-08-26,18:15,MMM Bintaro,BTR-20260826-020,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-26,18:15,MMM Bintaro,BTR-20260826-020,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-26,13:04,MMM Bintaro,BTR-20260826-021,Rendang Rice Bowl,Makanan Utama,2,32000,64000,QRIS
+2026-08-26,13:04,MMM Bintaro,BTR-20260826-021,Chicken Katsu Curry,Makanan Utama,1,33000,33000,QRIS
+2026-08-26,13:04,MMM Bintaro,BTR-20260826-021,Es Jeruk Peras,Minuman,1,10000,10000,QRIS
+2026-08-26,18:33,MMM Bintaro,BTR-20260826-022,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Kartu Debit
+2026-08-26,18:33,MMM Bintaro,BTR-20260826-022,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Kartu Debit
+2026-08-26,15:19,MMM Dago Bandung,DGO-20260826-001,Soto Ayam Kampung,Makanan Utama,1,24000,24000,Tunai
+2026-08-26,15:19,MMM Dago Bandung,DGO-20260826-001,Nasi Goreng Mantap,Makanan Utama,2,28000,56000,Tunai
+2026-08-26,12:11,MMM Dago Bandung,DGO-20260826-002,Waffle Mantap,Dessert,1,18000,18000,QRIS
+2026-08-26,20:07,MMM Dago Bandung,DGO-20260826-003,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-26,20:07,MMM Dago Bandung,DGO-20260826-003,Waffle Mantap,Dessert,2,18000,36000,QRIS
+2026-08-26,20:07,MMM Dago Bandung,DGO-20260826-003,Es Kopi Mantap,Minuman,2,16000,32000,QRIS
+2026-08-26,13:54,MMM Dago Bandung,DGO-20260826-004,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-26,12:34,MMM Dago Bandung,DGO-20260826-005,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-26,12:34,MMM Dago Bandung,DGO-20260826-005,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-26,12:34,MMM Dago Bandung,DGO-20260826-005,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,18:48,MMM Dago Bandung,DGO-20260826-006,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-26,20:56,MMM Dago Bandung,DGO-20260826-007,Air Mineral,Minuman,1,5000,5000,QRIS
+2026-08-26,19:45,MMM Dago Bandung,DGO-20260826-008,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-26,19:45,MMM Dago Bandung,DGO-20260826-008,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-26,19:45,MMM Dago Bandung,DGO-20260826-008,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-26,11:20,MMM Dago Bandung,DGO-20260826-009,Air Mineral,Minuman,1,5000,5000,GrabFood
+2026-08-26,11:20,MMM Dago Bandung,DGO-20260826-009,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GrabFood
+2026-08-26,11:20,MMM Dago Bandung,DGO-20260826-009,Puding Coklat Mania,Dessert,1,10000,10000,GrabFood
+2026-08-26,11:05,MMM Dago Bandung,DGO-20260826-010,Rendang Rice Bowl,Makanan Utama,1,32000,32000,GrabFood
+2026-08-26,11:05,MMM Dago Bandung,DGO-20260826-010,Waffle Mantap,Dessert,1,18000,18000,GrabFood
+2026-08-26,20:49,MMM Dago Bandung,DGO-20260826-011,Pisang Goreng Keju,Dessert,2,12000,24000,Kartu Debit
+2026-08-26,19:37,MMM Dago Bandung,DGO-20260826-012,Kentang Goreng Mania,Snack & Appetizer,1,15000,15000,Tunai
+2026-08-26,12:12,MMM Dago Bandung,DGO-20260826-013,Pisang Goreng Keju,Dessert,3,12000,36000,QRIS
+2026-08-26,12:12,MMM Dago Bandung,DGO-20260826-013,Lemon Tea,Minuman,1,12000,12000,QRIS
+2026-08-26,12:12,MMM Dago Bandung,DGO-20260826-013,Es Teh Manis,Minuman,1,8000,8000,QRIS
+2026-08-26,19:19,MMM Dago Bandung,DGO-20260826-014,Onion Rings,Snack & Appetizer,1,16000,16000,QRIS
+2026-08-26,13:43,MMM Dago Bandung,DGO-20260826-015,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,11:22,MMM Dago Bandung,DGO-20260826-016,Rendang Rice Bowl,Makanan Utama,2,32000,64000,Kartu Debit
+2026-08-26,11:22,MMM Dago Bandung,DGO-20260826-016,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,Kartu Debit
+2026-08-26,19:00,MMM Dago Bandung,DGO-20260826-017,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-26,13:33,MMM Dago Bandung,DGO-20260826-018,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,QRIS
+2026-08-26,20:09,MMM Dago Bandung,DGO-20260826-019,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-26,17:26,MMM Darmo Surabaya,SBY-20260826-001,Thai Tea,Minuman,3,14000,42000,QRIS
+2026-08-26,12:15,MMM Darmo Surabaya,SBY-20260826-002,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Tunai
+2026-08-26,12:15,MMM Darmo Surabaya,SBY-20260826-002,Soto Ayam Kampung,Makanan Utama,2,24000,48000,Tunai
+2026-08-26,12:15,MMM Darmo Surabaya,SBY-20260826-002,Jus Alpukat,Minuman,3,17000,51000,Tunai
+2026-08-26,18:43,MMM Darmo Surabaya,SBY-20260826-003,Mie Goreng Spesial,Makanan Utama,2,27000,54000,Kartu Debit
+2026-08-26,18:17,MMM Darmo Surabaya,SBY-20260826-004,Jus Alpukat,Minuman,1,17000,17000,Kartu Debit
+2026-08-26,18:17,MMM Darmo Surabaya,SBY-20260826-004,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,Kartu Debit
+2026-08-26,18:17,MMM Darmo Surabaya,SBY-20260826-004,Chicken Katsu Curry,Makanan Utama,2,33000,66000,Kartu Debit
+2026-08-26,10:19,MMM Darmo Surabaya,SBY-20260826-005,Lemon Tea,Minuman,1,12000,12000,GrabFood
+2026-08-26,10:19,MMM Darmo Surabaya,SBY-20260826-005,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,GrabFood
+2026-08-26,18:05,MMM Darmo Surabaya,SBY-20260826-006,Ayam Geprek Mania,Makanan Utama,1,25000,25000,Kartu Debit
+2026-08-26,20:31,MMM Darmo Surabaya,SBY-20260826-007,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-26,20:31,MMM Darmo Surabaya,SBY-20260826-007,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,QRIS
+2026-08-26,11:28,MMM Darmo Surabaya,SBY-20260826-008,Onion Rings,Snack & Appetizer,1,16000,16000,Tunai
+2026-08-26,11:28,MMM Darmo Surabaya,SBY-20260826-008,Rendang Rice Bowl,Makanan Utama,1,32000,32000,Tunai
+2026-08-26,09:32,MMM Darmo Surabaya,SBY-20260826-009,Waffle Mantap,Dessert,1,18000,18000,GoFood
+2026-08-26,09:32,MMM Darmo Surabaya,SBY-20260826-009,Mie Goreng Spesial,Makanan Utama,3,27000,81000,GoFood
+2026-08-26,09:32,MMM Darmo Surabaya,SBY-20260826-009,Kopi Susu Mania,Minuman,3,15000,45000,GoFood
+2026-08-26,11:03,MMM Darmo Surabaya,SBY-20260826-010,Onion Rings,Snack & Appetizer,2,16000,32000,GoFood
+2026-08-26,11:03,MMM Darmo Surabaya,SBY-20260826-010,Ayam Geprek Mania,Makanan Utama,2,25000,50000,GoFood
+2026-08-26,11:03,MMM Darmo Surabaya,SBY-20260826-010,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,GoFood
+2026-08-26,20:35,MMM Darmo Surabaya,SBY-20260826-011,Puding Coklat Mania,Dessert,1,10000,10000,QRIS
+2026-08-26,17:03,MMM Darmo Surabaya,SBY-20260826-012,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,Kartu Debit
+2026-08-26,17:03,MMM Darmo Surabaya,SBY-20260826-012,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-26,17:03,MMM Darmo Surabaya,SBY-20260826-012,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,Kartu Debit
+2026-08-26,18:37,MMM Darmo Surabaya,SBY-20260826-013,Air Mineral,Minuman,1,5000,5000,Tunai
+2026-08-26,18:37,MMM Darmo Surabaya,SBY-20260826-013,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-26,18:37,MMM Darmo Surabaya,SBY-20260826-013,Waffle Mantap,Dessert,1,18000,18000,Tunai
+2026-08-26,13:37,MMM Darmo Surabaya,SBY-20260826-014,Nasi Ayam Bakar Madu,Makanan Utama,1,30000,30000,QRIS
+2026-08-26,11:28,MMM Darmo Surabaya,SBY-20260826-015,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Kartu Debit
+2026-08-26,11:44,MMM Darmo Surabaya,SBY-20260826-016,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,Tunai
+2026-08-26,11:44,MMM Darmo Surabaya,SBY-20260826-016,Puding Coklat Mania,Dessert,2,10000,20000,Tunai
+2026-08-26,11:44,MMM Darmo Surabaya,SBY-20260826-016,Jus Alpukat,Minuman,2,17000,34000,Tunai
+2026-08-26,11:32,MMM Darmo Surabaya,SBY-20260826-017,Spaghetti Aglio Olio Mantap,Makanan Utama,1,29000,29000,GrabFood
+2026-08-26,11:32,MMM Darmo Surabaya,SBY-20260826-017,Chicken Wings (5pcs),Snack & Appetizer,2,22000,44000,GrabFood
+2026-08-26,20:21,MMM Malioboro Yogyakarta,YGY-20260826-001,Ayam Geprek Mania,Makanan Utama,2,25000,50000,Tunai
+2026-08-26,20:21,MMM Malioboro Yogyakarta,YGY-20260826-001,Lemon Tea,Minuman,1,12000,12000,Tunai
+2026-08-26,20:21,MMM Malioboro Yogyakarta,YGY-20260826-001,Es Teh Manis,Minuman,1,8000,8000,Tunai
+2026-08-26,12:23,MMM Malioboro Yogyakarta,YGY-20260826-002,Puding Coklat Mania,Dessert,2,10000,20000,QRIS
+2026-08-26,12:23,MMM Malioboro Yogyakarta,YGY-20260826-002,Es Kopi Mantap,Minuman,1,16000,16000,QRIS
+2026-08-26,12:02,MMM Malioboro Yogyakarta,YGY-20260826-003,Pisang Goreng Keju,Dessert,1,12000,12000,Tunai
+2026-08-26,12:02,MMM Malioboro Yogyakarta,YGY-20260826-003,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Tunai
+2026-08-26,12:02,MMM Malioboro Yogyakarta,YGY-20260826-003,Chicken Katsu Curry,Makanan Utama,2,33000,66000,Tunai
+2026-08-26,17:57,MMM Malioboro Yogyakarta,YGY-20260826-004,Thai Tea,Minuman,1,14000,14000,Tunai
+2026-08-26,17:57,MMM Malioboro Yogyakarta,YGY-20260826-004,Pangsit Goreng Mantap,Snack & Appetizer,3,14000,42000,Tunai
+2026-08-26,17:57,MMM Malioboro Yogyakarta,YGY-20260826-004,Onion Rings,Snack & Appetizer,2,16000,32000,Tunai
+2026-08-26,16:09,MMM Malioboro Yogyakarta,YGY-20260826-005,Pisang Goreng Keju,Dessert,1,12000,12000,Kartu Debit
+2026-08-26,16:09,MMM Malioboro Yogyakarta,YGY-20260826-005,Puding Coklat Mania,Dessert,1,10000,10000,Kartu Debit
+2026-08-26,16:09,MMM Malioboro Yogyakarta,YGY-20260826-005,Nasi Goreng Mantap,Makanan Utama,1,28000,28000,Kartu Debit
+2026-08-26,13:39,MMM Malioboro Yogyakarta,YGY-20260826-006,Es Krim Goreng,Dessert,1,15000,15000,QRIS
+2026-08-26,20:43,MMM Malioboro Yogyakarta,YGY-20260826-007,Mie Goreng Spesial,Makanan Utama,1,27000,27000,Kartu Debit
+2026-08-26,20:43,MMM Malioboro Yogyakarta,YGY-20260826-007,Es Krim Goreng,Dessert,1,15000,15000,Kartu Debit
+2026-08-26,20:43,MMM Malioboro Yogyakarta,YGY-20260826-007,Spaghetti Aglio Olio Mantap,Makanan Utama,2,29000,58000,Kartu Debit
+2026-08-26,11:16,MMM Malioboro Yogyakarta,YGY-20260826-008,Nasi Goreng Mantap,Makanan Utama,3,28000,84000,QRIS
+2026-08-26,19:30,MMM Malioboro Yogyakarta,YGY-20260826-009,Lemon Tea,Minuman,1,12000,12000,GrabFood
+2026-08-26,19:30,MMM Malioboro Yogyakarta,YGY-20260826-009,Chicken Katsu Curry,Makanan Utama,1,33000,33000,GrabFood
+2026-08-26,12:30,MMM Malioboro Yogyakarta,YGY-20260826-010,Pangsit Goreng Mantap,Snack & Appetizer,1,14000,14000,QRIS
+2026-08-26,13:26,MMM Malioboro Yogyakarta,YGY-20260826-011,Tahu Crispy Sambal Matah,Snack & Appetizer,1,13000,13000,QRIS
+2026-08-26,13:26,MMM Malioboro Yogyakarta,YGY-20260826-011,Nasi Ayam Bakar Madu,Makanan Utama,2,30000,60000,QRIS
+2026-08-26,11:34,MMM Malioboro Yogyakarta,YGY-20260826-012,Chicken Katsu Curry,Makanan Utama,1,33000,33000,GoFood
+2026-08-26,11:34,MMM Malioboro Yogyakarta,YGY-20260826-012,Kopi Susu Mania,Minuman,1,15000,15000,GoFood

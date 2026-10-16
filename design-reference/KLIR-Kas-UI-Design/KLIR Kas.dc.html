@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #06080C; color: #F5F7FA; }
+    h1, h2, h3 { font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif; margin: 0; }
+    a { color: #F5F7FA; text-decoration: none; transition: color 160ms ease; }
+    a:hover { color: #4E9BFF; }
+    @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes floatY2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes dotPulse { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+    @keyframes rotateGentle { 0%,100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+    @keyframes slideMarker { 0% { left: 6%; } 50% { left: 72%; } 100% { left: 6%; } }
+    @keyframes coinSpin { 0%,100% { transform: rotateZ(-3deg); } 50% { transform: rotateZ(3deg); } }
+    @keyframes hudPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.9; } }
+  </style>
+</helmet>
+<div style="background:#06080C; min-height:100vh; overflow-x:hidden; position:relative; font-family:'Plus Jakarta Sans',sans-serif;">
+  <div style="max-width:1240px; margin:0 auto; padding:32px 28px 72px; box-sizing:border-box;">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:26px; flex-wrap:wrap; gap:12px; padding-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="position:relative;">
+        <button type="button" onClick="{{ toggleModuleMenu }}" style-hover="opacity:0.85;" style="display:flex; align-items:center; gap:14px; background:transparent; border:none; cursor:pointer; padding:0;">
+          <span style="display:flex; align-items:center; gap:10px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="#0058BE"></path>
+              <path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#F5F7FA" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <span style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:700; letter-spacing:0.04em; color:#F5F7FA;">KLIR</span>
+          </span>
+          <span style="width:1px; height:20px; background:rgba(255,255,255,0.1);"></span>
+          <span style="display:flex; align-items:center; gap:8px;">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px; letter-spacing:0.14em; color:#4E9BFF;">KAS</span>
+            <span style="font-size:12.5px; color:#8A93A3; white-space:nowrap;">Dapur Rempah Kirana</span>
+            <span style="width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid #5C6474;"></span>
+          </span>
+        </button>
+        <sc-if value="{{ moduleMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute; top:calc(100% + 10px); left:0; min-width:210px; background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:14px; padding:6px; box-shadow:0 20px 40px -12px rgba(0,0,0,0.6); z-index:10;">
+            <sc-for list="{{ moduleList }}" as="mod" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; background:{{ mod.bg }};">
+                <span style="width:6px; height:6px; border-radius:50%; background:{{ mod.dotColor }}; flex-shrink:0;"></span>
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:11px; letter-spacing:0.1em; color:{{ mod.textColor }};">{{ mod.name }}</span>
+                <sc-if value="{{ mod.isActive }}" hint-placeholder-val="{{ false }}">
+                  <span style="margin-left:auto; font-size:10px; color:#4E9BFF; font-weight:700;">Aktif</span>
+                </sc-if>
+                <sc-if value="{{ mod.isSoon }}" hint-placeholder-val="{{ false }}">
+                  <span style="margin-left:auto; font-size:9px; color:#5C6474; font-weight:600;">segera</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <sc-if value="{{ showSync }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; align-items:center; gap:8px; border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:6px 12px 6px 10px; background:rgba(255,255,255,0.03);">
+            <span style="width:6px; height:6px; border-radius:50%; background:#3FBF8F; box-shadow:0 0 9px rgba(63,191,143,0.8); animation:dotPulse 2s ease-in-out infinite; flex-shrink:0;"></span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10px; letter-spacing:0.1em; color:#8A93A3; white-space:nowrap;">SINKRON DENGAN CORPLAN</span>
+          </div>
+        </sc-if>
+        <div style="width:29px; height:29px; border-radius:50%; background:linear-gradient(135deg,#0F6FE0,#003C82); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#F5F7FA; flex-shrink:0;">KR</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:24px;">
+      <h1 style="font-size:27px; font-weight:600; color:#F5F7FA; margin:0 0 8px 0; letter-spacing:-0.02em;">KLIR Kas</h1>
+      <p style="font-size:14px; color:#8A93A3; margin:0; max-width:640px; line-height:1.6;">Catat kas masuk dan keluar, buat invoice digital, hitung pajak UMKM, dan pantau ketahanan keuangan usaha — semua dalam satu tempat.</p>
+    </div>
+
+    <div style="display:inline-flex; gap:4px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:5px; flex-wrap:wrap; margin-bottom:26px;">
+      <button type="button" onClick="{{ setTabLedger }}" style="display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:-0.01em; cursor:pointer; white-space:nowrap; background:{{ ledgerTabBg }}; border:1px solid {{ ledgerTabBorder }}; color:{{ ledgerTabColor }};">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px; letter-spacing:0.12em; color:{{ ledgerTabNumColor }};">01</span>Buku Kas (Cashflow)
+      </button>
+      <button type="button" onClick="{{ setTabInvoices }}" style="display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:-0.01em; cursor:pointer; white-space:nowrap; background:{{ invoicesTabBg }}; border:1px solid {{ invoicesTabBorder }}; color:{{ invoicesTabColor }};">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px; letter-spacing:0.12em; color:{{ invoicesTabNumColor }};">02</span>Invoice Digital (QRIS & VA)
+      </button>
+      <button type="button" onClick="{{ setTabTax }}" style="display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:-0.01em; cursor:pointer; white-space:nowrap; background:{{ taxTabBg }}; border:1px solid {{ taxTabBorder }}; color:{{ taxTabColor }};">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px; letter-spacing:0.12em; color:{{ taxTabNumColor }};">03</span>Pajak UMKM 0.5%
+      </button>
+      <button type="button" onClick="{{ setTabRunwayHealth }}" style="display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border-radius:8px; font-size:13px; font-weight:600; letter-spacing:-0.01em; cursor:pointer; white-space:nowrap; background:{{ rhTabBg }}; border:1px solid {{ rhTabBorder }}; color:{{ rhTabColor }};">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9.5px; letter-spacing:0.12em; color:{{ rhTabNumColor }};">04</span>Runway & Skor Kesehatan
+      </button>
+    </div>
+
+    <sc-if value="{{ isLedger }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:18px; padding:20px 24px; background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:18px; flex-wrap:wrap;">
+          <div style="width:120px; height:80px; position:relative; flex-shrink:0;">
+            <div style="position:absolute; bottom:6px; left:8px; width:14px; height:34px; background:linear-gradient(180deg,#4E9BFF,#0058BE); border-radius:4px 4px 0 0; animation:floatY 3.2s ease-in-out infinite;"></div>
+            <div style="position:absolute; bottom:6px; left:32px; width:14px; height:54px; background:linear-gradient(180deg,#4E9BFF,#0058BE); border-radius:4px 4px 0 0; animation:floatY2 3.6s ease-in-out infinite; animation-delay:0.2s;"></div>
+            <div style="position:absolute; bottom:6px; left:56px; width:14px; height:40px; background:linear-gradient(180deg,#4E9BFF,#0058BE); border-radius:4px 4px 0 0; animation:floatY 3.4s ease-in-out infinite; animation-delay:0.4s;"></div>
+            <div style="position:absolute; bottom:6px; left:80px; width:14px; height:66px; background:linear-gradient(180deg,#3FBF8F,#0058BE); border-radius:4px 4px 0 0; box-shadow:0 0 16px rgba(63,191,143,0.35); animation:floatY2 3s ease-in-out infinite; animation-delay:0.1s;"></div>
+            <div style="position:absolute; bottom:0; left:4px; right:4px; height:2px; background:rgba(255,255,255,0.1);"></div>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#F5F7FA; margin:0 0 4px 0; letter-spacing:-0.01em;">Buku Kas (Cashflow)</h2>
+            <p style="font-size:13px; color:#8A93A3; margin:0; line-height:1.5; max-width:560px;">Catat setiap uang masuk dan keluar, dan pantau saldo kas usaha secara langsung.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:18px;">
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:19px; display:flex; flex-direction:column; gap:9px;">
+            <span style="font-size:11px; color:#8A93A3; font-weight:500;">Total Pemasukan Kas</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:21px; letter-spacing:-0.02em; color:#F5F7FA;">{{ totalIncomeFmt }}</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; width:fit-content; border:1px solid rgba(63,191,143,0.3); background:rgba(63,191,143,0.1); border-radius:999px; padding:3px 10px 3px 8px;">
+              <span style="width:5px; height:5px; border-radius:50%; background:#3FBF8F;"></span>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; letter-spacing:0.1em; color:#3FBF8F;">UANG MASUK</span>
+            </span>
+          </div>
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:19px; display:flex; flex-direction:column; gap:9px;">
+            <span style="font-size:11px; color:#8A93A3; font-weight:500;">Total Pengeluaran Kas</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:21px; letter-spacing:-0.02em; color:#F5F7FA;">{{ totalExpenseFmt }}</span>
+            <span style="display:inline-flex; align-items:center; gap:6px; width:fit-content; border:1px solid rgba(216,163,60,0.3); background:rgba(216,163,60,0.1); border-radius:999px; padding:3px 10px 3px 8px;">
+              <span style="width:5px; height:5px; border-radius:50%; background:#D8A33C;"></span>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; letter-spacing:0.1em; color:#D8A33C;">UANG KELUAR</span>
+            </span>
+          </div>
+          <div style="position:relative;">
+            <span aria-hidden="true" style="position:absolute; top:6px; left:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:4px 0 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite;"></span>
+            <span aria-hidden="true" style="position:absolute; top:6px; right:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 4px 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:0.5s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; left:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:0 0 0 4px; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; right:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 0 4px 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1.5s;"></span>
+            <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(78,155,255,0.25); border-radius:16px; padding:19px; display:flex; flex-direction:column; gap:9px;">
+              <span style="font-size:11px; color:#8A93A3; font-weight:500;">Saldo Kas Bersih Tersedia</span>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:21px; letter-spacing:-0.02em; color:#F5F7FA;">{{ netBalanceFmt }}</span>
+              <span style="display:inline-flex; align-items:center; gap:6px; width:fit-content; border:1px solid rgba(78,155,255,0.3); background:rgba(0,88,190,0.12); border-radius:999px; padding:3px 10px 3px 8px;">
+                <span style="width:5px; height:5px; border-radius:50%; background:#4E9BFF;"></span>
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; letter-spacing:0.1em; color:#4E9BFF;">SALDO SAAT INI</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:minmax(280px,1fr) minmax(340px,2fr); gap:14px; align-items:start;">
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(78,155,255,0.2); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <h3 style="font-size:15px; font-weight:600; color:#F5F7FA; display:flex; align-items:center; gap:8px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#4E9BFF;"></span> Catat Transaksi Kas Baru
+            </h3>
+            <form onSubmit="{{ submitTransaction }}" style="display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Tipe Transaksi</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                  <button type="button" onClick="{{ setTxIncome }}" style="padding:10px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; background:{{ txIncomeBg }}; border:1px solid {{ txIncomeBorder }}; color:{{ txIncomeColor }};">+ PEMASUKAN</button>
+                  <button type="button" onClick="{{ setTxExpense }}" style="padding:10px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer; background:{{ txExpenseBg }}; border:1px solid {{ txExpenseBorder }}; color:{{ txExpenseColor }};">− PENGELUARAN</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Kategori Transaksi</label>
+                <div style="position:relative;">
+                  <select value="{{ txCategory }}" onChange="{{ onTxCategoryChange }}" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; appearance:none; -webkit-appearance:none; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 32px 11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;">
+                    <option value="Penjualan Produk / Layanan">Penjualan Produk / Layanan</option>
+                    <option value="Bahan Baku & Material">Bahan Baku & Material</option>
+                    <option value="Gaji Staf & Honor Tim">Gaji Staf & Honor Tim</option>
+                    <option value="Biaya Operasional & Utilitas">Biaya Operasional & Utilitas</option>
+                    <option value="Biaya Cloud & Server">Biaya Cloud & Server</option>
+                    <option value="Marketing & Promosi Iklan">Marketing & Promosi Iklan</option>
+                  </select>
+                  <span style="position:absolute; right:14px; top:50%; width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid #8A93A3; transform:translateY(-50%); pointer-events:none;"></span>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Nominal Transaksi (Rp)</label>
+                <input type="number" value="{{ txAmount }}" onChange="{{ onTxAmountChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Deskripsi / Keterangan</label>
+                <input type="text" value="{{ txDesc }}" onChange="{{ onTxDescChange }}" placeholder="Contoh: Pembayaran invoice #102..." style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;" />
+              </div>
+              <button type="submit" style-hover="transform:translateY(-1px); filter:brightness(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.26), 0 10px 26px rgba(0,88,190,0.45);" style="background:linear-gradient(180deg,#0F6FE0,#0058BE); border:1px solid rgba(78,155,255,0.4); color:#fff; font-weight:600; font-size:13px; padding:12px 16px; border-radius:10px; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), 0 2px 4px rgba(0,0,0,0.35); transition:transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;">Simpan Transaksi Kas</button>
+            </form>
+          </div>
+
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Riwayat Transaksi Kas Terkini</h3>
+              <span style="font-size:11px; color:#5C6474;">{{ transactionCount }} transaksi tercatat</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:9px; max-height:400px; overflow-y:auto;">
+              <sc-for list="{{ transactions }}" as="tx" hint-placeholder-count="4">
+                <div style="padding:13px 15px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                  <div style="display:flex; flex-direction:column; gap:5px; min-width:0;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <span style="display:inline-flex; align-items:center; gap:5px; border:1px solid {{ tx.badgeBorder }}; background:{{ tx.badgeBg }}; border-radius:999px; padding:2px 9px 2px 7px;">
+                        <span style="width:4px; height:4px; border-radius:50%; background:{{ tx.badgeColor }};"></span>
+                        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; letter-spacing:0.08em; color:{{ tx.badgeColor }};">{{ tx.badgeLabel }}</span>
+                      </span>
+                      <span style="font-size:13px; font-weight:600; color:#F5F7FA;">{{ tx.description }}</span>
+                    </div>
+                    <div style="font-size:11px; color:#5C6474;">{{ tx.category }} · {{ tx.dateFmt }} · {{ tx.paymentLabel }}</div>
+                  </div>
+                  <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; color:{{ tx.amountColor }}; white-space:nowrap;">{{ tx.signedAmountFmt }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isInvoices }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:18px; padding:20px 24px; background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:18px; flex-wrap:wrap;">
+          <div style="width:120px; height:80px; position:relative; flex-shrink:0;">
+            <div style="position:absolute; top:10px; left:38px; width:56px; height:66px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:6px; transform:rotate(8deg);"></div>
+            <div style="position:absolute; top:6px; left:28px; width:56px; height:66px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12); border-radius:6px; transform:rotate(-4deg);"></div>
+            <div style="position:absolute; top:2px; left:18px; width:56px; height:66px; background:#0F131C; border:1px solid rgba(78,155,255,0.3); border-radius:6px; animation:rotateGentle 4s ease-in-out infinite; transform-origin:bottom center;">
+              <div style="position:absolute; top:10px; left:8px; right:20px; height:2px; background:rgba(245,247,250,0.25); border-radius:2px;"></div>
+              <div style="position:absolute; top:16px; left:8px; width:32px; height:2px; background:rgba(245,247,250,0.15); border-radius:2px;"></div>
+              <div style="position:absolute; top:22px; left:8px; width:24px; height:2px; background:rgba(245,247,250,0.15); border-radius:2px;"></div>
+              <div style="position:absolute; top:8px; right:8px; width:14px; height:14px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:1px;">
+                <div style="background:#4E9BFF;"></div><div style="background:transparent;"></div><div style="background:#4E9BFF;"></div>
+                <div style="background:transparent;"></div><div style="background:#4E9BFF;"></div><div style="background:transparent;"></div>
+                <div style="background:#4E9BFF;"></div><div style="background:transparent;"></div><div style="background:#4E9BFF;"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#F5F7FA; margin:0 0 4px 0; letter-spacing:-0.01em;">Invoice Digital (QRIS & VA)</h2>
+            <p style="font-size:13px; color:#8A93A3; margin:0; line-height:1.5; max-width:560px;">Terbitkan invoice untuk klien lengkap dengan QRIS dan Virtual Account.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:minmax(280px,1fr) minmax(340px,2fr); gap:14px; align-items:start;">
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(78,155,255,0.2); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <h3 style="font-size:15px; font-weight:600; color:#F5F7FA; display:flex; align-items:center; gap:8px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#4E9BFF;"></span> Terbitkan Invoice Digital
+            </h3>
+            <form onSubmit="{{ submitInvoice }}" style="display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Nama Klien / Perusahaan</label>
+                <input type="text" value="{{ invClient }}" onChange="{{ onInvClientChange }}" placeholder="PT Mitra Sejahtera" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Email Klien (Opsional)</label>
+                <input type="email" value="{{ invEmail }}" onChange="{{ onInvEmailChange }}" placeholder="finance@mitra.co.id" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Item Layanan / Barang</label>
+                <input type="text" value="{{ invItem }}" onChange="{{ onInvItemChange }}" placeholder="Jasa Konsultasi Bulanan" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;" />
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Harga Satuan (Rp)</label>
+                  <input type="number" value="{{ invPrice }}" onChange="{{ onInvPriceChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+                </div>
+                <div>
+                  <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Pajak PPN (%)</label>
+                  <input type="number" value="{{ invTax }}" onChange="{{ onInvTaxChange }}" placeholder="11" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+                </div>
+              </div>
+              <div style="display:flex; gap:10px; align-items:stretch; flex-wrap:wrap;">
+                <button type="submit" style-hover="transform:translateY(-1px); filter:brightness(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.26), 0 10px 26px rgba(0,88,190,0.45);" style="flex:1; background:linear-gradient(180deg,#0F6FE0,#0058BE); border:1px solid rgba(78,155,255,0.4); color:#fff; font-weight:600; font-size:13px; padding:12px 16px; border-radius:10px; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), 0 2px 4px rgba(0,0,0,0.35); transition:transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;">Generate Invoice & QRIS Standar</button>
+                <sc-if value="{{ showCreditPlaceholders }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(78,155,255,0.3); background:rgba(0,88,190,0.12); border-radius:999px; padding:0 14px; white-space:nowrap;">
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:700; font-size:12px; color:#4E9BFF;">3</span>
+                    <span style="font-size:11px; color:#8A93A3;">kredit</span>
+                  </div>
+                </sc-if>
+              </div>
+            </form>
+          </div>
+
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Daftar Invoice Digital Aktif</h3>
+              <span style="font-size:11px; color:#5C6474;">{{ invoiceCount }} Invoice Diterbitkan</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px; max-height:440px; overflow-y:auto;">
+              <sc-for list="{{ invoices }}" as="inv" hint-placeholder-count="2">
+                <div style="padding:17px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:14px; display:flex; flex-direction:column; gap:12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; color:#4E9BFF; font-size:12.5px;">{{ inv.invoiceNumber }}</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px; border:1px solid {{ inv.statusBorder }}; background:{{ inv.statusBg }}; border-radius:999px; padding:3px 10px 3px 8px;">
+                          <span style="width:4px; height:4px; border-radius:50%; background:{{ inv.statusColor }};"></span>
+                          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; letter-spacing:0.08em; color:{{ inv.statusColor }};">{{ inv.statusLabel }}</span>
+                        </span>
+                      </div>
+                      <div style="font-size:13px; color:#F5F7FA; font-weight:500;">Klien: {{ inv.clientName }}</div>
+                      <div style="font-size:11px; color:#5C6474;">{{ inv.item }}</div>
+                    </div>
+                    <div style="text-align:right;">
+                      <div style="font-size:11px; color:#8A93A3;">Total Tagihan</div>
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:14px; color:#F5F7FA;">{{ inv.totalFmt }}</div>
+                    </div>
+                  </div>
+                  <div style="padding:12px 14px; background:#0B0D13; border:1px solid rgba(255,255,255,0.06); border-radius:10px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                      <span style="font-size:10px; color:#5C6474;">Virtual Account Mandiri/BCA</span>
+                      <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; color:#4E9BFF; font-size:12px;">{{ inv.va }}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <sc-if value="{{ inv.isNotSent }}" hint-placeholder-val="{{ true }}">
+                        <button type="button" onClick="{{ inv.markSent }}" style-hover="background:rgba(78,155,255,0.2);" style="padding:7px 13px; background:rgba(0,88,190,0.12); border:1px solid rgba(78,155,255,0.3); color:#4E9BFF; font-weight:600; font-size:11px; border-radius:999px; cursor:pointer;">Kirim Tagihan lewat Chat Dalam Aplikasi</button>
+                      </sc-if>
+                      <sc-if value="{{ inv.sent }}" hint-placeholder-val="{{ false }}">
+                        <span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#4E9BFF; font-weight:600;"><span style="width:4px; height:4px; border-radius:50%; background:#4E9BFF;"></span>Terkirim ke klien via chat</span>
+                      </sc-if>
+                      <sc-if value="{{ inv.isUnpaid }}" hint-placeholder-val="{{ false }}">
+                        <button type="button" onClick="{{ inv.markPaid }}" style-hover="background:rgba(63,191,143,0.22);" style="padding:7px 13px; background:rgba(63,191,143,0.12); border:1px solid rgba(63,191,143,0.35); color:#3FBF8F; font-weight:600; font-size:11px; border-radius:999px; cursor:pointer;">Tandai Lunas (Catat ke Kas)</button>
+                      </sc-if>
+                      <sc-if value="{{ inv.isPaid }}" hint-placeholder-val="{{ false }}">
+                        <span style="display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#3FBF8F; font-weight:600;"><span style="width:4px; height:4px; border-radius:50%; background:#3FBF8F;"></span>Dana Telah Masuk ke Kas</span>
+                      </sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTax }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:18px; padding:20px 24px; background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:18px; flex-wrap:wrap;">
+          <div style="width:120px; height:80px; position:relative; flex-shrink:0;">
+            <div style="position:absolute; bottom:14px; left:26px; width:64px; height:20px; border-radius:50%; background:linear-gradient(180deg,#D8A33C,#8a6a24); box-shadow:0 3px 0 rgba(0,0,0,0.25);"></div>
+            <div style="position:absolute; bottom:24px; left:26px; width:64px; height:20px; border-radius:50%; background:linear-gradient(180deg,#e6b74e,#D8A33C); box-shadow:0 3px 0 rgba(0,0,0,0.2);"></div>
+            <div style="position:absolute; bottom:34px; left:26px; width:64px; height:20px; border-radius:50%; background:linear-gradient(180deg,#f2c869,#D8A33C); animation:coinSpin 4s ease-in-out infinite; transform-origin:center bottom;"></div>
+            <div style="position:absolute; top:6px; right:6px; padding:4px 9px; background:rgba(78,155,255,0.12); border:1px solid rgba(78,155,255,0.3); border-radius:999px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; font-weight:700; color:#4E9BFF; animation:floatY 3s ease-in-out infinite;">0,5%</div>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#F5F7FA; margin:0 0 4px 0; letter-spacing:-0.01em;">Pajak UMKM 0.5%</h2>
+            <p style="font-size:13px; color:#8A93A3; margin:0; line-height:1.5; max-width:560px;">Hitung perkiraan pajak bulanan sesuai tarif final UMKM 0,5%.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; align-items:start;">
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(78,155,255,0.2); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Kalkulator Pajak PPh Final UMKM (PP 55/2022)</h3>
+            <form onSubmit="{{ submitTax }}" style="display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Bentuk Entitas Usaha</label>
+                <div style="position:relative;">
+                  <select value="{{ taxEntity }}" onChange="{{ onTaxEntityChange }}" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; appearance:none; -webkit-appearance:none; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 32px 11px 12px; color:#F5F7FA; font-size:13px; box-sizing:border-box;">
+                    <option value="BADAN_USAHA">Badan Usaha (PT / CV / Firma - Tarif Flat 0.5%)</option>
+                    <option value="ORANG_PRIBADI">Orang Pribadi (WP OP - Bebas Pajak s.d. 500 Juta/Thn)</option>
+                  </select>
+                  <span style="position:absolute; right:14px; top:50%; width:0; height:0; border-left:4px solid transparent; border-right:4px solid transparent; border-top:5px solid #8A93A3; transform:translateY(-50%); pointer-events:none;"></span>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Omset Bruto Bulanan (Rp)</label>
+                <input type="number" value="{{ taxRevenue }}" onChange="{{ onTaxRevenueChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+              </div>
+              <div style="display:flex; gap:10px; align-items:stretch; flex-wrap:wrap;">
+                <button type="submit" style-hover="transform:translateY(-1px); filter:brightness(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.26), 0 10px 26px rgba(0,88,190,0.45);" style="flex:1; background:linear-gradient(180deg,#0F6FE0,#0058BE); border:1px solid rgba(78,155,255,0.4); color:#fff; font-weight:600; font-size:13px; padding:12px 16px; border-radius:10px; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), 0 2px 4px rgba(0,0,0,0.35); transition:transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;">Hitung Estimasi Pajak PPh Final</button>
+                <sc-if value="{{ showCreditPlaceholders }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(78,155,255,0.3); background:rgba(0,88,190,0.12); border-radius:999px; padding:0 14px; white-space:nowrap;">
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:700; font-size:12px; color:#4E9BFF;">3</span>
+                    <span style="font-size:11px; color:#8A93A3;">kredit</span>
+                  </div>
+                </sc-if>
+              </div>
+            </form>
+          </div>
+
+          <div style="position:relative;">
+            <span aria-hidden="true" style="position:absolute; top:6px; left:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:4px 0 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite;"></span>
+            <span aria-hidden="true" style="position:absolute; top:6px; right:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 4px 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:0.5s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; left:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:0 0 0 4px; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; right:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 0 4px 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1.5s;"></span>
+            <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box; min-height:100%;">
+              <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Kewajiban Setor Pajak Bulanan</h3>
+              <sc-if value="{{ hasTaxResult }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-direction:column; gap:11px;">
+                  <div style="padding:15px; background:rgba(63,191,143,0.08); border:1px solid rgba(63,191,143,0.3); border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="font-size:12px; color:#8A93A3;">Kewajiban Pajak / Bulan</span>
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:17px; letter-spacing:-0.02em; color:#F5F7FA;">{{ taxResult.monthlyFmt }}</span>
+                  </div>
+                  <div style="padding:13px 15px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="font-size:12px; color:#8A93A3;">Proyeksi Pajak / Tahun</span>
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; color:#F5F7FA;">{{ taxResult.annualFmt }}</span>
+                  </div>
+                  <div style="padding:13px 15px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span style="font-size:12px; color:#8A93A3;">Dasar Hukum</span>
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:12px; color:#4E9BFF;">{{ taxResult.legalBasis }}</span>
+                  </div>
+                  <p style="font-size:11px; color:#D8A33C; background:rgba(216,163,60,0.08); padding:12px 14px; border-radius:12px; border:1px solid rgba(216,163,60,0.2); margin:0; line-height:1.5;">{{ taxResult.note }}</p>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noTaxResult }}" hint-placeholder-val="{{ true }}">
+                <p style="font-size:13px; color:#5C6474; font-style:italic; margin:0; padding:20px 0;">Submit form untuk melihat perhitungan pajak resmi.</p>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRunwayHealth }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex; align-items:center; gap:20px; margin-bottom:18px; padding:20px 24px; background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:18px; flex-wrap:wrap;">
+          <div style="width:120px; height:80px; position:relative; flex-shrink:0;">
+            <div style="position:absolute; bottom:16px; left:6px; right:6px; height:40px; background:linear-gradient(180deg,#171E2B,#0B0D13); border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
+              <div style="position:absolute; top:50%; left:8%; width:12%; height:3px; background:rgba(245,247,250,0.3); transform:translateY(-50%);"></div>
+              <div style="position:absolute; top:50%; left:30%; width:12%; height:3px; background:rgba(245,247,250,0.3); transform:translateY(-50%);"></div>
+              <div style="position:absolute; top:50%; left:52%; width:12%; height:3px; background:rgba(245,247,250,0.3); transform:translateY(-50%);"></div>
+              <div style="position:absolute; top:50%; left:74%; width:12%; height:3px; background:rgba(245,247,250,0.3); transform:translateY(-50%);"></div>
+            </div>
+            <div style="position:absolute; bottom:32px; width:10px; height:10px; border-radius:50%; background:#4E9BFF; box-shadow:0 0 10px rgba(78,155,255,0.7); animation:slideMarker 3.5s ease-in-out infinite;"></div>
+          </div>
+          <div>
+            <h2 style="font-size:18px; font-weight:600; color:#F5F7FA; margin:0 0 4px 0; letter-spacing:-0.01em;">Runway & Skor Kesehatan (0–100)</h2>
+            <p style="font-size:13px; color:#8A93A3; margin:0; line-height:1.5; max-width:560px;">Dari data yang sama, lihat berapa lama kas bertahan dan seberapa sehat keuangan usaha Anda.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; align-items:start;">
+          <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(78,155,255,0.2); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box;">
+            <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Data Kas & Keuangan Bulanan</h3>
+            <form onSubmit="{{ submitRunwayHealth }}" style="display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Omset / Pemasukan Bulanan (Rp)</label>
+                <input type="number" value="{{ rhRevenue }}" onChange="{{ onRhRevenueChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Pengeluaran Bulanan (Rp)</label>
+                <input type="number" value="{{ rhExpense }}" onChange="{{ onRhExpenseChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="font-size:12px; color:#8A93A3; font-weight:500; display:block; margin-bottom:6px;">Saldo Kas Tersedia (Rp)</label>
+                <input type="number" value="{{ rhCash }}" onChange="{{ onRhCashChange }}" placeholder="0" style-focus="border-color:#4E9BFF; box-shadow:0 0 0 3px rgba(78,155,255,0.15);" style="width:100%; background:#0B0D13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:11px 12px; color:#F5F7FA; font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; box-sizing:border-box;" />
+              </div>
+              <div style="display:flex; gap:10px; align-items:stretch; flex-wrap:wrap;">
+                <button type="submit" style-hover="transform:translateY(-1px); filter:brightness(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.26), 0 10px 26px rgba(0,88,190,0.45);" style="flex:1; background:linear-gradient(180deg,#0F6FE0,#0058BE); border:1px solid rgba(78,155,255,0.4); color:#fff; font-weight:600; font-size:13px; padding:12px 16px; border-radius:10px; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,0.22), 0 2px 4px rgba(0,0,0,0.35); transition:transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;">Hitung Runway & Skor Kesehatan</button>
+                <sc-if value="{{ showCreditPlaceholders }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(78,155,255,0.3); background:rgba(0,88,190,0.12); border-radius:999px; padding:0 14px; white-space:nowrap;">
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:700; font-size:12px; color:#4E9BFF;">4</span>
+                    <span style="font-size:11px; color:#8A93A3;">kredit</span>
+                  </div>
+                </sc-if>
+              </div>
+            </form>
+          </div>
+
+          <div style="position:relative;">
+            <span aria-hidden="true" style="position:absolute; top:6px; left:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:4px 0 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite;"></span>
+            <span aria-hidden="true" style="position:absolute; top:6px; right:6px; width:20px; height:20px; border-top:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 4px 0 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:0.5s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; left:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-left:1px solid rgba(201,166,107,0.55); border-radius:0 0 0 4px; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1s;"></span>
+            <span aria-hidden="true" style="position:absolute; bottom:6px; right:6px; width:20px; height:20px; border-bottom:1px solid rgba(201,166,107,0.55); border-right:1px solid rgba(201,166,107,0.55); border-radius:0 0 4px 0; pointer-events:none; animation:hudPulse 3s ease-in-out infinite; animation-delay:1.5s;"></span>
+            <div style="background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%); border:1px solid rgba(255,255,255,0.13); border-radius:16px; padding:22px; display:flex; flex-direction:column; gap:14px; box-sizing:border-box; min-height:100%;">
+              <h3 style="font-size:15px; font-weight:600; color:#F5F7FA;">Hasil Runway & Skor Kesehatan</h3>
+              <sc-if value="{{ hasRhResult }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-direction:column; gap:11px;">
+                  <div style="padding:16px; background:rgba(78,155,255,0.08); border:1px solid rgba(78,155,255,0.3); border-radius:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                      <span style="font-size:11px; color:#8A93A3; display:block; margin-bottom:4px;">Daya Tahan Runway Kas</span>
+                      <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:20px; letter-spacing:-0.02em; color:#F5F7FA;">{{ rhResult.monthsLabel }}</span>
+                    </div>
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px 5px 10px; border-radius:999px; border:1px solid {{ rhResult.statusColor }}; background:rgba(255,255,255,0.03);">
+                      <span style="width:5px; height:5px; border-radius:50%; background:{{ rhResult.statusColor }};"></span>
+                      <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:10px; letter-spacing:0.08em; color:{{ rhResult.statusColor }};">{{ rhResult.statusUpper }}</span>
+                    </span>
+                  </div>
+                  <div style="padding:13px 15px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span style="font-size:12px; color:#8A93A3;">Net Burn Rate (Defisit / Bulan)</span>
+                    <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; color:#F5F7FA;">{{ rhResult.netBurnFmt }}</span>
+                  </div>
+                  <div style="padding:13px 15px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px;">
+                    <span style="font-weight:600; font-size:12px; color:#4E9BFF; display:block; margin-bottom:6px;">Rekomendasi</span>
+                    <p style="font-size:12px; color:#F5F7FA; line-height:1.6; margin:0;">{{ rhResult.rec }}</p>
+                  </div>
+
+                  <div style="height:1px; background:rgba(255,255,255,0.08); margin:4px 0;"></div>
+
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+                    <div>
+                      <span style="font-size:11px; color:#8A93A3; display:block; margin-bottom:4px;">Skor Kesehatan Keuangan</span>
+                      <span style="display:flex; align-items:baseline; gap:6px;">
+                        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:24px; letter-spacing:-0.02em; color:#F5F7FA;">{{ rhResult.total }}</span>
+                        <span style="font-size:12px; color:#5C6474;">/ 100 · Grade {{ rhResult.grade }} · {{ rhResult.gradeLabel }}</span>
+                      </span>
+                    </div>
+                    <div style="position:relative; width:72px; height:36px; overflow:hidden; flex-shrink:0;">
+                      <div style="position:absolute; top:0; left:0; width:72px; height:72px; border-radius:50%; background:conic-gradient(from 180deg, #D8A33C 0deg 60deg, #4E9BFF 60deg 120deg, #3FBF8F 120deg 180deg, transparent 180deg 360deg);"></div>
+                      <div style="position:absolute; top:10px; left:10px; width:52px; height:52px; border-radius:50%; background:#0F131C;"></div>
+                      <div style="position:absolute; bottom:0; left:50%; width:2px; height:26px; background:#F5F7FA; border-radius:2px; transform-origin:bottom center; transform:translateX(-50%) rotate({{ rhResult.needleDeg }}deg);"></div>
+                      <div style="position:absolute; bottom:-3px; left:50%; width:7px; height:7px; margin-left:-3.5px; border-radius:50%; background:#F5F7FA; box-shadow:0 0 6px rgba(245,247,250,0.6); animation:dotPulse 2.4s ease-in-out infinite;"></div>
+                    </div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:8px;">
+                    <sc-for list="{{ rhResult.breakdown }}" as="b" hint-placeholder-count="3">
+                      <div style="padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-size:12px; gap:8px; flex-wrap:wrap;">
+                        <span style="color:#8A93A3;">{{ b.label }}</span>
+                        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; color:#F5F7FA;">{{ b.score }} / {{ b.max }} poin</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <p style="font-size:12px; color:#8A93A3; line-height:1.6; font-style:italic; background:rgba(255,255,255,0.03); padding:13px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin:0;">{{ rhResult.summary }}</p>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noRhResult }}" hint-placeholder-val="{{ true }}">
+                <p style="font-size:13px; color:#5C6474; font-style:italic; margin:0; padding:20px 0;">Submit form untuk melihat proyeksi runway dan skor kesehatan usaha.</p>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;defaultTab&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;ledger&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;ledger&quot;, &quot;invoices&quot;, &quot;tax&quot;, &quot;runwayhealth&quot;], &quot;section&quot;: &quot;Perilaku Modul&quot;},
+  &quot;showCorPlanSync&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Perilaku Modul&quot;},
+  &quot;showCreditPlaceholders&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Perilaku Modul&quot;}
+}">
+class Component extends DCLogic {
+  state = {
+    activeTab: this.props.defaultTab ?? 'ledger',
+    moduleMenuOpen: false,
+    txType: 'INCOME',
+    txCategory: 'Penjualan Produk / Layanan',
+    txAmount: '',
+    txDesc: '',
+    transactions: [
+      { id: 1, type: 'EXPENSE', category: 'Gaji Staf & Honor Tim', amount: 3200000, description: 'Gaji staf paruh waktu Agustus', date: new Date(2026, 7, 23), paymentMethod: 'TRANSFER_BANK' },
+      { id: 2, type: 'INCOME', category: 'Penjualan Produk / Layanan', amount: 4500000, description: 'Pembayaran invoice INV-2031', date: new Date(2026, 7, 22), paymentMethod: 'QRIS' },
+      { id: 3, type: 'EXPENSE', category: 'Bahan Baku & Material', amount: 1250000, description: 'Belanja bahan baku mingguan', date: new Date(2026, 7, 21), paymentMethod: 'TRANSFER_BANK' },
+      { id: 4, type: 'INCOME', category: 'Penjualan Produk / Layanan', amount: 1800000, description: 'Penjualan langsung di toko', date: new Date(2026, 7, 20), paymentMethod: 'CASH' }
+    ],
+    invClient: '', invEmail: '', invItem: '', invPrice: '', invTax: '11',
+    invoices: [
+      { id: 1, invoiceNumber: 'INV-2031', clientName: 'PT Mitra Sejahtera', item: 'Jasa Konsultasi Bulanan', total: 5550000, status: 'PAID', va: '880812340001', sent: true },
+      { id: 2, invoiceNumber: 'INV-2032', clientName: 'CV Sumber Makmur', item: 'Desain Kemasan Produk', total: 2775000, status: 'UNPAID', va: '880812340002', sent: false }
+    ],
+    taxEntity: 'BADAN_USAHA', taxRevenue: '', taxResult: null,
+    rhRevenue: '', rhExpense: '', rhCash: '', rhResult: null
+  };
+
+  fmtRp(n) {
+    const num = Math.round(Number(n) || 0);
+    return 'Rp ' + num.toLocaleString('id-ID');
+  }
+
+  setTab = (tab) => this.setState({ activeTab: tab, moduleMenuOpen: false });
+
+  submitTransaction = (e) => {
+    e.preventDefault();
+    const { txType, txCategory, txAmount, txDesc } = this.state;
+    if (!txAmount || !txDesc) return;
+    const tx = { id: Date.now(), type: txType, category: txCategory, amount: Number(txAmount), description: txDesc, date: new Date(), paymentMethod: 'TRANSFER_BANK' };
+    this.setState(s => ({ transactions: [tx, ...s.transactions], txAmount: '', txDesc: '' }));
+  };
+
+  submitInvoice = (e) => {
+    e.preventDefault();
+    const { invClient, invItem, invPrice, invTax, invoices } = this.state;
+    if (!invClient || !invItem || !invPrice) return;
+    const subtotal = Number(invPrice);
+    const total = subtotal + subtotal * (Number(invTax || 0) / 100);
+    const inv = {
+      id: Date.now(),
+      invoiceNumber: 'INV-' + (2033 + invoices.length),
+      clientName: invClient,
+      item: invItem,
+      total,
+      status: 'UNPAID',
+      va: '88081234' + String(1000 + invoices.length).slice(-4),
+      sent: false
+    };
+    this.setState(s => ({ invoices: [inv, ...s.invoices], invClient: '', invEmail: '', invItem: '', invPrice: '', invTax: '11' }));
+  };
+
+  markInvoicePaid = (id) => {
+    this.setState(s => ({ invoices: s.invoices.map(i => i.id === id ? { ...i, status: 'PAID' } : i) }));
+  };
+
+  markInvoiceSent = (id) => {
+    this.setState(s => ({ invoices: s.invoices.map(i => i.id === id ? { ...i, sent: true } : i) }));
+  };
+
+  submitTax = (e) => {
+    e.preventDefault();
+    const { taxEntity, taxRevenue } = this.state;
+    const rev = Number(taxRevenue) || 0;
+    let monthly, note;
+    if (taxEntity === 'ORANG_PRIBADI') {
+      const annualEst = rev * 12;
+      const thresholdMonthly = 500000000 / 12;
+      if (annualEst <= 500000000) {
+        monthly = 0;
+        note = 'Omset tahunan diperkirakan masih di bawah batas bebas pajak Rp 500 juta, jadi belum ada kewajiban setor bulan ini.';
+      } else {
+        monthly = Math.max(0, rev - thresholdMonthly) * 0.005;
+        note = 'Sebagian omset tahunan sudah melewati batas bebas pajak Rp 500 juta, sehingga sebagian omset bulan ini mulai kena tarif 0,5%.';
+      }
+    } else {
+      monthly = rev * 0.005;
+      note = 'Setor paling lambat tanggal 15 bulan berikutnya menggunakan kode billing pajak.';
+    }
+    this.setState({ taxResult: { monthly, annual: monthly * 12, note, legalBasis: 'PP 55 Tahun 2022' } });
+  };
+
+  submitRunwayHealth = (e) => {
+    e.preventDefault();
+    const rev = Number(this.state.rhRevenue) || 0;
+    const exp = Number(this.state.rhExpense) || 0;
+    const cash = Number(this.state.rhCash) || 0;
+
+    const netBurn = exp - rev;
+    let months, status, statusColor, rec;
+    if (netBurn <= 0) {
+      months = null;
+      status = 'Sehat'; statusColor = '#3FBF8F';
+      rec = 'Pemasukan bulanan sudah menutup pengeluaran, kas usaha bertambah setiap bulan. Pertahankan ritme ini.';
+    } else {
+      months = cash / netBurn;
+      if (months < 3) { status = 'Kritis'; statusColor = '#D8A33C'; }
+      else if (months < 8) { status = 'Waspada'; statusColor = '#4E9BFF'; }
+      else { status = 'Sehat'; statusColor = '#3FBF8F'; }
+      rec = months < 3
+        ? 'Kas hanya cukup untuk waktu yang singkat. Pertimbangkan menekan pengeluaran atau mencari tambahan pemasukan segera.'
+        : months < 8
+        ? 'Kas masih aman untuk beberapa bulan ke depan, tapi mulai perhatikan pengeluaran agar tidak terus menurun.'
+        : 'Kas usaha berada dalam kondisi aman untuk jangka waktu yang panjang.';
+    }
+
+    const margin = rev > 0 ? (rev - exp) / rev : 0;
+    const marginScore = Math.max(0, Math.min(40, Math.round(40 * (margin / 0.3))));
+    const bufferMonths = exp > 0 ? cash / exp : (cash > 0 ? 6 : 0);
+    const bufferScore = Math.max(0, Math.min(35, Math.round(35 * (bufferMonths / 6))));
+    const flowScore = rev > exp ? 25 : (rev === exp ? 12 : 0);
+    const total = marginScore + bufferScore + flowScore;
+    let grade, gradeLabel, gradeColor;
+    if (total >= 85) { grade = 'A'; gradeLabel = 'Sangat Layak'; gradeColor = '#3FBF8F'; }
+    else if (total >= 70) { grade = 'B'; gradeLabel = 'Layak'; gradeColor = '#3FBF8F'; }
+    else if (total >= 50) { grade = 'C'; gradeLabel = 'Cukup Layak'; gradeColor = '#4E9BFF'; }
+    else { grade = 'D'; gradeLabel = 'Perlu Perbaikan'; gradeColor = '#D8A33C'; }
+    const summary = 'Skor ini terutama dipengaruhi oleh ' + (marginScore < 20 ? 'margin keuntungan yang masih tipis' : 'margin keuntungan yang sehat') + ' dan ' + (bufferScore < 18 ? 'cadangan kas yang masih terbatas' : 'cadangan kas yang cukup kuat') + '.';
+
+    this.setState({
+      rhResult: {
+        months, status, statusColor, netBurn, rec,
+        total, grade, gradeLabel, gradeColor,
+        needleDeg: -70 + (total / 100) * 140,
+        breakdown: [
+          { label: 'Margin Keuntungan', score: marginScore, max: 40 },
+          { label: 'Cadangan Kas', score: bufferScore, max: 35 },
+          { label: 'Arus Kas Positif', score: flowScore, max: 25 }
+        ],
+        summary
+      }
+    });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const paymentLabels = { TRANSFER_BANK: 'Transfer Bank', CASH: 'Tunai', QRIS: 'QRIS' };
+    const totalIncome = s.transactions.filter(t => t.type === 'INCOME').reduce((a, t) => a + t.amount, 0);
+    const totalExpense = s.transactions.filter(t => t.type === 'EXPENSE').reduce((a, t) => a + t.amount, 0);
+
+    const activeBg = 'rgba(0,88,190,0.16)', inactiveBg = 'transparent';
+    const activeBorder = 'rgba(78,155,255,0.28)', inactiveBorder = 'transparent';
+    const activeColor = '#F5F7FA', inactiveColor = '#8A93A3';
+    const activeNum = '#4E9BFF', inactiveNum = '#5C6474';
+    const tabStyle = (name) => ({
+      bg: s.activeTab === name ? activeBg : inactiveBg,
+      border: s.activeTab === name ? activeBorder : inactiveBorder,
+      color: s.activeTab === name ? activeColor : inactiveColor,
+      num: s.activeTab === name ? activeNum : inactiveNum
+    });
+    const ledgerT = tabStyle('ledger'), invoicesT = tabStyle('invoices'), taxT = tabStyle('tax'), rhT = tabStyle('runwayhealth');
+
+    return {
+      showSync: this.props.showCorPlanSync ?? true,
+      showCreditPlaceholders: this.props.showCreditPlaceholders ?? true,
+      moduleMenuOpen: s.moduleMenuOpen,
+      toggleModuleMenu: () => this.setState(st => ({ moduleMenuOpen: !st.moduleMenuOpen })),
+      moduleList: [
+        { name: 'KAS', isActive: true, isSoon: false, bg: 'rgba(78,155,255,0.1)', dotColor: '#4E9BFF', textColor: '#F5F7FA' },
+        { name: 'CORPLAN', isActive: false, isSoon: true, bg: 'transparent', dotColor: '#5C6474', textColor: '#8A93A3' },
+        { name: 'ANIVIRTUAL', isActive: false, isSoon: true, bg: 'transparent', dotColor: '#5C6474', textColor: '#8A93A3' }
+      ],
+
+      isLedger: s.activeTab === 'ledger', isInvoices: s.activeTab === 'invoices', isTax: s.activeTab === 'tax', isRunwayHealth: s.activeTab === 'runwayhealth',
+      setTabLedger: () => this.setTab('ledger'),
+      setTabInvoices: () => this.setTab('invoices'),
+      setTabTax: () => this.setTab('tax'),
+      setTabRunwayHealth: () => this.setTab('runwayhealth'),
+      ledgerTabBg: ledgerT.bg, ledgerTabBorder: ledgerT.border, ledgerTabColor: ledgerT.color, ledgerTabNumColor: ledgerT.num,
+      invoicesTabBg: invoicesT.bg, invoicesTabBorder: invoicesT.border, invoicesTabColor: invoicesT.color, invoicesTabNumColor: invoicesT.num,
+      taxTabBg: taxT.bg, taxTabBorder: taxT.border, taxTabColor: taxT.color, taxTabNumColor: taxT.num,
+      rhTabBg: rhT.bg, rhTabBorder: rhT.border, rhTabColor: rhT.color, rhTabNumColor: rhT.num,
+
+      totalIncomeFmt: this.fmtRp(totalIncome),
+      totalExpenseFmt: this.fmtRp(totalExpense),
+      netBalanceFmt: this.fmtRp(totalIncome - totalExpense),
+      txType: s.txType, txCategory: s.txCategory, txAmount: s.txAmount, txDesc: s.txDesc,
+      setTxIncome: () => this.setState({ txType: 'INCOME' }),
+      setTxExpense: () => this.setState({ txType: 'EXPENSE' }),
+      txIncomeBg: s.txType === 'INCOME' ? 'rgba(63,191,143,0.15)' : '#0B0D13',
+      txIncomeBorder: s.txType === 'INCOME' ? '#3FBF8F' : 'rgba(255,255,255,0.1)',
+      txIncomeColor: s.txType === 'INCOME' ? '#3FBF8F' : '#8A93A3',
+      txExpenseBg: s.txType === 'EXPENSE' ? 'rgba(216,163,60,0.15)' : '#0B0D13',
+      txExpenseBorder: s.txType === 'EXPENSE' ? '#D8A33C' : 'rgba(255,255,255,0.1)',
+      txExpenseColor: s.txType === 'EXPENSE' ? '#D8A33C' : '#8A93A3',
+      onTxCategoryChange: (e) => this.setState({ txCategory: e.target.value }),
+      onTxAmountChange: (e) => this.setState({ txAmount: e.target.value }),
+      onTxDescChange: (e) => this.setState({ txDesc: e.target.value }),
+      submitTransaction: this.submitTransaction,
+      transactionCount: s.transactions.length,
+      transactions: s.transactions.map(t => ({
+        ...t,
+        badgeLabel: t.type === 'INCOME' ? 'MASUK' : 'KELUAR',
+        badgeBg: t.type === 'INCOME' ? 'rgba(63,191,143,0.1)' : 'rgba(216,163,60,0.1)',
+        badgeBorder: t.type === 'INCOME' ? 'rgba(63,191,143,0.3)' : 'rgba(216,163,60,0.3)',
+        badgeColor: t.type === 'INCOME' ? '#3FBF8F' : '#D8A33C',
+        amountColor: t.type === 'INCOME' ? '#3FBF8F' : '#D8A33C',
+        signedAmountFmt: (t.type === 'INCOME' ? '+ ' : '- ') + this.fmtRp(t.amount),
+        dateFmt: t.date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+        paymentLabel: paymentLabels[t.paymentMethod] || t.paymentMethod
+      })),
+
+      invClient: s.invClient, invEmail: s.invEmail, invItem: s.invItem, invPrice: s.invPrice, invTax: s.invTax,
+      onInvClientChange: (e) => this.setState({ invClient: e.target.value }),
+      onInvEmailChange: (e) => this.setState({ invEmail: e.target.value }),
+      onInvItemChange: (e) => this.setState({ invItem: e.target.value }),
+      onInvPriceChange: (e) => this.setState({ invPrice: e.target.value }),
+      onInvTaxChange: (e) => this.setState({ invTax: e.target.value }),
+      submitInvoice: this.submitInvoice,
+      invoiceCount: s.invoices.length,
+      invoices: s.invoices.map(inv => ({
+        ...inv,
+        totalFmt: this.fmtRp(inv.total),
+        isUnpaid: inv.status === 'UNPAID',
+        isPaid: inv.status === 'PAID',
+        isNotSent: !inv.sent,
+        statusLabel: inv.status === 'PAID' ? 'LUNAS' : 'BELUM LUNAS',
+        statusColor: inv.status === 'PAID' ? '#3FBF8F' : '#D8A33C',
+        statusBg: inv.status === 'PAID' ? 'rgba(63,191,143,0.1)' : 'rgba(216,163,60,0.1)',
+        statusBorder: inv.status === 'PAID' ? 'rgba(63,191,143,0.3)' : 'rgba(216,163,60,0.3)',
+        markPaid: () => this.markInvoicePaid(inv.id),
+        markSent: () => this.markInvoiceSent(inv.id)
+      })),
+
+      taxEntity: s.taxEntity, taxRevenue: s.taxRevenue,
+      onTaxEntityChange: (e) => this.setState({ taxEntity: e.target.value }),
+      onTaxRevenueChange: (e) => this.setState({ taxRevenue: e.target.value }),
+      submitTax: this.submitTax,
+      hasTaxResult: !!s.taxResult, noTaxResult: !s.taxResult,
+      taxResult: s.taxResult ? { monthlyFmt: this.fmtRp(s.taxResult.monthly), annualFmt: this.fmtRp(s.taxResult.annual), legalBasis: s.taxResult.legalBasis, note: s.taxResult.note } : null,
+
+      rhRevenue: s.rhRevenue, rhExpense: s.rhExpense, rhCash: s.rhCash,
+      onRhRevenueChange: (e) => this.setState({ rhRevenue: e.target.value }),
+      onRhExpenseChange: (e) => this.setState({ rhExpense: e.target.value }),
+      onRhCashChange: (e) => this.setState({ rhCash: e.target.value }),
+      submitRunwayHealth: this.submitRunwayHealth,
+      hasRhResult: !!s.rhResult, noRhResult: !s.rhResult,
+      rhResult: s.rhResult ? {
+        monthsLabel: s.rhResult.months === null ? 'Tidak terbatas' : s.rhResult.months.toFixed(1) + ' bulan',
+        status: s.rhResult.status, statusUpper: s.rhResult.status.toUpperCase(), statusColor: s.rhResult.statusColor,
+        netBurnFmt: this.fmtRp(Math.max(0, s.rhResult.netBurn)),
+        rec: s.rhResult.rec,
+        total: s.rhResult.total, grade: s.rhResult.grade, gradeLabel: s.rhResult.gradeLabel, gradeColor: s.rhResult.gradeColor,
+        needleDeg: s.rhResult.needleDeg,
+        breakdown: s.rhResult.breakdown,
+        summary: s.rhResult.summary
+      } : null
+    };
+  }
+}
+</script>
+</body>
+</html>

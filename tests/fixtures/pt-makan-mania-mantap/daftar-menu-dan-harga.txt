@@ -1,0 +1,210 @@
+========================================================
+                  DAFTAR MENU & HARGA
+                 PT MAKAN MANIA MANTAP
+     (Data uji/fiktif — berlaku per September 2026)
+========================================================
+
+--------------------------------------------------------
+MAKANAN UTAMA
+--------------------------------------------------------
+Nasi Goreng Mantap  [BEST SELLER]               Rp 28.000
+Ayam Geprek Mania  [BEST SELLER]                Rp 25.000
+Mie Goreng Spesial                              Rp 27.000
+Rendang Rice Bowl                               Rp 32.000
+Chicken Katsu Curry                             Rp 33.000
+Soto Ayam Kampung                               Rp 24.000
+Spaghetti Aglio Olio Mantap                     Rp 29.000
+Nasi Ayam Bakar Madu                            Rp 30.000
+
+--------------------------------------------------------
+MINUMAN
+--------------------------------------------------------
+Es Teh Manis  [BEST SELLER]                     Rp 8.000
+Es Jeruk Peras                                  Rp 10.000
+Kopi Susu Mania                                 Rp 15.000
+Es Kopi Mantap                                  Rp 16.000
+Thai Tea                                        Rp 14.000
+Jus Alpukat                                     Rp 17.000
+Air Mineral                                     Rp 5.000
+Lemon Tea                                       Rp 12.000
+
+--------------------------------------------------------
+SNACK & APPETIZER
+--------------------------------------------------------
+Kentang Goreng Mania  [BEST SELLER]             Rp 15.000
+Tahu Crispy Sambal Matah                        Rp 13.000
+Pangsit Goreng Mantap                           Rp 14.000
+Onion Rings                                     Rp 16.000
+Chicken Wings (5pcs)                            Rp 22.000
+
+--------------------------------------------------------
+DESSERT
+--------------------------------------------------------
+Pisang Goreng Keju                              Rp 12.000
+Es Krim Goreng                                  Rp 15.000
+Puding Coklat Mania                             Rp 10.000
+Waffle Mantap  [BEST SELLER]                    Rp 18.000
+
+--------------------------------------------------------
+KOMBO HEMAT (BARU)
+--------------------------------------------------------
+Kombo Mantap 1 (Nasi Goreng Mantap + Es Teh Manis)      Rp 33.000  (hemat Rp 3.000)
+Kombo Mantap 2 (Ayam Geprek Mania + Kentang Goreng      Rp 37.000  (hemat Rp 3.000)
+  Mania + Es Teh Manis)
+
+========================================================
+Catatan:
+- Harga berlaku sama di seluruh cabang: Jakarta Selatan, Tangerang Selatan, Bandung, Surabaya, Yogyakarta.
+- Harga sudah termasuk pajak restoran, belum termasuk biaya layanan platform online (GoFood/GrabFood).
+- Menu & harga dapat berubah sewaktu-waktu tanpa pemberitahuan sebelumnya.
+- [BEST SELLER] menandai 5 menu dengan volume penjualan tertinggi Agustus 2026 (BARU, ditambahkan 11 September 2026).
+- Info alergen (kacang/seafood/susu/gluten) tersedia atas permintaan ke staf -- lihat SOP dapur bagian 5.8 (BARU).
+- Kombo Hemat berlaku untuk dine-in dan pemesanan online, tidak dapat digabung dengan promo lain.
+========================================================
+
+
+============================================================
+LAMPIRAN HISTORI HARGA MENU — DATA SINTETIS v4
+============================================================
+Harga menu tidak statis. Perubahan harga berikut dipakai untuk menguji HPP, margin, dan histori penjualan.
+
+Menu ID | Berlaku Mulai | Harga | Alasan
+------------------------------------------------------------
+MN-001 | 2021-01-01 | Rp28.000 | annual synthetic price review
+MN-001 | 2022-01-01 | Rp29.259 | annual synthetic price review
+MN-001 | 2023-01-01 | Rp30.520 | annual synthetic price review
+MN-001 | 2024-01-01 | Rp31.780 | annual synthetic price review
+MN-001 | 2025-01-01 | Rp33.040 | annual synthetic price review
+MN-001 | 2026-01-01 | Rp34.300 | annual synthetic price review
+MN-002 | 2021-01-01 | Rp33.000 | annual synthetic price review
+MN-002 | 2022-01-01 | Rp34.485 | annual synthetic price review
+MN-002 | 2023-01-01 | Rp35.970 | annual synthetic price review
+MN-002 | 2024-01-01 | Rp37.455 | annual synthetic price review
+MN-002 | 2025-01-01 | Rp38.940 | annual synthetic price review
+MN-002 | 2026-01-01 | Rp40.425 | annual synthetic price review
+MN-003 | 2021-01-01 | Rp38.000 | annual synthetic price review
+MN-003 | 2022-01-01 | Rp39.710 | annual synthetic price review
+MN-003 | 2023-01-01 | Rp41.420 | annual synthetic price review
+MN-003 | 2024-01-01 | Rp43.130 | annual synthetic price review
+MN-003 | 2025-01-01 | Rp44.840 | annual synthetic price review
+MN-003 | 2026-01-01 | Rp46.550 | annual synthetic price review
+MN-004 | 2021-01-01 | Rp32.000 | annual synthetic price review
+MN-004 | 2022-01-01 | Rp33.440 | annual synthetic price review
+MN-004 | 2023-01-01 | Rp34.880 | annual synthetic price review
+MN-004 | 2024-01-01 | Rp36.320 | annual synthetic price review
+MN-004 | 2025-01-01 | Rp37.760 | annual synthetic price review
+MN-004 | 2026-01-01 | Rp39.200 | annual synthetic price review
+MN-005 | 2021-01-01 | Rp52.000 | annual synthetic price review
+MN-005 | 2022-01-01 | Rp54.339 | annual synthetic price review
+MN-005 | 2023-01-01 | Rp56.680 | annual synthetic price review
+MN-005 | 2024-01-01 | Rp59.020 | annual synthetic price review
+MN-005 | 2025-01-01 | Rp61.360 | annual synthetic price review
+MN-005 | 2026-01-01 | Rp63.700 | annual synthetic price review
+MN-006 | 2021-01-01 | Rp29.000 | annual synthetic price review
+MN-006 | 2022-01-01 | Rp30.304 | annual synthetic price review
+MN-006 | 2023-01-01 | Rp31.610 | annual synthetic price review
+MN-006 | 2024-01-01 | Rp32.915 | annual synthetic price review
+MN-006 | 2025-01-01 | Rp34.220 | annual synthetic price review
+MN-006 | 2026-01-01 | Rp35.525 | annual synthetic price review
+MN-007 | 2021-01-01 | Rp35.000 | annual synthetic price review
+MN-007 | 2022-01-01 | Rp36.575 | annual synthetic price review
+MN-007 | 2023-01-01 | Rp38.150 | annual synthetic price review
+MN-007 | 2024-01-01 | Rp39.725 | annual synthetic price review
+MN-007 | 2025-01-01 | Rp41.300 | annual synthetic price review
+MN-007 | 2026-01-01 | Rp42.875 | annual synthetic price review
+MN-008 | 2021-01-01 | Rp31.000 | annual synthetic price review
+MN-008 | 2022-01-01 | Rp32.394 | annual synthetic price review
+MN-008 | 2023-01-01 | Rp33.790 | annual synthetic price review
+MN-008 | 2024-01-01 | Rp35.185 | annual synthetic price review
+MN-008 | 2025-01-01 | Rp36.580 | annual synthetic price review
+MN-008 | 2026-01-01 | Rp37.975 | annual synthetic price review
+MN-009 | 2021-01-01 | Rp8.000 | annual synthetic price review
+MN-009 | 2022-01-01 | Rp8.360 | annual synthetic price review
+MN-009 | 2023-01-01 | Rp8.720 | annual synthetic price review
+MN-009 | 2024-01-01 | Rp9.080 | annual synthetic price review
+MN-009 | 2025-01-01 | Rp9.440 | annual synthetic price review
+MN-009 | 2026-01-01 | Rp9.800 | annual synthetic price review
+MN-010 | 2021-01-01 | Rp18.000 | annual synthetic price review
+MN-010 | 2022-01-01 | Rp18.810 | annual synthetic price review
+MN-010 | 2023-01-01 | Rp19.620 | annual synthetic price review
+MN-010 | 2024-01-01 | Rp20.430 | annual synthetic price review
+MN-010 | 2025-01-01 | Rp21.240 | annual synthetic price review
+MN-010 | 2026-01-01 | Rp22.050 | annual synthetic price review
+MN-011 | 2021-01-01 | Rp15.000 | annual synthetic price review
+MN-011 | 2022-01-01 | Rp15.674 | annual synthetic price review
+MN-011 | 2023-01-01 | Rp16.350 | annual synthetic price review
+MN-011 | 2024-01-01 | Rp17.025 | annual synthetic price review
+MN-011 | 2025-01-01 | Rp17.700 | annual synthetic price review
+MN-011 | 2026-01-01 | Rp18.375 | annual synthetic price review
+MN-012 | 2021-01-01 | Rp22.000 | annual synthetic price review
+MN-012 | 2022-01-01 | Rp22.990 | annual synthetic price review
+MN-012 | 2023-01-01 | Rp23.980 | annual synthetic price review
+MN-012 | 2024-01-01 | Rp24.970 | annual synthetic price review
+MN-012 | 2025-01-01 | Rp25.960 | annual synthetic price review
+MN-012 | 2026-01-01 | Rp26.950 | annual synthetic price review
+MN-013 | 2021-01-01 | Rp17.000 | annual synthetic price review
+MN-013 | 2022-01-01 | Rp17.765 | annual synthetic price review
+MN-013 | 2023-01-01 | Rp18.530 | annual synthetic price review
+MN-013 | 2024-01-01 | Rp19.295 | annual synthetic price review
+MN-013 | 2025-01-01 | Rp20.060 | annual synthetic price review
+MN-013 | 2026-01-01 | Rp20.825 | annual synthetic price review
+MN-014 | 2021-01-01 | Rp15.000 | annual synthetic price review
+MN-014 | 2022-01-01 | Rp15.674 | annual synthetic price review
+MN-014 | 2023-01-01 | Rp16.350 | annual synthetic price review
+MN-014 | 2024-01-01 | Rp17.025 | annual synthetic price review
+MN-014 | 2025-01-01 | Rp17.700 | annual synthetic price review
+MN-014 | 2026-01-01 | Rp18.375 | annual synthetic price review
+MN-015 | 2021-01-01 | Rp13.000 | annual synthetic price review
+MN-015 | 2022-01-01 | Rp13.584 | annual synthetic price review
+MN-015 | 2023-01-01 | Rp14.170 | annual synthetic price review
+MN-015 | 2024-01-01 | Rp14.755 | annual synthetic price review
+MN-015 | 2025-01-01 | Rp15.340 | annual synthetic price review
+MN-015 | 2026-01-01 | Rp15.925 | annual synthetic price review
+MN-016 | 2021-01-01 | Rp26.000 | annual synthetic price review
+MN-016 | 2022-01-01 | Rp27.169 | annual synthetic price review
+MN-016 | 2023-01-01 | Rp28.340 | annual synthetic price review
+MN-016 | 2024-01-01 | Rp29.510 | annual synthetic price review
+MN-016 | 2025-01-01 | Rp30.680 | annual synthetic price review
+MN-016 | 2026-01-01 | Rp31.850 | annual synthetic price review
+MN-017 | 2021-01-01 | Rp18.000 | annual synthetic price review
+MN-017 | 2022-01-01 | Rp18.810 | annual synthetic price review
+MN-017 | 2023-01-01 | Rp19.620 | annual synthetic price review
+MN-017 | 2024-01-01 | Rp20.430 | annual synthetic price review
+MN-017 | 2025-01-01 | Rp21.240 | annual synthetic price review
+MN-017 | 2026-01-01 | Rp22.050 | annual synthetic price review
+MN-018 | 2021-01-01 | Rp24.000 | annual synthetic price review
+MN-018 | 2022-01-01 | Rp25.080 | annual synthetic price review
+MN-018 | 2023-01-01 | Rp26.160 | annual synthetic price review
+MN-018 | 2024-01-01 | Rp27.240 | annual synthetic price review
+MN-018 | 2025-01-01 | Rp28.320 | annual synthetic price review
+MN-018 | 2026-01-01 | Rp29.400 | annual synthetic price review
+MN-019 | 2021-01-01 | Rp18.000 | annual synthetic price review
+MN-019 | 2022-01-01 | Rp18.810 | annual synthetic price review
+MN-019 | 2023-01-01 | Rp19.620 | annual synthetic price review
+MN-019 | 2024-01-01 | Rp20.430 | annual synthetic price review
+MN-019 | 2025-01-01 | Rp21.240 | annual synthetic price review
+MN-019 | 2026-01-01 | Rp22.050 | annual synthetic price review
+MN-020 | 2021-01-01 | Rp22.000 | annual synthetic price review
+MN-020 | 2022-01-01 | Rp22.990 | annual synthetic price review
+MN-020 | 2023-01-01 | Rp23.980 | annual synthetic price review
+MN-020 | 2024-01-01 | Rp24.970 | annual synthetic price review
+MN-020 | 2025-01-01 | Rp25.960 | annual synthetic price review
+MN-020 | 2026-01-01 | Rp26.950 | annual synthetic price review
+MN-021 | 2021-01-01 | Rp20.000 | annual synthetic price review
+MN-021 | 2022-01-01 | Rp20.900 | annual synthetic price review
+MN-021 | 2023-01-01 | Rp21.800 | annual synthetic price review
+MN-021 | 2024-01-01 | Rp22.700 | annual synthetic price review
+MN-021 | 2025-01-01 | Rp23.600 | annual synthetic price review
+MN-021 | 2026-01-01 | Rp24.500 | annual synthetic price review
+MN-022 | 2021-01-01 | Rp19.000 | annual synthetic price review
+MN-022 | 2022-01-01 | Rp19.855 | annual synthetic price review
+MN-022 | 2023-01-01 | Rp20.710 | annual synthetic price review
+MN-022 | 2024-01-01 | Rp21.565 | annual synthetic price review
+MN-022 | 2025-01-01 | Rp22.420 | annual synthetic price review
+MN-022 | 2026-01-01 | Rp23.275 | annual synthetic price review
+
+Aturan interpretasi: harga pada transaksi mengikuti price history yang berlaku pada tanggal transaksi; jangan memakai harga Agustus 2026 untuk menghitung HPP periode lama.
+
+
+ENTERPRISE TEST NOTE 2026
+Menu prices remain synthetic. Cross-file tests may use the same menu item with valid sale, refund, void, campaign, or discontinued-SKU context. Product names are not authoritative join keys; transaction ID and SKU/version context are authoritative.

@@ -1,0 +1,104 @@
+// SUMBER ASLI: prisma/schema.prisma (repo KLIR-main, snapshot 23 Agustus 2026)
+// Potongan model Prisma yang relevan, disertakan sebagai referensi struktur data (field apa yang ada),
+// BUKAN untuk didesain field-per-field secara literal di UI.
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model CashTransaction {
+  id              String          @id @default(uuid()) @db.Uuid
+  workspaceId     String          @map("workspace_id") @db.Uuid
+  userId          String?         @map("user_id") @db.Uuid
+  type            TransactionType
+  category        String          @db.VarChar(100)
+  amount          Float
+  description     String
+  transactionDate DateTime        @default(now()) @map("transaction_date")
+  paymentMethod   String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
+  receiptUrl      String?         @map("receipt_url")
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user            User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, transactionDate])
+  @@map("cash_transactions")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  CANCELLED
+  OVERDUE
+}
+
+model Invoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  workspaceId    String        @map("workspace_id") @db.Uuid
+  userId         String?       @map("user_id") @db.Uuid
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(50)
+  clientName     String        @map("client_name") @db.VarChar(100)
+  clientEmail    String?       @map("client_email") @db.VarChar(100)
+  clientPhone    String?       @map("client_phone") @db.VarChar(50)
+  subtotal       Float
+  taxRate        Float         @default(0) @map("tax_rate")
+  taxAmount      Float         @default(0) @map("tax_amount")
+  totalAmount    Float         @map("total_amount")
+  status         InvoiceStatus @default(UNPAID)
+  dueDate        DateTime      @map("due_date")
+  paidAt         DateTime?     @map("paid_at")
+  items          Json          @db.JsonB
+  qrisString     String?       @map("qris_string")
+  virtualAccount String?       @map("virtual_account") @db.VarChar(50)
+  notes          String?
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  workspace      Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, status])
+  @@map("invoices")
+}
+
+enum LedgerType {
+  CONSUME
+  REFILL
+  RESERVE_UNLOCK
+}
+
+model CreditLedger {
+  id          String     @id @default(uuid()) @db.Uuid
+  workspaceId String     @map("workspace_id") @db.Uuid
+  userId      String?    @map("user_id") @db.Uuid
+  amount      Int
+  type        LedgerType
+  source      String     @db.VarChar(100)
+  metadata    Json?      @db.JsonB
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@map("credit_ledger")
+}
+
+enum CostType {
+  FIXED
+  DYNAMIC
+}
+
+model FeatureCost {
+  id         String   @id @default(uuid()) @db.Uuid
+  featureKey String   @unique @map("feature_key") @db.VarChar(100)
+  creditCost Int      @map("credit_cost")
+  costType   CostType @default(FIXED) @map("cost_type")
+
+  @@map("feature_costs")
+}
+

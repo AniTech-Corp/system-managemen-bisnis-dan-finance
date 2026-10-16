@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+<style>
+html,body{margin:0;padding:0;height:100%;background:#06080C;}
+#root{height:100%;}
+*{box-sizing:border-box;}
+a{color:#4E9BFF;text-decoration:none;}
+a:hover{color:#8CBEFF;}
+input::placeholder{color:#5C6474;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.10);border-radius:99px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.18);}
+::-webkit-scrollbar-track{background:transparent;}
+@keyframes klirFade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+@keyframes klirSpin{to{transform:rotate(360deg);}}
+@keyframes klirBeat{0%,100%{opacity:1;}50%{opacity:0.3;}}
+</style>
+</helmet>
+
+<div style="height:100vh;background:#06080C;padding:14px;font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#F5F7FA;-webkit-font-smoothing:antialiased;">
+<input type="file" ref="{{ fileInputRef }}" onChange="{{ onFileSelect }}" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" style="display:none" />
+
+<div style="display:flex;height:100%;background:#080A0F;border:1px solid rgba(255,255,255,0.09);border-radius:20px;overflow:hidden;position:relative;">
+
+<sc-if value="{{ sidebarOpen }}" hint-placeholder-val="{{ true }}">
+<aside style="width:274px;flex-shrink:0;background:#06080C;border-right:1px solid rgba(255,255,255,0.09);display:flex;flex-direction:column;justify-content:space-between;padding:14px 12px;overflow:hidden;">
+  <div style="display:flex;flex-direction:column;gap:20px;overflow-y:auto;min-height:0;padding-right:2px;">
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button type="button" onClick="{{ onNewChat }}" style="flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border:0;border-radius:12px;background:linear-gradient(180deg,#0F6FE0,#0058BE);color:#FFFFFF;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,88,190,0.28);" style-hover="filter:brightness(1.09);">
+        <span style="display:flex;align-items:center;gap:7px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" data-lucide="plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <span>Obrolan Baru</span>
+        </span>
+        <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:0.04em;background:rgba(0,0,0,0.28);padding:3px 6px;border-radius:6px;">Ctrl K</span>
+      </button>
+      <button type="button" onClick="{{ onCloseSidebar }}" title="Sembunyikan Menu Samping" style="display:flex;align-items:center;gap:5px;padding:9px 9px;border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:rgba(255,255,255,0.03);color:#8A93A3;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;cursor:pointer;" style-hover="border-color:rgba(78,155,255,0.45);color:#F5F7FA;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left-close"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path><path d="m16 15-3-3 3-3"></path></svg>
+      </button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#5C6474;padding:0 8px 7px;">Kemampuan &amp; Tools AI</span>
+      <sc-for list="{{ tools }}" as="tool" hint-placeholder-count="4">
+        <button type="button" onClick="{{ tool.onClick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;border-radius:10px;background:transparent;color:#C6CEDA;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:500;text-align:left;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);color:#F5F7FA;">
+          <span style="display:flex;width:24px;height:24px;align-items:center;justify-content:center;border-radius:7px;background:rgba(255,255,255,0.04);flex-shrink:0;">{{ tool.icon }}</span>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ tool.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#5C6474;padding:0 8px 7px;">Aksi Dashboard Perusahaan</span>
+      <sc-for list="{{ actions }}" as="act" hint-placeholder-count="4">
+        <button type="button" onClick="{{ act.onClick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;border-radius:10px;background:transparent;color:#C6CEDA;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:500;text-align:left;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);color:#F5F7FA;">
+          <span style="display:flex;width:24px;height:24px;align-items:center;justify-content:center;border-radius:7px;background:rgba(255,255,255,0.04);flex-shrink:0;">{{ act.icon }}</span>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ act.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px;margin-top:12px;border-top:1px solid rgba(255,255,255,0.07);">
+    <span style="display:flex;align-items:center;gap:6px;font-size:10.5px;color:#5C6474;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield-check"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+      <span>Open Intelligence &amp; OS</span>
+    </span>
+    <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9px;color:#5C6474;background:rgba(255,255,255,0.04);padding:3px 6px;border-radius:5px;">v5.0</span>
+  </div>
+</aside>
+</sc-if>
+
+<main style="flex:1;display:flex;flex-direction:column;min-width:0;background:#080A0F;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.07);flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+      <sc-if value="{{ sidebarClosed }}">
+        <button type="button" onClick="{{ onOpenSidebar }}" title="Tampilkan Menu Samping" style="display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(255,255,255,0.09);border-radius:10px;background:rgba(255,255,255,0.03);color:#F5F7FA;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;" style-hover="border-color:rgba(78,155,255,0.45);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M9 3v18"></path></svg>
+          <span>Menu AI</span>
+        </button>
+      </sc-if>
+      <h2 style="margin:0;font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:-0.01em;color:#F5F7FA;white-space:nowrap;">KLIR AI Assistant</h2>
+      <span style="display:flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;border:1px solid rgba(63,191,143,0.28);border-radius:999px;background:rgba(63,191,143,0.10);font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.08em;color:#3FBF8F;white-space:nowrap;">
+        <span style="width:5px;height:5px;border-radius:99px;background:#3FBF8F;animation:klirBeat 2s ease-in-out infinite;"></span>
+        <span>READY &amp; CONNECTED</span>
+      </span>
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;flex-shrink:0;">
+      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.08em;color:#5C6474;white-space:nowrap;">{{ workspaceLabel }}</span>
+      <sc-if value="{{ sidebarClosed }}">
+        <button type="button" onClick="{{ onNewChat }}" style="display:flex;align-items:center;gap:6px;padding:7px 11px;border:1px solid rgba(255,255,255,0.09);border-radius:10px;background:rgba(255,255,255,0.03);color:#8A93A3;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.45);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-lucide="plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+          <span>Obrolan Baru</span>
+        </button>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ hasToast }}">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 18px 0;padding:10px 12px;border:1px solid rgba(63,191,143,0.3);border-radius:12px;background:rgba(63,191,143,0.10);animation:klirFade 220ms ease-out;flex-shrink:0;">
+      <span style="display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:500;color:#BFEFDC;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2"><path d="M21.8 10A10 10 0 1 1 17 3.34"></path><path d="m9 11 3 3L22 4"></path></svg>
+        <span>{{ toastMsg }}</span>
+      </span>
+      <button type="button" onClick="{{ onCloseToast }}" style="border:0;background:transparent;color:#8A93A3;cursor:pointer;display:flex;padding:2px;" style-hover="color:#F5F7FA;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" data-lucide="x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+  <div ref="{{ emptyScrollRef }}" style="flex:1;overflow-y:auto;min-height:0;">
+    <div style="max-width:800px;margin:0 auto;padding:52px 24px 56px;display:flex;flex-direction:column;">
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:30px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="#0058BE"></path><path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:9px;">
+          <span style="font-family:'Outfit',sans-serif;font-size:40px;font-weight:700;letter-spacing:0.08em;line-height:1;color:#F5F7FA;">KLIR</span>
+          <span style="display:flex;align-items:center;gap:9px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:#5C6474;">
+            <span style="width:14px;height:1px;background:#C9A66B;"></span>
+            <span>Executive AI Assistant</span>
+            <span style="width:14px;height:1px;background:#C9A66B;"></span>
+          </span>
+        </div>
+        <p style="margin:6px 0 0;font-size:15px;color:#8A93A3;text-align:center;text-wrap:pretty;">{{ greeting }}</p>
+      </div>
+
+      <div style="position:relative;">
+        <sc-if value="{{ pluginOpen }}">
+          <div style="position:absolute;top:calc(100% + 10px);left:0;width:352px;max-width:100%;max-height:364px;overflow-y:auto;padding:8px;border:1px solid rgba(255,255,255,0.11);border-radius:16px;background:#0B0E14;box-shadow:0 24px 60px rgba(0,0,0,0.6);z-index:40;animation:klirFade 160ms ease-out;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 9px;">
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#5C6474;">Plugin &amp; Tools</span>
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;color:#C9A66B;">{{ pluginCount }}</span>
+            </div>
+            <sc-for list="{{ pluginItems }}" as="p" hint-placeholder-count="5">
+              <button type="button" onClick="{{ p.onClick }}" style="display:flex;align-items:flex-start;gap:11px;width:100%;padding:9px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);">
+                <span style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);flex-shrink:0;">{{ p.icon }}</span>
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                  <span style="font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#F5F7FA;">{{ p.title }}</span>
+                  <span style="font-size:11px;color:#5C6474;line-height:1.4;">{{ p.desc }}</span>
+                </span>
+              </button>
+            </sc-for>
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin:6px 4px;"></div>
+            <button type="button" onClick="{{ onManagePlugins }}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:9px;border:0;border-radius:12px;background:transparent;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);">
+              <span style="display:flex;align-items:center;gap:11px;">
+                <span style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:rgba(201,166,107,0.10);border:1px solid rgba(201,166,107,0.22);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings-2"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>
+                </span>
+                <span style="font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#C6CEDA;">Kelola Plugin</span>
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5C6474" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasAttachment }}">
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:9px;padding:6px 10px;border:1px solid rgba(255,255,255,0.11);border-radius:999px;background:#0B0E14;font-size:11.5px;color:#F5F7FA;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-spreadsheet"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v5h5"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg>
+            <span>{{ attachName }}</span>
+            <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;color:#5C6474;">{{ attachSize }}</span>
+            <button type="button" onClick="{{ onRemoveAttachment }}" style="display:flex;border:0;background:transparent;color:#5C6474;cursor:pointer;padding:0;" style-hover="color:#F5F7FA;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-lucide="x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        <form onSubmit="{{ onSubmit }}" style="display:flex;flex-direction:column;gap:9px;padding:13px 13px 11px;border:1px solid rgba(255,255,255,0.11);border-radius:20px;background:#0B0E14;box-shadow:0 18px 44px rgba(0,0,0,0.45);" style-focus="border-color:rgba(78,155,255,0.5);">
+          <input type="text" value="{{ inputMessage }}" onChange="{{ onInputChange }}" placeholder="Tanya apa saja (email, ide konten, strategi, coding) atau beri instruksi untuk Dashboard..." style="width:100%;border:0;outline:none;background:transparent;padding:5px 3px;font-family:'Outfit',sans-serif;font-size:14px;color:#F5F7FA;" />
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <button type="button" onClick="{{ onTogglePlugin }}" title="Plugin &amp; Tools" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.03);color:#8A93A3;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.45);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="layout-grid"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                <span>Plugin</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down"><path d="m6 9 6 6 6-6"></path></svg>
+              </button>
+              <button type="button" onClick="{{ onAttach }}" title="Unggah Dokumen / Data (PDF, Excel, Word)" style="display:flex;align-items:center;justify-content:center;width:31px;height:31px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.03);color:#8A93A3;cursor:pointer;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.45);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="paperclip"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;">
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.1em;color:#5C6474;">ENTER UNTUK KIRIM</span>
+              <sc-if value="{{ canSend }}">
+                <button type="submit" style="display:flex;align-items:center;gap:7px;padding:8px 15px;border:0;border-radius:999px;background:linear-gradient(180deg,#0F6FE0,#0058BE);color:#FFFFFF;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,88,190,0.32);" style-hover="filter:brightness(1.1);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="send"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                  <span>Kirim</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ cannotSend }}">
+                <button type="submit" disabled="{{ true }}" style="display:flex;align-items:center;gap:7px;padding:8px 15px;border:1px solid rgba(255,255,255,0.08);border-radius:999px;background:rgba(255,255,255,0.03);color:#5C6474;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:not-allowed;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="send"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                  <span>Kirim</span>
+                </button>
+              </sc-if>
+            </div>
+          </div>
+        </form>
+
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px;">
+          <sc-for list="{{ pills }}" as="pill" hint-placeholder-count="6">
+            <button type="button" onClick="{{ pill.onClick }}" style="display:flex;align-items:center;gap:7px;padding:7px 14px 7px 11px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.025);color:#C6CEDA;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;" style-hover="background:rgba(78,155,255,0.10);border-color:rgba(78,155,255,0.42);color:#F5F7FA;">
+              {{ pill.icon }}
+              <span>{{ pill.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ showGallery }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:58px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <span style="display:flex;align-items:center;gap:9px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:600;color:#F5F7FA;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="images"><path d="M18 22H4a2 2 0 0 1-2-2V6"></path><path d="m22 13-1.3-1.3a2 2 0 0 0-2.8 0L14 15"></path><circle cx="12" cy="8" r="2"></circle><rect x="6" y="2" width="16" height="16" rx="2"></rect></svg>
+              <span>Jelajahi Inspirasi</span>
+            </span>
+            <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:#5C6474;">Mulai tanpa mengetik prompt</span>
+          </div>
+
+          <sc-for list="{{ gallery }}" as="sec" hint-placeholder-count="3">
+            <div style="margin-top:26px;">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+                <h4 style="margin:0;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#C6CEDA;">{{ sec.title }}</h4>
+                <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#5C6474;">{{ sec.tag }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;">
+                <sc-for list="{{ sec.cards }}" as="card" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ card.onClick }}" style="display:flex;flex-direction:column;gap:0;padding:0;border:1px solid rgba(255,255,255,0.08);border-radius:14px;background:#0B0E14;overflow:hidden;text-align:left;cursor:pointer;" style-hover="border-color:rgba(78,155,255,0.4);background:#0D1119;">
+                    <span style="position:relative;display:block;height:96px;background:linear-gradient(160deg,rgba(78,155,255,0.10),rgba(255,255,255,0.015));border-bottom:1px solid rgba(255,255,255,0.06);overflow:hidden;">
+                      {{ card.art }}
+                      <span style="position:absolute;top:8px;left:9px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:8.5px;letter-spacing:0.14em;color:#8A93A3;background:rgba(6,8,12,0.7);padding:2.5px 6px;border-radius:5px;">{{ card.kind }}</span>
+                    </span>
+                    <span style="display:flex;flex-direction:column;gap:3px;padding:10px 11px 12px;">
+                      <span style="font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#F5F7FA;line-height:1.3;">{{ card.title }}</span>
+                      <span style="font-size:10.5px;color:#5C6474;line-height:1.4;">{{ card.note }}</span>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isChat }}">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    <div ref="{{ scrollRef }}" style="flex:1;overflow-y:auto;min-height:0;padding:20px 18px 8px;">
+      <div style="max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">
+        <sc-for list="{{ messages }}" as="msg" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;">
+
+            <sc-if value="{{ msg.isAI }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:flex-start;gap:11px;">
+                <span style="display:flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,#0F6FE0,#0058BE);flex-shrink:0;margin-top:2px;box-shadow:0 4px 14px rgba(0,88,190,0.3);">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="bot"><path d="M12 8V4H8"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+                </span>
+                <div style="display:flex;flex-direction:column;gap:8px;max-width:min(88%,660px);min-width:0;">
+                  <div style="padding:14px 16px;border:1px solid rgba(255,255,255,0.08);border-radius:16px;border-top-left-radius:5px;background:#0B0E14;font-size:13px;line-height:1.65;color:#C6CEDA;">
+                    {{ msg.body }}
+                  </div>
+                  <sc-if value="{{ msg.showTools }}">
+                    <div style="display:flex;align-items:center;gap:8px;padding-left:2px;">
+                      <button type="button" onClick="{{ msg.onCopy }}" title="Salin Teks Bersih" style="display:flex;align-items:center;gap:5px;padding:4px 8px;border:0;border-radius:7px;background:transparent;color:#5C6474;font-family:'Outfit',sans-serif;font-size:10.5px;font-weight:500;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);color:#C6CEDA;">
+                        {{ msg.copyIcon }}
+                        <span>{{ msg.copyLabel }}</span>
+                      </button>
+                      <button type="button" onClick="{{ onLike }}" title="Bagus" style="display:flex;padding:4px;border:0;border-radius:7px;background:transparent;color:#5C6474;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);color:#C6CEDA;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="thumbs-up"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
+                      </button>
+                      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9px;color:#454C59;">{{ msg.timestamp }}</span>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ msg.hasCard }}">
+                    <div style="display:flex;flex-direction:column;gap:9px;padding:14px;border:1px solid rgba(0,88,190,0.42);border-radius:16px;background:linear-gradient(180deg,rgba(0,88,190,0.12),rgba(11,14,20,0.9));max-width:520px;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                        <span style="display:flex;align-items:center;gap:8px;min-width:0;">
+                          <span style="display:flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:7px;background:rgba(78,155,255,0.16);flex-shrink:0;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path><path d="M19 3v4"></path><path d="M17 5h4"></path></svg>
+                          </span>
+                          <h4 style="margin:0;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;color:#F5F7FA;line-height:1.35;">{{ msg.cardTitle }}</h4>
+                        </span>
+                        <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#C9A66B;border:1px solid rgba(201,166,107,0.3);padding:3px 7px;border-radius:999px;white-space:nowrap;">Aksi Eksekutif</span>
+                      </div>
+                      <p style="margin:0;font-size:11.5px;line-height:1.55;color:#8A93A3;">{{ msg.cardDesc }}</p>
+                      <sc-if value="{{ msg.hasImpact }}">
+                        <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:10px;font-weight:700;color:#3FBF8F;">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg>
+                          <span>{{ msg.impactText }}</span>
+                        </span>
+                      </sc-if>
+                      <button type="button" onClick="{{ msg.onExecute }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;border:0;border-radius:11px;background:linear-gradient(180deg,#0F6FE0,#0058BE);color:#FFFFFF;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 8px 20px rgba(0,88,190,0.3);" style-hover="filter:brightness(1.1);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg>
+                        <span>{{ msg.actionLabel }}</span>
+                      </button>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ msg.isUser }}">
+              <div style="display:flex;align-items:flex-start;justify-content:flex-end;gap:11px;">
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;max-width:min(84%,600px);min-width:0;">
+                  <sc-if value="{{ msg.hasAttachment }}">
+                    <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid rgba(255,255,255,0.11);border-radius:999px;background:#0B0E14;font-size:11.5px;color:#F5F7FA;">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-spreadsheet"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v5h5"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg>
+                      <span style="font-weight:600;">{{ msg.attachName }}</span>
+                      <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;color:#5C6474;">{{ msg.attachSize }}</span>
+                    </span>
+                  </sc-if>
+                  <div style="padding:12px 15px;border-radius:16px;border-top-right-radius:5px;background:linear-gradient(180deg,#0F6FE0,#0058BE);font-size:13px;line-height:1.6;color:#FFFFFF;text-align:left;box-shadow:0 8px 22px rgba(0,88,190,0.22);">
+                    {{ msg.body }}
+                  </div>
+                  <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9px;color:#454C59;">{{ msg.timestamp }}</span>
+                </div>
+                <span style="display:flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);flex-shrink:0;margin-top:2px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C6CEDA" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </span>
+              </div>
+            </sc-if>
+
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ isTyping }}">
+          <div style="display:flex;align-items:center;gap:9px;width:fit-content;padding:9px 13px;border:1px solid rgba(255,255,255,0.08);border-radius:999px;background:#0B0E14;font-size:11.5px;color:#8A93A3;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="animation:klirSpin 1s linear infinite;" data-lucide="refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+            <span>KLIR AI sedang menyusun jawaban terbaik...</span>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex-shrink:0;padding:8px 18px 16px;">
+      <div style="max-width:820px;margin:0 auto;position:relative;">
+        <sc-if value="{{ pluginOpen }}">
+          <div style="position:absolute;bottom:calc(100% + 10px);left:0;width:352px;max-width:100%;max-height:min(364px,calc(100vh - 210px));overflow-y:auto;padding:8px;border:1px solid rgba(255,255,255,0.11);border-radius:16px;background:#0B0E14;box-shadow:0 24px 60px rgba(0,0,0,0.6);z-index:40;animation:klirFade 160ms ease-out;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px 9px;">
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#5C6474;">Plugin &amp; Tools</span>
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;color:#C9A66B;">{{ pluginCount }}</span>
+            </div>
+            <sc-for list="{{ pluginItems }}" as="p" hint-placeholder-count="5">
+              <button type="button" onClick="{{ p.onClick }}" style="display:flex;align-items:flex-start;gap:11px;width:100%;padding:9px;border:0;border-radius:12px;background:transparent;text-align:left;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);">
+                <span style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);flex-shrink:0;">{{ p.icon }}</span>
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                  <span style="font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#F5F7FA;">{{ p.title }}</span>
+                  <span style="font-size:11px;color:#5C6474;line-height:1.4;">{{ p.desc }}</span>
+                </span>
+              </button>
+            </sc-for>
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin:6px 4px;"></div>
+            <button type="button" onClick="{{ onManagePlugins }}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:9px;border:0;border-radius:12px;background:transparent;cursor:pointer;" style-hover="background:rgba(255,255,255,0.05);">
+              <span style="display:flex;align-items:center;gap:11px;">
+                <span style="display:flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:9px;background:rgba(201,166,107,0.10);border:1px solid rgba(201,166,107,0.22);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A66B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings-2"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>
+                </span>
+                <span style="font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;color:#C6CEDA;">Kelola Plugin</span>
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5C6474" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasAttachment }}">
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:9px;padding:6px 10px;border:1px solid rgba(255,255,255,0.11);border-radius:999px;background:#0B0E14;font-size:11.5px;color:#F5F7FA;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="file-spreadsheet"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v5h5"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg>
+            <span>{{ attachName }}</span>
+            <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;color:#5C6474;">{{ attachSize }}</span>
+            <button type="button" onClick="{{ onRemoveAttachment }}" style="display:flex;border:0;background:transparent;color:#5C6474;cursor:pointer;padding:0;" style-hover="color:#F5F7FA;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-lucide="x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+        </sc-if>
+
+        <form onSubmit="{{ onSubmit }}" style="display:flex;flex-direction:column;gap:9px;padding:12px 12px 10px;border:1px solid rgba(255,255,255,0.11);border-radius:18px;background:#0B0E14;box-shadow:0 14px 36px rgba(0,0,0,0.42);" style-focus="border-color:rgba(78,155,255,0.5);">
+          <input type="text" value="{{ inputMessage }}" onChange="{{ onInputChange }}" placeholder="Tanya apa saja (email, ide konten, strategi, coding) atau beri instruksi untuk Dashboard..." style="width:100%;border:0;outline:none;background:transparent;padding:4px 3px;font-family:'Outfit',sans-serif;font-size:13.5px;color:#F5F7FA;" />
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="display:flex;align-items:center;gap:7px;">
+              <button type="button" onClick="{{ onTogglePlugin }}" title="Plugin &amp; Tools" style="display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.03);color:#8A93A3;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.45);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4E9BFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="layout-grid"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                <span>Plugin</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down"><path d="m6 9 6 6 6-6"></path></svg>
+              </button>
+              <button type="button" onClick="{{ onAttach }}" title="Unggah Dokumen / Data (PDF, Excel, Word)" style="display:flex;align-items:center;justify-content:center;width:31px;height:31px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.03);color:#8A93A3;cursor:pointer;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.45);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" data-lucide="paperclip"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;">
+              <span style="font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.1em;color:#5C6474;">ENTER UNTUK KIRIM</span>
+              <sc-if value="{{ canSend }}">
+                <button type="submit" style="display:flex;align-items:center;gap:7px;padding:8px 15px;border:0;border-radius:999px;background:linear-gradient(180deg,#0F6FE0,#0058BE);color:#FFFFFF;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 6px 18px rgba(0,88,190,0.32);" style-hover="filter:brightness(1.1);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="send"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                  <span>Kirim</span>
+                </button>
+              </sc-if>
+              <sc-if value="{{ cannotSend }}">
+                <button type="submit" disabled="{{ true }}" style="display:flex;align-items:center;gap:7px;padding:8px 15px;border:1px solid rgba(255,255,255,0.08);border-radius:999px;background:rgba(255,255,255,0.03);color:#5C6474;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:not-allowed;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" data-lucide="send"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+                  <span>Kirim</span>
+                </button>
+              </sc-if>
+            </div>
+          </div>
+        </form>
+
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;">
+          <sc-for list="{{ pills }}" as="pill" hint-placeholder-count="6">
+            <button type="button" onClick="{{ pill.onClick }}" style="display:flex;align-items:center;gap:7px;padding:6px 13px 6px 10px;border:1px solid rgba(255,255,255,0.10);border-radius:999px;background:rgba(255,255,255,0.025);color:#C6CEDA;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;white-space:nowrap;" style-hover="background:rgba(78,155,255,0.10);border-color:rgba(78,155,255,0.42);color:#F5F7FA;">
+              {{ pill.icon }}
+              <span>{{ pill.label }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+</main>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;userName&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Nime Nimasi&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;workspaceName&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Anitech Workspace&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;startEmpty&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Kondisi tampilan&quot; },
+  &quot;showInspiration&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Kondisi tampilan&quot; }
+}">
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.fileInputRef = React.createRef();
+    this.scrollRef = React.createRef();
+    this.emptyScrollRef = React.createRef();
+    this.ICONS = {
+      'file-text': ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v5h5', 'M9 13h6', 'M9 17h4'],
+      'lightbulb': ['M9 18h6', 'M10 22h4', 'M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14'],
+      'book-open': ['M12 7v14', 'M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z'],
+      'paperclip': ['m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48'],
+      'trending-up': ['M16 7h6v6', 'm22 7-8.5 8.5-5-5L2 17'],
+      'users': ['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', { t: 'circle', cx: 9, cy: 7, r: 4 }, 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75'],
+      'receipt': ['M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z', 'M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8', 'M12 17.5v-11'],
+      'calendar': [{ t: 'rect', x: 3, y: 4, width: 18, height: 18, rx: 2 }, 'M16 2v4', 'M8 2v4', 'M3 10h18'],
+      'video': ['m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11', { t: 'rect', x: 2, y: 6, width: 14, height: 12, rx: 2 }],
+      'presentation': ['M2 3h20', 'M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3', 'm7 21 5-5 5 5'],
+      'image': [{ t: 'rect', x: 3, y: 3, width: 18, height: 18, rx: 2 }, { t: 'circle', cx: 9, cy: 9, r: 2 }, 'm21 15-3.09-3.09a2 2 0 0 0-2.82 0L6 21'],
+      'file-spreadsheet': ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v5h5', 'M8 13h2', 'M14 13h2', 'M8 17h2', 'M14 17h2'],
+      'search': [{ t: 'circle', cx: 11, cy: 11, r: 8 }, 'm21 21-4.3-4.3'],
+      'mic': ['M12 19v3', { t: 'rect', x: 9, y: 2, width: 6, height: 13, rx: 3 }, 'M19 10v2a7 7 0 0 1-14 0v-2'],
+      'copy': [{ t: 'rect', x: 9, y: 9, width: 13, height: 13, rx: 2 }, 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'],
+      'check': ['M20 6 9 17l-5-5']
+    };
+    const userName = (p && p.userName) || 'Nime Nimasi';
+    this.state = {
+      sidebarOpen: true,
+      selectedModel: 'opencode',
+      inputMessage: '',
+      isTyping: false,
+      toastMsg: null,
+      copiedId: null,
+      attachedFile: null,
+      pluginOpen: false,
+      messages: (p && p.startEmpty === false) ? this.seedConversation(userName) : this.welcomeMessages(userName)
+    };
+  }
+
+  welcomeMessages(userName) {
+    return [{
+      id: 'msg-welcome',
+      sender: 'ai',
+      text: 'Halo Pak **' + userName + '**! Saya adalah **KLIR Executive AI Assistant**.\n\nSaya memiliki akses membaca langsung **seluruh data riil perusahaan Anda** (Keuangan & Kas, Metrik Pemasaran/Iklan, Beban Tim/SDM, serta Piutang Klien).\n\nAnda dapat menanyakan analisis data, meminta draf penulisan bisnis, mengunggah dokumen data/CSV untuk dibaca, atau memberikan instruksi langsung ke sistem. Ada yang bisa saya bantu?',
+      timestamp: 'Hari ini 08:30'
+    }];
+  }
+
+  seedConversation(userName) {
+    return this.welcomeMessages(userName).concat([
+      {
+        id: 'seed-user-1',
+        sender: 'user',
+        text: 'Evaluasi performa iklan bulan ini dan sarankan langkah berikutnya.',
+        timestamp: 'Hari ini 08:34',
+        attachment: { name: 'metrik-iklan-agustus.csv', size: '18.4 KB', type: 'document' }
+      },
+      {
+        id: 'seed-ai-1',
+        sender: 'ai',
+        text: '### Ringkasan Performa Iklan (30 Hari)\n\n| Metrik | Nilai | Status |\n|---|---|---|\n| Blended ROAS | **3.1x** | Sehat |\n| Omset Teratribusi | **Rp 16.400.000** | Naik 12% |\n| CAC | **Rp 48.000** | Turun 6% |\n\n- Kanal video TikTok menyumbang **62%** dari total lead masuk.\n- Biaya per lead pada kanal ini `18% lebih murah` dibanding rata-rata kanal lain.\n\n> Ruang tumbuh masih terbuka: anggaran saat ini belum menyentuh batas efisiensi.\n\nDisarankan menaikkan anggaran iklan video TikTok sebesar **+20% (+Rp 3.000.000)** untuk menangkap potensi tambahan omset **+Rp 6.200.000 / bulan**.',
+        timestamp: 'Hari ini 08:34',
+        actionCard: {
+          type: 'SCALE_ADS',
+          title: 'Scale Anggaran Iklan Video TikTok +20%',
+          description: 'Tambah anggaran Rp 3.000.000 dengan estimasi kenaikan omset +Rp 6.200.000/bulan.',
+          impactText: '+Rp 6.200.000 Omset Bulanan',
+          actionLabel: 'Setujui & Terapkan ke Dashboard'
+        }
+      }
+    ]);
+  }
+
+  scrollToLatest() {
+    try {
+      const el = this.scrollRef && this.scrollRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+    } catch (e) { /* pane not mounted yet */ }
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => {
+        try {
+          const el2 = this.scrollRef && this.scrollRef.current;
+          if (el2) el2.scrollTop = el2.scrollHeight;
+        } catch (e) { /* noop */ }
+      });
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps && prevProps.startEmpty !== this.props.startEmpty) {
+      const userName = this.props.userName || 'Nime Nimasi';
+      this.setState({ messages: this.props.startEmpty === false ? this.seedConversation(userName) : this.welcomeMessages(userName) });
+      return;
+    }
+    const st = prevState || {};
+    if (st.messages !== this.state.messages || st.isTyping !== this.state.isTyping) {
+      this.scrollToLatest();
+    }
+  }
+
+  clearStreams() {
+    (this.typeIntervals || []).forEach((t) => clearInterval(t));
+    this.typeIntervals = [];
+  }
+
+  componentWillUnmount() {
+    this.clearStreams();
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
+
+  ic(name, size, color, sw) {
+    const defs = this.ICONS[name] || [];
+    return React.createElement('svg', {
+      width: size || 15, height: size || 15, viewBox: '0 0 24 24', fill: 'none',
+      stroke: color || 'currentColor', strokeWidth: sw || 1.7, strokeLinecap: 'round',
+      strokeLinejoin: 'round', 'aria-hidden': 'true', 'data-lucide': name, style: { flexShrink: 0 }
+    }, defs.map((d, i) => {
+      if (typeof d === 'string') return React.createElement('path', { key: i, d: d });
+      const props = Object.assign({ key: i }, d);
+      delete props.t;
+      return React.createElement(d.t, props);
+    }));
+  }
+
+  toast(msg, ms) {
+    this.setState({ toastMsg: msg });
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => this.setState({ toastMsg: null }), ms || 4000);
+  }
+
+  applyDirectiveToDashboard(directive) {
+    try {
+      const saved = localStorage.getItem('klir_live_company_state');
+      let currentState = saved ? JSON.parse(saved) : {};
+      const existingDirectives = currentState.directives || [];
+      const newDirective = {
+        id: 'dir-' + Date.now(),
+        type: directive.type,
+        title: directive.title,
+        impact: directive.impact,
+        timestamp: 'Baru saja diinstruksikan via AI Assistant',
+        status: 'EXECUTED'
+      };
+      const updatedState = Object.assign({}, currentState, directive.statePatch, {
+        directives: [newDirective].concat(existingDirectives)
+      });
+      localStorage.setItem('klir_live_company_state', JSON.stringify(updatedState));
+      window.dispatchEvent(new CustomEvent('klir-ai-state-updated'));
+      this.toast('Instruksi "' + directive.title + '" berhasil dieksekusi dan diperbarui di Dashboard Perusahaan.');
+    } catch (e) {
+      console.warn('Failed to dispatch state:', e);
+    }
+  }
+
+  handleCopyText(text, id) {
+    const cleanText = String(text)
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/^#+\s*/gm, '')
+      .replace(/^>\s*/gm, '');
+    if (navigator.clipboard) navigator.clipboard.writeText(cleanText);
+    this.setState({ copiedId: id });
+    setTimeout(() => this.setState({ copiedId: null }), 2000);
+  }
+
+  handleFileSelect(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const sizeLabel = (file.size / 1024).toFixed(1) + ' KB';
+    if (file.type.indexOf('text') >= 0 || /\.(txt|csv|json|md|log|tsv|js|ts|html|xml)$/i.test(file.name)) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        this.setState({ attachedFile: { name: file.name, size: sizeLabel, content: (ev.target && ev.target.result) || '' } });
+      };
+      reader.readAsText(file);
+    } else {
+      this.setState({
+        attachedFile: {
+          name: file.name, size: sizeLabel,
+          content: '[Dokumen Terlampir: ' + file.name + ' (' + sizeLabel + ') - Format binary/spreadsheet telah diindeks]'
+        }
+      });
+    }
+    this.toast('Dokumen "' + file.name + '" siap dibaca dan dianalisis oleh AI.', 3000);
+    e.target.value = '';
+  }
+
+  demoReply(userText, attachment) {
+    const lower = String(userText || '').toLowerCase();
+    const wsName = this.props.workspaceName || 'Anitech Workspace';
+    if (attachment) {
+      return {
+        text: '### Analisis Dokumen: ' + attachment.name + '\n\nDokumen sudah dibaca dan diindeks. Ringkasan temuan:\n\n- Struktur data terbaca **' + attachment.size + '**, siap dipetakan ke modul Keuangan dan Pemasaran.\n- Tiga kolom bernilai tinggi terdeteksi: `omset`, `biaya_iklan`, `lead_masuk`.\n- Tidak ditemukan baris kosong atau duplikat yang mengganggu perhitungan.\n\n> Lanjutkan dengan meminta perbandingan periode, proyeksi kas, atau ringkasan untuk rapat.',
+        actionCard: undefined
+      };
+    }
+    if (/iklan|marketing|scale|budget|roas|banner|promosi/.test(lower)) {
+      return {
+        text: '### Evaluasi Kanal Iklan\n\n- Blended ROAS 30 hari terakhir berada di **3.1x**, di atas ambang sehat 2.5x.\n- Kanal video menyumbang **62%** lead dengan biaya per lead `18% lebih murah`.\n- Sisa anggaran bulan berjalan masih **Rp 4.100.000**.\n\nRekomendasi: naikkan anggaran video **+20% (+Rp 3.000.000)** untuk menangkap potensi tambahan omset **+Rp 6.200.000 / bulan**.',
+        actionCard: {
+          type: 'SCALE_ADS',
+          title: 'Scale Anggaran Iklan Video TikTok +20%',
+          description: 'Tambah anggaran Rp 3.000.000 dengan estimasi kenaikan omset +Rp 6.200.000/bulan.',
+          impactText: '+Rp 6.200.000 Omset Bulanan',
+          actionLabel: 'Setujui & Terapkan ke Dashboard'
+        }
+      };
+    }
+    if (/karyawan|rekrut|editor|sdm|beban|tim/.test(lower)) {
+      return {
+        text: '### Beban Tim Saat Ini\n\n- Utilisasi tim berada di **92%**, sudah melewati batas aman 80%.\n- Divisi Marketing & Creative menahan **12 tugas tertunda**.\n- SLA penyelesaian turun ke **89%** dari target 95%.\n\nRekomendasi: tambah 1 staf video editor untuk menurunkan utilisasi ke **76%**.',
+        actionCard: {
+          type: 'HIRE_STAFF',
+          title: 'Rekrut 1 Staf Video Editor & Turunkan Beban Tim',
+          description: 'Alokasikan 1 staf baru untuk menurunkan utilisasi dari 92% ke 76% (Aman).',
+          impactText: 'Beban Tim Turun ke 76% (Aman)',
+          actionLabel: 'Konfirmasi & Update ke Dashboard'
+        }
+      };
+    }
+    if (/piutang|invoice|sentosa|tagih/.test(lower)) {
+      return {
+        text: '### Piutang Jatuh Tempo\n\n- **PT Sentosa Abadi** senilai **Rp 19.425.000** terlambat 3 hari.\n- Bila ditagih hari ini, saldo kas naik ke **Rp 44.925.000**.\n- Riwayat pembayaran klien ini tergolong lancar, risiko rendah.\n\nSaya sudah menyiapkan draf pengingat resmi ke tim finance mereka.',
+        actionCard: {
+          type: 'RESOLVE_INVOICE',
+          title: 'Kirim Invoice Reminder PT Sentosa Abadi (Rp 19.425.000)',
+          description: 'Tagih piutang jatuh tempo untuk mengamankan kas masuk ke Dashboard.',
+          impactText: '+Rp 19.425.000 Kas Masuk',
+          actionLabel: 'Kirim Reminder & Update Kas'
+        }
+      };
+    }
+    if (/analisis|analisa|strategi|evaluasi|laporan|riset/.test(lower)) {
+      return {
+        text: '### Laporan Strategis Mingguan\n\n| Modul | Skor | Catatan |\n|---|---|---|\n| Keuangan | **95** | Margin bersih 78% |\n| Pertumbuhan | **100** | Omset naik 12% |\n| Operasional | **35** | Beban tim 92% |\n\n1. **Scale anggaran iklan video** untuk menjaga momentum pertumbuhan.\n2. **Tagih piutang jatuh tempo** demi mengamankan kas masuk.\n3. **Rekrut 1 staf video editor** guna menaikkan skor operasional ke 75/100.',
+        actionCard: {
+          type: 'WEEKLY_REC',
+          title: 'Terapkan Seluruh Rekomendasi Strategis ke Dashboard',
+          description: 'Otomatis sinkronisasikan target dan optimasi strategi ke seluruh modul Dashboard.',
+          impactText: 'Skor Kesehatan Bisnis Naik ke 92/100',
+          actionLabel: 'Terapkan Semua ke Dashboard'
+        }
+      };
+    }
+    return {
+      text: 'Saya siap membantu Anda memproses "' + userText + '". Sebagai AI Assistant ' + wsName + ', saya dapat menjawab pertanyaan umum bisnis, membuat dokumen/copywriting, serta mengeksekusi instruksi langsung ke Dashboard Perusahaan Anda.',
+      actionCard: undefined
+    };
+  }
+
+  handleSendMessage(customText) {
+    const textToSend = String(customText || this.state.inputMessage || '').trim();
+    const attachedFile = this.state.attachedFile;
+    if (!textToSend && !attachedFile) return;
+
+    const userName = this.props.userName || 'Nime Nimasi';
+    const workspaceName = this.props.workspaceName || 'Anitech Workspace';
+    const userText = textToSend || (attachedFile ? 'Tolong analisis dan jelaskan isi file ini: ' + attachedFile.name : '');
+    const currentAttachment = attachedFile;
+    const userMsg = {
+      id: 'user-' + Date.now(),
+      sender: 'user',
+      text: userText,
+      timestamp: 'Baru saja',
+      attachment: currentAttachment ? { name: currentAttachment.name, size: currentAttachment.size, type: 'document' } : undefined
+    };
+    const aiMsgId = 'ai-' + Date.now();
+    const aiPlaceholder = { id: aiMsgId, sender: 'ai', text: '', timestamp: 'Baru saja' };
+    const history = this.state.messages.filter((m) => m.text && m.text.trim()).slice(-8).map((m) => ({
+      role: m.sender === 'ai' ? 'assistant' : 'user', content: m.text
+    }));
+
+    this.setState((s) => ({
+      messages: s.messages.concat([userMsg, aiPlaceholder]),
+      inputMessage: '',
+      attachedFile: null,
+      pluginOpen: false,
+      isTyping: true
+    }), () => this.scrollToLatest());
+
+    let currentLiveState = null;
+    try {
+      const saved = localStorage.getItem('klir_live_company_state');
+      if (saved) currentLiveState = JSON.parse(saved);
+    } catch (e) { console.warn('Live state read error:', e); }
+
+    const stream = (responseText, responseActionCard) => {
+      let currentLength = 0;
+      const chunkSize = Math.max(3, Math.floor(responseText.length / 30));
+      if (!this.typeIntervals) this.typeIntervals = [];
+      const interval = setInterval(() => {
+        currentLength += chunkSize;
+        if (currentLength >= responseText.length) {
+          clearInterval(interval);
+          this.typeIntervals = this.typeIntervals.filter((t) => t !== interval);
+          this.setState((s) => ({
+            messages: s.messages.map((m) => m.id === aiMsgId ? Object.assign({}, m, { text: responseText, actionCard: responseActionCard }) : m),
+            isTyping: false
+          }), () => this.scrollToLatest());
+        } else {
+          const slice = responseText.slice(0, currentLength);
+          this.setState((s) => ({ messages: s.messages.map((m) => m.id === aiMsgId ? Object.assign({}, m, { text: slice }) : m) }), () => this.scrollToLatest());
+        }
+      }, 25);
+      this.typeIntervals.push(interval);
+    };
+
+    fetch('/api/v1/brain/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: userText,
+        userName: userName,
+        workspaceName: workspaceName,
+        model: this.state.selectedModel,
+        liveState: currentLiveState,
+        attachment: currentAttachment,
+        history: history
+      })
+    }).then((res) => res.ok ? res.json() : null).then((json) => {
+      let responseText = '';
+      let responseActionCard;
+      if (json && json.success && json.data) {
+        responseText = json.data.text || '';
+        responseActionCard = json.data.actionCard;
+      }
+      if (!responseText) {
+        const demo = this.demoReply(userText, currentAttachment);
+        responseText = demo.text;
+        responseActionCard = demo.actionCard;
+      }
+      stream(responseText, responseActionCard);
+    }).catch(() => {
+      const demo = this.demoReply(userText, currentAttachment);
+      stream(demo.text, demo.actionCard);
+    });
+  }
+
+  handleCardExecution(card) {
+    let patch = {};
+    if (card.type === 'SCALE_ADS') {
+      patch = {
+        marketing: { blendedRoas: 3.5, attributedRevenue: 19900000, totalLeads: 310, cac: 43000, activeCampaignsCount: 5 },
+        healthScore: { totalScore: 88, grade: 'EXCELLENT', breakdown: { finance: 95, growth: 100, operations: 35, strategy: 100 } }
+      };
+    } else if (card.type === 'HIRE_STAFF') {
+      patch = {
+        teamOps: {
+          totalEmployees: 15, teamUtilizationPercent: 76, pendingTasksCount: 2, slaCompletionRate: 96,
+          divisions: [
+            { name: 'Engineering & Tech', members: 5, loadPercent: 78, status: 'NORMAL' },
+            { name: 'Marketing & Creative', members: 5, loadPercent: 74, status: 'NORMAL' },
+            { name: 'Sales & Business Dev', members: 3, loadPercent: 75, status: 'NORMAL' },
+            { name: 'Finance & Operations', members: 2, loadPercent: 77, status: 'NORMAL' }
+          ]
+        },
+        healthScore: { totalScore: 92, grade: 'EXCELLENT', breakdown: { finance: 95, growth: 100, operations: 75, strategy: 100 } }
+      };
+    } else if (card.type === 'RESOLVE_INVOICE') {
+      patch = {
+        financials: {
+          netCashBalance: 44925000, revenue30d: 53675000, expense30d: 8750000, grossProfit: 44925000,
+          grossMarginPercent: 83, netProfit: 41925000, netMarginPercent: 78.1, runwayMonths: 99
+        }
+      };
+    } else {
+      patch = { healthScore: { totalScore: 90, grade: 'EXCELLENT', breakdown: { finance: 95, growth: 100, operations: 65, strategy: 100 } } };
+    }
+    this.applyDirectiveToDashboard({
+      type: card.type, title: card.title, impact: card.impactText || card.description, statePatch: patch
+    });
+  }
+
+  handleNewChat() {
+    const workspaceName = this.props.workspaceName || 'Anitech Workspace';
+    this.clearStreams();
+    this.setState({
+      isTyping: false,
+      inputMessage: '',
+      attachedFile: null,
+      pluginOpen: false,
+      messages: [{
+        id: 'msg-welcome-' + Date.now(),
+        sender: 'ai',
+        text: 'Percakapan baru dimulai. KLIR AI Assistant siap menjawab pertanyaan apa saja atau menjalankan instruksi strategis untuk ' + workspaceName + '.',
+        timestamp: 'Baru saja'
+      }]
+    });
+  }
+
+  inline(text) {
+    if (!text) return null;
+    const out = [];
+    const brParts = String(text).split(/<br\s*\/?>/gi);
+    brParts.forEach((sub, bi) => {
+      if (bi > 0) out.push(React.createElement('br', { key: 'br' + bi }));
+      const parts = sub.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`|<b>.*?<\/b>|<i>.*?<\/i>)/g);
+      parts.forEach((part, i) => {
+        const key = bi + '-' + i;
+        if (!part) return;
+        if (part.slice(0, 2) === '**' && part.slice(-2) === '**' && part.length >= 4) {
+          out.push(React.createElement('strong', { key: key, style: { fontWeight: 700, color: '#FFFFFF' } }, part.slice(2, -2)));
+        } else if (part.slice(0, 3) === '<b>' && part.slice(-4) === '</b>' && part.length >= 7) {
+          out.push(React.createElement('strong', { key: key, style: { fontWeight: 700, color: '#FFFFFF' } }, part.slice(3, -4)));
+        } else if (part.slice(0, 3) === '<i>' && part.slice(-4) === '</i>' && part.length >= 7) {
+          out.push(React.createElement('span', { key: key, style: { fontStyle: 'italic', color: '#9FC6FF' } }, part.slice(3, -4)));
+        } else if (part[0] === '*' && part.slice(-1) === '*' && part.length >= 2) {
+          out.push(React.createElement('span', { key: key, style: { fontStyle: 'italic', color: '#9FC6FF' } }, part.slice(1, -1)));
+        } else if (part[0] === '`' && part.slice(-1) === '`' && part.length >= 2) {
+          out.push(React.createElement('code', {
+            key: key,
+            style: { padding: '2px 6px', background: 'rgba(78,155,255,0.12)', color: '#8CBEFF', borderRadius: '5px', fontSize: '11px', fontFamily: "'JetBrains Mono',ui-monospace,Menlo,monospace" }
+          }, part.slice(1, -1)));
+        } else {
+          out.push(part);
+        }
+      });
+    });
+    return out;
+  }
+
+  formatText(content) {
+    if (!content) return null;
+    const h = React.createElement;
+    const rawLines = String(content).split('\n');
+    const elements = [];
+    let i = 0;
+    while (i < rawLines.length) {
+      const line = rawLines[i];
+      const trimmed = line.trim();
+      if (!trimmed) { elements.push(h('div', { key: 's' + i, style: { height: '6px' } })); i++; continue; }
+      if (trimmed === '---' || trimmed === '***' || trimmed === '___') { elements.push(h('div', { key: 'hr' + i, style: { height: '8px' } })); i++; continue; }
+
+      if (trimmed[0] === '|' && trimmed.slice(-1) === '|' && trimmed.length > 2) {
+        const tableRows = [];
+        while (i < rawLines.length && rawLines[i].trim()[0] === '|' && rawLines[i].trim().slice(-1) === '|') {
+          const rowTrimmed = rawLines[i].trim();
+          if (!/^\|(\s*[-:]+\s*\|)+$/.test(rowTrimmed)) tableRows.push(rowTrimmed);
+          i++;
+        }
+        if (tableRows.length) {
+          const parseCells = (r) => r.split('|').slice(1, -1).map((c) => c.trim());
+          const headers = parseCells(tableRows[0]);
+          const bodyRows = tableRows.slice(1);
+          elements.push(h('div', { key: 't' + i, style: { margin: '10px 0', overflowX: 'auto', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '12px' } },
+            h('table', { style: { width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', textAlign: 'left' } },
+              h('thead', null, h('tr', { style: { background: 'rgba(255,255,255,0.04)' } },
+                headers.map((c, ci) => h('th', {
+                  key: ci,
+                  style: { padding: '9px 11px', color: '#F5F7FA', fontFamily: "'JetBrains Mono',ui-monospace,Menlo,monospace", fontSize: '9.5px', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.09)' }
+                }, this.inline(c)))
+              )),
+              h('tbody', null, bodyRows.map((br, ri) => h('tr', { key: ri, style: { borderTop: ri ? '1px solid rgba(255,255,255,0.06)' : 'none' } },
+                parseCells(br).map((c, ci) => h('td', { key: ci, style: { padding: '9px 11px', color: '#C6CEDA', verticalAlign: 'top', lineHeight: 1.55 } }, this.inline(c)))
+              )))
+            )
+          ));
+          continue;
+        }
+      }
+
+      if (trimmed[0] === '#') {
+        elements.push(h('div', {
+          key: 'h' + i,
+          style: { fontFamily: "'Outfit',sans-serif", fontWeight: 700, color: '#F5F7FA', fontSize: '13px', paddingTop: '6px', paddingBottom: '2px' }
+        }, this.inline(trimmed.replace(/^#+\s*/, ''))));
+        i++; continue;
+      }
+
+      if (trimmed[0] === '>') {
+        elements.push(h('div', {
+          key: 'q' + i,
+          style: { padding: '9px 12px', margin: '6px 0', background: 'rgba(78,155,255,0.07)', borderLeft: '2px solid #0058BE', borderRadius: '0 10px 10px 0', color: '#C6CEDA', fontSize: '12.5px', fontStyle: 'italic' }
+        }, this.inline(trimmed.replace(/^>\s*/, ''))));
+        i++; continue;
+      }
+
+      if (trimmed.slice(0, 2) === '- ' || trimmed.slice(0, 2) === '* ' || trimmed.slice(0, 2) === '\u2022 ') {
+        elements.push(h('div', { key: 'b' + i, style: { display: 'flex', alignItems: 'flex-start', gap: '9px', padding: '2px 0' } },
+          h('span', { style: { width: '5px', height: '5px', borderRadius: '99px', background: '#4E9BFF', marginTop: '8px', flexShrink: 0 } }),
+          h('div', { style: { flex: 1 } }, this.inline(trimmed.replace(/^[-*\u2022]\s*/, '')))
+        ));
+        i++; continue;
+      }
+
+      const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+      if (numMatch) {
+        elements.push(h('div', { key: 'n' + i, style: { display: 'flex', alignItems: 'flex-start', gap: '9px', padding: '2px 0' } },
+          h('span', { style: { fontFamily: "'JetBrains Mono',ui-monospace,Menlo,monospace", fontSize: '10.5px', fontWeight: 700, color: '#4E9BFF', minWidth: '15px', marginTop: '2px' } }, numMatch[1] + '.'),
+          h('div', { style: { flex: 1 } }, this.inline(numMatch[2]))
+        ));
+        i++; continue;
+      }
+
+      elements.push(h('div', { key: 'p' + i, style: { lineHeight: 1.65 } }, this.inline(line)));
+      i++;
+    }
+    return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '2px' } }, elements);
+  }
+
+  art(kind) {
+    const h = React.createElement;
+    const bar = (w, o, c) => h('span', { key: w + '' + o, style: { display: 'block', height: '5px', width: w, borderRadius: '99px', background: c || 'rgba(255,255,255,0.16)', opacity: o } });
+    if (kind === 'DATA') {
+      const heights = [22, 34, 18, 44, 30];
+      return h('span', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '7px', padding: '14px 16px 16px' } },
+        heights.map((ht, i) => h('span', {
+          key: i,
+          style: { display: 'block', width: '11px', height: ht + 'px', borderRadius: '3px', background: i === 3 ? '#0058BE' : 'rgba(255,255,255,0.13)', boxShadow: i === 3 ? '0 0 14px rgba(0,88,190,0.5)' : 'none' }
+        }))
+      );
+    }
+    if (kind === 'VISUAL') {
+      return h('span', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+        h('span', { style: { display: 'block', width: '54px', height: '38px', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.16)', background: 'linear-gradient(140deg,rgba(0,88,190,0.5),rgba(201,166,107,0.28))', boxShadow: '0 8px 22px rgba(0,0,0,0.4)' } }),
+        h('span', { style: { position: 'absolute', width: '54px', height: '38px', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.10)', transform: 'translate(11px,10px)' } })
+      );
+    }
+    return h('span', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+      h('span', { style: { display: 'flex', flexDirection: 'column', gap: '5px', width: '58px', padding: '11px 10px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' } },
+        bar('70%', 1, '#4E9BFF'), bar('100%', 0.7), bar('88%', 0.55), bar('94%', 0.4), bar('52%', 0.3))
+    );
+  }
+
+  renderVals() {
+    const s = this.state;
+    const userName = this.props.userName || 'Nime Nimasi';
+    const workspaceName = this.props.workspaceName || 'Anitech Workspace';
+    const send = (t) => this.handleSendMessage(t);
+    const openFile = () => { this.setState({ pluginOpen: false }); const el = this.fileInputRef.current; if (el) el.click(); };
+    const hasUserMessage = s.messages.some((m) => m.sender === 'user');
+
+    const tools = [
+      { label: 'Draf Email & Surat Kerjasama', prompt: 'Buatkan draf email penawaran kerjasama B2B profesional untuk calon klien enterprise', icon: this.ic('file-text', 15, '#4E9BFF') },
+      { label: 'Ide Konten & Copywriting Video', prompt: 'Berikan 3 ide konsep konten naskah video TikTok viral untuk produk teknologi kami', icon: this.ic('lightbulb', 15, '#C9A66B') },
+      { label: 'Penjelasan Konsep Unit Economics', prompt: 'Jelaskan konsep unit economics CAC vs LTV dan rasio idealnya untuk bisnis kami', icon: this.ic('book-open', 15, '#8CBEFF') },
+      { label: 'Unggah & Analisis Dokumen', prompt: 'upload_trigger', icon: this.ic('paperclip', 15, '#3FBF8F') }
+    ].map((t) => ({ label: t.label, icon: t.icon, onClick: () => { if (t.prompt === 'upload_trigger') openFile(); else send(t.prompt); } }));
+
+    const actions = [
+      { label: 'Scale Budget Iklan (+20%)', prompt: 'Scale budget iklan video TikTok 20% dan update ke dashboard', icon: this.ic('trending-up', 15, '#3FBF8F') },
+      { label: 'Rekrut 1 Staf Video Editor', prompt: 'Rekrut 1 staf video editor tambahan untuk kurangi beban tim', icon: this.ic('users', 15, '#4E9BFF') },
+      { label: 'Tagih Invoice PT Sentosa', prompt: 'Kirim invoice reminder tagihan PT Sentosa Abadi', icon: this.ic('receipt', 15, '#C9A66B') },
+      { label: 'Laporan Analisis Mingguan', prompt: 'Tampilkan laporan analisis strategis mingguan otomatis', icon: this.ic('calendar', 15, '#8CBEFF') }
+    ].map((a) => ({ label: a.label, icon: a.icon, onClick: () => send(a.prompt) }));
+
+    const pills = [
+      { label: 'Buat video', icon: this.ic('video', 14, '#4E9BFF'), prompt: 'Buatkan konsep dan naskah storyboard video promosi 30 detik untuk produk kami, lengkap dengan hook, isi, dan penutup ajakan bertindak.' },
+      { label: 'Buat slide', icon: this.ic('presentation', 14, '#8CBEFF'), prompt: 'Buatkan kerangka presentasi 10 slide untuk rapat strategi bulanan, sertakan judul dan poin isi tiap slide.' },
+      { label: 'Buat gambar', icon: this.ic('image', 14, '#C9A66B'), prompt: 'Buatkan konsep visual banner promosi: deskripsi gambar, palet warna, headline, dan variasi ukuran untuk feed dan story.' },
+      { label: 'Dokumen Word', icon: this.ic('file-text', 14, '#4E9BFF'), prompt: 'Buatkan draf dokumen proposal kerjasama siap ekspor ke Word, lengkap dengan struktur bab dan ringkasan eksekutif.' },
+      { label: 'Spreadsheet Excel', icon: this.ic('file-spreadsheet', 14, '#3FBF8F'), prompt: 'Buatkan struktur spreadsheet Excel untuk laporan arus kas bulanan, lengkap dengan nama kolom dan rumus yang dipakai.' },
+      { label: 'Riset & analisis data', icon: this.ic('search', 14, '#8CBEFF'), prompt: 'Lakukan riset dan analisis data bisnis perusahaan bulan ini, sertakan temuan utama, angka pendukung, dan rekomendasi.' }
+    ].map((p) => ({ label: p.label, icon: p.icon, onClick: () => send(p.prompt) }));
+
+    const pluginItems = [
+      { title: 'Analisis Dokumen PDF', desc: 'Unggah PDF, AI membaca dan meringkas isinya', icon: this.ic('file-text', 15, '#4E9BFF'), upload: true },
+      { title: 'Analisis Excel & Spreadsheet', desc: 'Baca angka mentah lalu hitung ulang otomatis', icon: this.ic('file-spreadsheet', 15, '#3FBF8F'), upload: true },
+      { title: 'Analisis Dokumen Word', desc: 'Periksa dan sempurnakan draf tulisan bisnis', icon: this.ic('file-text', 15, '#C9A66B'), upload: true },
+      { title: 'Buat Gambar', desc: 'Susun konsep banner, stiker, atau materi promosi', icon: this.ic('image', 15, '#8CBEFF'), prompt: 'Buatkan konsep gambar promosi beserta deskripsi visual, palet warna, dan teks pendukungnya.' },
+      { title: 'Buat Audio / Voiceover', desc: 'Tulis naskah voiceover siap rekam untuk video', icon: this.ic('mic', 15, '#4E9BFF'), prompt: 'Tuliskan naskah voiceover 45 detik untuk video promosi produk kami, sertakan catatan intonasi.' }
+    ].map((p) => ({
+      title: p.title, desc: p.desc, icon: p.icon,
+      onClick: () => { if (p.upload) openFile(); else { this.setState({ pluginOpen: false }); send(p.prompt); } }
+    }));
+
+    const mkCards = (kind, arr) => arr.map((c) => ({
+      title: c.t, note: c.n, kind: kind, art: this.art(kind), onClick: () => send(c.p)
+    }));
+
+    const gallery = [
+      {
+        title: 'Template Dokumen Bisnis', tag: '03 template',
+        cards: mkCards('DOC', [
+          { t: 'Proposal Kerjasama B2B', n: 'Struktur 8 bagian siap kirim', p: 'Buatkan proposal kerjasama B2B lengkap dengan latar belakang, ruang lingkup, skema harga, dan syarat kerjasama.' },
+          { t: 'Kontrak & MoU Klien', n: 'Klausul standar dan lampiran', p: 'Buatkan draf MoU kerjasama klien beserta klausul pembayaran, lingkup pekerjaan, dan masa berlaku.' },
+          { t: 'Surat Penagihan Invoice', n: 'Nada sopan, tetap tegas', p: 'Buatkan surat penagihan invoice yang sopan namun tegas untuk klien yang telat bayar 3 hari.' }
+        ])
+      },
+      {
+        title: 'Riset & Analisis Data', tag: '03 contoh',
+        cards: mkCards('DATA', [
+          { t: 'Analisis Arus Kas 30 Hari', n: 'Kas masuk, keluar, dan runway', p: 'Analisis arus kas 30 hari terakhir perusahaan dan jelaskan posisi runway kami saat ini.' },
+          { t: 'Evaluasi Performa Iklan', n: 'ROAS, CAC, dan kanal terbaik', p: 'Evaluasi performa iklan bulan ini berdasarkan ROAS, CAC, dan kontribusi tiap kanal.' },
+          { t: 'Benchmark Harga Kompetitor', n: 'Posisi harga dan celah pasar', p: 'Riset posisi harga kami dibanding kompetitor sejenis dan tunjukkan celah pasar yang bisa diambil.' }
+        ])
+      },
+      {
+        title: 'Materi Visual & Promosi', tag: '03 contoh',
+        cards: mkCards('VISUAL', [
+          { t: 'Banner Promo Produk', n: 'Feed, story, dan thumbnail', p: 'Buatkan konsep banner promo produk untuk feed, story, dan thumbnail, sertakan headline tiap ukuran.' },
+          { t: 'Naskah Video 30 Detik', n: 'Hook, isi, penutup', p: 'Buatkan naskah video promosi 30 detik dengan hook kuat di 3 detik pertama.' },
+          { t: 'Caption & Konten Sosial', n: 'Sepekan konten terjadwal', p: 'Buatkan rencana konten sosial satu pekan lengkap dengan caption dan ajakan bertindak.' }
+        ])
+      }
+    ];
+
+    const messages = s.messages.map((m) => {
+      const isAI = m.sender === 'ai';
+      const card = m.actionCard;
+      const copied = s.copiedId === m.id;
+      return {
+        id: m.id,
+        isAI: isAI,
+        isUser: !isAI,
+        body: this.formatText(m.text),
+        timestamp: m.timestamp,
+        hasAttachment: !!m.attachment,
+        attachName: m.attachment ? m.attachment.name : '',
+        attachSize: m.attachment ? '(' + m.attachment.size + ')' : '',
+        showTools: isAI && !!m.text,
+        copyIcon: copied ? this.ic('check', 13, '#3FBF8F') : this.ic('copy', 13, 'currentColor'),
+        copyLabel: copied ? 'Tersalin' : 'Salin',
+        onCopy: () => this.handleCopyText(m.text, m.id),
+        hasCard: !!card,
+        cardTitle: card ? card.title : '',
+        cardDesc: card ? card.description : '',
+        hasImpact: !!(card && card.impactText),
+        impactText: card ? 'Dampak: ' + (card.impactText || '') : '',
+        actionLabel: card ? (card.actionLabel || 'Terapkan & Update ke Dashboard') : '',
+        onExecute: () => this.handleCardExecution(card)
+      };
+    });
+
+    const canSend = !!(s.inputMessage.trim() || s.attachedFile) && !s.isTyping;
+
+    return {
+      sidebarOpen: s.sidebarOpen,
+      sidebarClosed: !s.sidebarOpen,
+      onCloseSidebar: () => this.setState({ sidebarOpen: false }),
+      onOpenSidebar: () => this.setState({ sidebarOpen: true }),
+      onNewChat: () => this.handleNewChat(),
+      workspaceLabel: workspaceName.toUpperCase(),
+      greeting: 'Ada yang bisa saya bantu hari ini, ' + userName + '?',
+      tools: tools,
+      actions: actions,
+      pills: pills,
+      pluginItems: pluginItems,
+      pluginCount: pluginItems.length + ' aktif',
+      pluginOpen: s.pluginOpen,
+      onTogglePlugin: () => this.setState((st) => ({ pluginOpen: !st.pluginOpen })),
+      onManagePlugins: () => { this.setState({ pluginOpen: false }); this.toast('Pengaturan plugin dibuka di panel Pengaturan Workspace.', 3000); },
+      gallery: gallery,
+      showGallery: this.props.showInspiration !== false,
+      isEmpty: !hasUserMessage,
+      isChat: hasUserMessage,
+      messages: messages,
+      isTyping: s.isTyping,
+      inputMessage: s.inputMessage,
+      onInputChange: (e) => this.setState({ inputMessage: e.target.value }),
+      onSubmit: (e) => { e.preventDefault(); this.handleSendMessage(); },
+      onAttach: () => openFile(),
+      onFileSelect: (e) => this.handleFileSelect(e),
+      fileInputRef: this.fileInputRef,
+      scrollRef: this.scrollRef,
+      emptyScrollRef: this.emptyScrollRef,
+      hasAttachment: !!s.attachedFile,
+      attachName: s.attachedFile ? s.attachedFile.name : '',
+      attachSize: s.attachedFile ? s.attachedFile.size : '',
+      onRemoveAttachment: () => this.setState({ attachedFile: null }),
+      canSend: canSend,
+      cannotSend: !canSend,
+      hasToast: !!s.toastMsg,
+      toastMsg: s.toastMsg,
+      onCloseToast: () => this.setState({ toastMsg: null }),
+      onLike: () => this.toast('Terima kasih atas tanggapan Anda!', 2000)
+    };
+  }
+}
+</script>
+</body>
+</html>

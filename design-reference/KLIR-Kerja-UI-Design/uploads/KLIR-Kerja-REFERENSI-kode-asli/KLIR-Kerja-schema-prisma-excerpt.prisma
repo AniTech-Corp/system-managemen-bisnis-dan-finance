@@ -1,0 +1,81 @@
+// SUMBER ASLI: prisma/schema.prisma (repo KLIR-main, snapshot 23 Agustus 2026)
+// Potongan model Prisma yang relevan, disertakan sebagai referensi struktur data (field apa yang ada),
+// BUKAN untuk didesain field-per-field secara literal di UI.
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model WorkTask {
+  id           String       @id @default(uuid()) @db.Uuid
+  workspaceId  String       @map("workspace_id") @db.Uuid
+  title        String       @db.VarChar(200)
+  description  String?
+  assigneeName String       @default("Tim Operasional") @map("assignee_name") @db.VarChar(100)
+  priority     TaskPriority @default(MEDIUM)
+  status       TaskStatus   @default(TODO)
+  dueDate      DateTime?    @map("due_date")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+  @@map("work_tasks")
+}
+
+enum AttendanceStatus {
+  HADIR_TEPAT_WAKTU
+  TERLAMBAT
+  IZIN
+  CUTI
+}
+
+model AttendanceRecord {
+  id           String           @id @default(uuid()) @db.Uuid
+  workspaceId  String           @map("workspace_id") @db.Uuid
+  employeeName String           @map("employee_name") @db.VarChar(100)
+  shift        String           @default("PAGI") @db.VarChar(50)
+  checkInTime  DateTime         @default(now()) @map("check_in_time")
+  checkOutTime DateTime?        @map("check_out_time")
+  status       AttendanceStatus @default(HADIR_TEPAT_WAKTU)
+  location     String           @default("Kantor Pusat") @db.VarChar(100)
+  notes        String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  workspace    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@map("attendance_records")
+}
+
+model EmployeePayroll {
+  id           String    @id @default(uuid()) @db.Uuid
+  workspaceId  String    @map("workspace_id") @db.Uuid
+  employeeName String    @map("employee_name") @db.VarChar(100)
+  role         String    @default("Staf Operasional") @db.VarChar(100)
+  basicSalary  Float     @map("basic_salary")
+  allowance    Float     @default(0)
+  overtime     Float     @default(0)
+  deductions   Float     @default(0)
+  netSalary    Float     @map("net_salary")
+  monthYear    String    @map("month_year") @db.VarChar(50)
+  isPaid       Boolean   @default(false) @map("is_paid")
+  paidAt       DateTime? @map("paid_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, monthYear])
+  @@map("employee_payrolls")
+}
+

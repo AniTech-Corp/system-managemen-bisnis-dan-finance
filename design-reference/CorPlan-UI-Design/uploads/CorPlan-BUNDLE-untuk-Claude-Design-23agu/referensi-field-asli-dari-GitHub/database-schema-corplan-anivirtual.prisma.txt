@@ -1,0 +1,146 @@
+model CorPlanProject {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  projectId   String?  @map("project_id") @db.Uuid
+  title       String   @db.VarChar(255)
+  revisionSeq Int      @default(1) @map("revision_seq")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  outputs     CorPlanOutput[]
+
+  @@index([workspaceId])
+  @@map("corplan_projects")
+}
+
+model CorPlanOutput {
+  id              String         @id @default(uuid()) @db.Uuid
+  corplanProjectId String        @map("corplan_project_id") @db.Uuid
+  module          String         @db.VarChar(50)
+  outputData      Json           @map("output_data") @db.JsonB
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  corplanProject  CorPlanProject @relation(fields: [corplanProjectId], references: [id], onDelete: Cascade)
+
+  @@index([corplanProjectId, module])
+  @@map("corplan_outputs")
+}
+
+enum SessionType {
+  UNDERSTAND
+  REPLY
+  REQUEST
+  ROADMAP
+}
+
+model AniVirtualSession {
+  id          String             @id @default(uuid()) @db.Uuid
+  workspaceId String             @map("workspace_id") @db.Uuid
+  userId      String             @map("user_id") @db.Uuid
+  type        SessionType
+  title       String?            @db.VarChar(255)
+  createdAt   DateTime           @default(now()) @map("created_at")
+
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages    AniVirtualMessage[]
+
+  @@index([workspaceId, userId])
+  @@map("anivirtual_sessions")
+}
+
+model AniVirtualMessage {
+  id        String            @id @default(uuid()) @db.Uuid
+  sessionId String            @map("session_id") @db.Uuid
+  sender    String            @db.VarChar(20)
+  content   Json              @db.JsonB
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  session   AniVirtualSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("anivirtual_messages")
+}
+
+enum WorkflowStatus {
+  ACTIVE
+  PAUSED
+}
+
+model Workflow {
+model CreditAccount {
+  id            String    @id @default(uuid()) @db.Uuid
+  workspaceId   String    @unique @map("workspace_id") @db.Uuid
+  weeklyCredit  Int       @default(0) @map("weekly_credit")
+  reserveCredit Int       @default(0) @map("reserve_credit")
+  lastReset     DateTime  @default(now()) @map("last_reset")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("credit_accounts")
+}
+
+enum LedgerType {
+  CONSUME
+  REFILL
+  RESERVE_UNLOCK
+}
+
+model CreditLedger {
+  id          String     @id @default(uuid()) @db.Uuid
+  workspaceId String     @map("workspace_id") @db.Uuid
+  userId      String?    @map("user_id") @db.Uuid
+  amount      Int
+  type        LedgerType
+  source      String     @db.VarChar(100)
+  metadata    Json?      @db.JsonB
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@map("credit_ledger")
+}
+
+model WorkspaceAIKey {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @unique @map("workspace_id") @db.Uuid
+  provider    String   @db.VarChar(50)
+  apiKeyEnc   String   @map("api_key_enc") @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("workspace_ai_keys")
+}
+
+model Entitlement {
+  id         String     @id @default(uuid()) @db.Uuid
+  planType   PlanType   @map("plan_type")
+  accessType AccessType @map("access_type")
+  featureKey String     @map("feature_key") @db.VarChar(100)
+  allowed    Boolean    @default(true)
+
+  @@unique([planType, accessType, featureKey])
+  @@map("entitlements")
+}
+
+enum CostType {
+  FIXED
+  DYNAMIC
+}
+
+model FeatureCost {
+  id         String   @id @default(uuid()) @db.Uuid
+  featureKey String   @unique @map("feature_key") @db.VarChar(100)
+  creditCost Int      @map("credit_cost")
+  costType   CostType @default(FIXED) @map("cost_type")
+
+  @@map("feature_costs")
+}
+
+model Project {

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#0A0E15;}
+  body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#F5F7FA;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Outfit','Plus Jakarta Sans',sans-serif;margin:0;}
+  p{margin:0;text-wrap:pretty;}
+  a{color:#F5F7FA;text-decoration:none;transition:color 160ms ease;}
+  a:hover{color:#4E9BFF;}
+  button{font-family:inherit;}
+  textarea,input{font-family:inherit;}
+  textarea:focus,input:focus{outline:none;border-color:rgba(78,155,255,0.45);box-shadow:0 0 0 3px rgba(0,88,190,0.14);}
+  ::selection{background:rgba(0,88,190,0.55);color:#fff;}
+  ::placeholder{color:#737D90;}
+  @keyframes avSpin{to{transform:rotate(360deg);}}
+  @keyframes avPulse{0%,100%{opacity:0.35;}50%{opacity:0.9;}}
+  @keyframes avEdge{0%{transform:translateX(-105%);}55%{transform:translateX(105%);}100%{transform:translateX(105%);}}
+  @media (max-width:1080px){
+    [data-split]{grid-template-columns:1fr !important;}
+    [data-visual-wrap]{height:300px !important;}
+    [data-draft-grid]{grid-template-columns:1fr 1fr !important;}
+    [data-form3]{grid-template-columns:1fr 1fr !important;}
+    [data-page-pad]{padding:26px 20px 90px !important;}
+    [data-h1]{font-size:28px !important;}
+  }
+  @media (max-width:720px){
+    [data-draft-grid]{grid-template-columns:1fr !important;}
+    [data-form3]{grid-template-columns:1fr !important;}
+    [data-form2]{grid-template-columns:1fr !important;}
+    [data-tabbar]{flex-wrap:nowrap !important;overflow-x:auto !important;}
+  }
+</style>
+</helmet>
+
+<div style="position:relative;min-height:100vh;background:#0A0E15;overflow-x:hidden;">
+
+  <canvas data-particles="true" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+  <div aria-hidden="true" style="position:fixed;top:-220px;left:18%;width:900px;height:620px;background:radial-gradient(closest-side,rgba(0,88,190,0.16),rgba(0,88,190,0.03) 60%,rgba(6,8,12,0) 100%);filter:blur(40px);pointer-events:none;z-index:0;"></div>
+  <div aria-hidden="true" style="position:fixed;bottom:-260px;right:6%;width:760px;height:520px;background:radial-gradient(closest-side,rgba(201,166,107,0.09),rgba(201,166,107,0.02) 60%,rgba(6,8,12,0) 100%);filter:blur(60px);pointer-events:none;z-index:0;"></div>
+
+  <div style="position:sticky;top:0;z-index:10;background:rgba(10,14,21,0.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.1);">
+    <div style="max-width:1220px;margin:0 auto;padding:16px 34px 0;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 0.8l11.2 6v10.4L12 23.2 0.8 17.2V6.8z" fill="var(--av-accent,#0058BE)"></path>
+          <path d="M8.2 6.6v10.8M8.2 12l6.4-5.4M8.2 12l6.9 5.4" stroke="#F5F7FA" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span style="font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.04em;">KLIR</span>
+        <div style="width:1px;height:22px;background:rgba(255,255,255,0.1);"></div>
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">{{ crumb }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(63,191,143,0.28);background:rgba(63,191,143,0.07);border-radius:999px;padding:7px 14px 7px 12px;">
+        <span style="position:relative;width:7px;height:7px;border-radius:50%;background:#3FBF8F;flex:none;">
+          <span style="position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(63,191,143,0.5);animation:avPulse 2.4s ease-in-out infinite;"></span>
+        </span>
+        <div style="display:flex;flex-direction:column;gap:1px;">
+          <span style="font-size:11.5px;color:#F5F7FA;font-weight:500;line-height:1.3;">Konteks CorPlan tersinkron</span>
+          <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.06em;color:#8A93A3;">{{ corplanRef }} · {{ corplanAgo }}</span>
+        </div>
+      </div>
+    </div>
+    <div data-tabbar="true" style="max-width:1220px;margin:0 auto;padding:12px 34px 0;display:flex;gap:4px;flex-wrap:wrap;">
+      <button data-tab-item="chat" onClick="{{ goChat }}" style="display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:10px 10px 0 0;border:none;border-bottom:2px solid transparent;background:transparent;color:#8A93A3;font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 180ms ease,color 180ms ease,border-color 180ms ease;" style-hover="color:#F5F7FA;">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;opacity:0.75;">01</span>Obrolan Asisten
+      </button>
+      <button data-tab-item="roadmap" onClick="{{ goRoadmap }}" style="display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:10px 10px 0 0;border:none;border-bottom:2px solid transparent;background:transparent;color:#8A93A3;font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 180ms ease,color 180ms ease,border-color 180ms ease;" style-hover="color:#F5F7FA;">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;opacity:0.75;">02</span>Roadmap Mingguan
+      </button>
+      <button data-tab-item="budget" onClick="{{ goBudget }}" style="display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:10px 10px 0 0;border:none;border-bottom:2px solid transparent;background:transparent;color:#8A93A3;font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 180ms ease,color 180ms ease,border-color 180ms ease;" style-hover="color:#F5F7FA;">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;opacity:0.75;">03</span>Cek Anggaran
+      </button>
+      <button data-tab-item="memory" onClick="{{ goMemory }}" style="display:flex;align-items:center;gap:9px;padding:11px 15px;border-radius:10px 10px 0 0;border:none;border-bottom:2px solid transparent;background:transparent;color:#8A93A3;font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background 180ms ease,color 180ms ease,border-color 180ms ease;" style-hover="color:#F5F7FA;">
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;opacity:0.75;">04</span>Memori Kontekstual
+      </button>
+    </div>
+  </div>
+
+  <main style="position:relative;z-index:1;">
+
+    <!-- OBROLAN ASISTEN -->
+    <sc-if value="{{ isChat }}" hint-placeholder-val="{{ true }}">
+      <div data-page-pad="true" style="max-width:1220px;margin:0 auto;padding:32px 34px 110px;">
+        <div style="margin-bottom:24px;">
+          <h1 data-h1="true" style="font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">Obrolan Asisten</h1>
+          <p style="font-size:14.5px;color:#8A93A3;margin-top:10px;max-width:600px;line-height:1.6;">Ceritakan pesan yang mau dibalas dan suasana yang kamu mau. Empat draf balasan langsung muncul berdampingan — tinggal bandingkan, lalu salin yang paling pas.</p>
+        </div>
+
+        <div data-split="true" style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:20px;align-items:stretch;">
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);padding:22px;display:flex;flex-direction:column;gap:14px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">PESAN YANG MAU DIBALAS</span>
+              <button onClick="{{ useSampleChat }}" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:11.5px;padding:5px 11px;border-radius:7px;cursor:pointer;transition:color 170ms ease,border-color 170ms ease;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.4);">Pakai contoh</button>
+            </div>
+            <textarea value="{{ chatMsg }}" onChange="{{ setChatMsg }}" placeholder="Tempel atau tulis pesan dari atasan, klien, atau rekan kerja…" style="width:100%;min-height:140px;resize:vertical;border:1px solid rgba(255,255,255,0.09);border-radius:13px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:14.5px;line-height:1.65;padding:15px 16px;transition:border-color 180ms ease,box-shadow 180ms ease;"></textarea>
+
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">NADA ATAU GAYA BAHASA</span>
+            <input value="{{ chatTone }}" onChange="{{ setChatTone }}" placeholder="mis. santai tapi tetap sopan, atau to the point ala bos startup" style="width:100%;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:13.5px;padding:12px 14px;transition:border-color 180ms ease,box-shadow 180ms ease;">
+
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin-top:4px;"></div>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button data-chat-btn="true" onClick="{{ makeChat }}" style="position:relative;display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--av-accent,#0058BE));border:none;padding:12px 20px;border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 170ms ease,filter 170ms ease;" style-hover="transform:translateY(-1px);filter:brightness(1.1);">
+                <span>{{ chatBtnLabel }}</span>
+                <sc-if value="{{ isChatLoading }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:13px;height:13px;border-radius:50%;border:1.6px solid rgba(255,255,255,0.3);border-top-color:#fff;animation:avSpin 720ms linear infinite;"></span>
+                </sc-if>
+              </button>
+              <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(78,155,255,0.3);background:rgba(0,88,190,0.1);border-radius:999px;padding:6px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#4E9BFF;white-space:nowrap;">⚡ 10 KREDIT</span>
+            </div>
+
+            <sc-if value="{{ isChatLoading }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid rgba(78,155,255,0.24);border-radius:12px;padding:13px 15px;background:rgba(0,88,190,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <span style="font-size:12.5px;color:#F5F7FA;">{{ chatLoadStatus }}</span>
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#4E9BFF;animation:avPulse 1.4s ease-in-out infinite;">EMPAT DRAF SEKALIGUS</span>
+              </div>
+            </sc-if>
+          </div>
+
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">PERCABANGAN BALASAN</span>
+              <span style="font-size:11.5px;color:#8A93A3;">Satu pesan, empat arah balasan sekaligus.</span>
+            </div>
+            <div data-visual-wrap="true" style="position:relative;flex:1;min-height:360px;">
+              <sc-if value="{{ visualsOn }}" hint-placeholder-val="{{ true }}">
+                <x-import component-from-global-scope="av-branch" from="./av-visuals.js" active="{{ chatActive }}" accent="{{ accentHex }}" labels="DRAF 1|DRAF 2|DRAF 3|DRAF 4" hint-size="100%,100%" style="position:absolute;inset:0;width:100%;height:100%;"></x-import>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ hasChatDrafts }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:22px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+              <h2 style="font-size:19px;font-weight:600;letter-spacing:-0.02em;">Empat draf siap dibandingkan</h2>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#737D90;">{{ chatTiming }}</span>
+            </div>
+            <div data-draft-grid="true" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <sc-for list="{{ chatDrafts }}" as="d" hint-placeholder-count="4">
+                <div style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:16px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);padding:19px;display:flex;flex-direction:column;gap:12px;">
+                  <span aria-hidden="true" style="position:absolute;top:12px;left:12px;width:14px;height:14px;border-top:1.5px solid rgba(216,163,60,0.55);border-left:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+                  <span aria-hidden="true" style="position:absolute;bottom:12px;right:12px;width:14px;height:14px;border-bottom:1.5px solid rgba(216,163,60,0.55);border-right:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+                  <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(78,155,255,0.3);background:rgba(0,88,190,0.12);border-radius:999px;padding:5px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#4E9BFF;">{{ d.label }}</span>
+                  <p style="font-size:14px;line-height:1.7;color:#F5F7FA;white-space:pre-wrap;">{{ d.text }}</p>
+                  <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;">
+                    <span style="font-size:12px;color:#737D90;line-height:1.5;">{{ d.note }}</span>
+                    <button onClick="{{ d.onCopy }}" style="align-self:flex-start;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.03);color:#F5F7FA;font-size:12.5px;font-weight:500;padding:9px 14px;border-radius:9px;cursor:pointer;transition:background 170ms ease,border-color 170ms ease;" style-hover="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.24);">{{ d.copyLabel }}</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <button onClick="{{ regenChat }}" style="align-self:flex-start;border:1px solid rgba(201,166,107,0.32);background:rgba(201,166,107,0.07);color:#C9A66B;font-size:13px;padding:10px 16px;border-radius:10px;cursor:pointer;transition:background 170ms ease;" style-hover="background:rgba(201,166,107,0.15);">Buat ulang 4 draf</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noChatDrafts }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:22px;border:1px dashed rgba(255,255,255,0.14);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;">
+            <span style="font-size:13.5px;color:#8A93A3;line-height:1.55;max-width:560px;">Tulis pesannya, isi nada kalau mau, lalu tekan &quot;Buat 4 Balasan&quot;. Empat draf muncul sekaligus, bukan satu-satu.</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">MENUNGGU INPUT</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ROADMAP MINGGUAN -->
+    <sc-if value="{{ isRoadmap }}" hint-placeholder-val="{{ false }}">
+      <div data-page-pad="true" style="max-width:1220px;margin:0 auto;padding:32px 34px 110px;">
+        <div style="margin-bottom:24px;">
+          <h1 data-h1="true" style="font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">Roadmap Mingguan</h1>
+          <p style="font-size:14.5px;color:#8A93A3;margin-top:10px;max-width:600px;line-height:1.6;">Isi target dan berapa lama pengerjaannya. AniVirtual susun jadi tahapan kerja per minggu yang jelas.</p>
+        </div>
+
+        <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);padding:22px;display:flex;flex-direction:column;gap:16px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">RENCANA KERJA</span>
+            <button onClick="{{ useSampleRoadmap }}" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:11.5px;padding:5px 11px;border-radius:7px;cursor:pointer;transition:color 170ms ease,border-color 170ms ease;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.4);">Pakai contoh</button>
+          </div>
+          <div data-form3="true" style="display:grid;grid-template-columns:1.3fr 0.7fr 1fr;gap:14px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">TARGET SASARAN</span>
+              <input value="{{ roadmapGoal }}" onChange="{{ setRoadmapGoal }}" placeholder="mis. Buka cabang kedua" style="width:100%;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:13.5px;padding:12px 14px;transition:border-color 180ms ease;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">DURASI (MINGGU)</span>
+              <input type="number" min="1" max="12" value="{{ roadmapWeeksVal }}" onChange="{{ setRoadmapWeeks }}" placeholder="4" style="width:100%;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:13.5px;padding:12px 14px;transition:border-color 180ms ease;">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">PENANGGUNG JAWAB</span>
+              <input value="{{ roadmapPic }}" onChange="{{ setRoadmapPic }}" placeholder="mis. Dedi, Manajer Operasional" style="width:100%;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:13.5px;padding:12px 14px;transition:border-color 180ms ease;">
+            </div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.07);"></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button data-roadmap-btn="true" onClick="{{ makeRoadmap }}" style="position:relative;display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--av-accent,#0058BE));border:none;padding:12px 20px;border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 170ms ease,filter 170ms ease;" style-hover="transform:translateY(-1px);filter:brightness(1.1);">
+              <span>{{ roadmapBtnLabel }}</span>
+              <sc-if value="{{ isRoadmapLoading }}" hint-placeholder-val="{{ false }}">
+                <span style="width:13px;height:13px;border-radius:50%;border:1.6px solid rgba(255,255,255,0.3);border-top-color:#fff;animation:avSpin 720ms linear infinite;"></span>
+              </sc-if>
+            </button>
+            <span style="display:inline-flex;align-items:center;gap:6px;border:1px dashed rgba(216,163,60,0.4);background:rgba(216,163,60,0.06);border-radius:999px;padding:6px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#D8A33C;white-space:nowrap;">KREDIT MENYUSUL</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ visualsOn }}" hint-placeholder-val="{{ true }}">
+          <div data-reveal="true" style="margin-top:20px;position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);overflow:hidden;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">ALUR TAHAPAN</span>
+              <span style="font-size:11.5px;color:#8A93A3;">Tiap titik mewakili satu minggu kerja.</span>
+            </div>
+            <div data-visual-wrap="true" style="position:relative;height:220px;">
+              <x-import component-from-global-scope="av-flow" from="./av-visuals.js" stage="{{ roadmapStage }}" count="{{ roadmapCount }}" accent="{{ accentHex }}" hint-size="100%,100%" style="position:absolute;inset:0;width:100%;height:100%;"></x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasRoadmap }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:22px;position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);padding:22px 24px;display:flex;flex-direction:column;gap:6px;">
+            <span aria-hidden="true" style="position:absolute;top:14px;left:14px;width:16px;height:16px;border-top:1.5px solid rgba(216,163,60,0.55);border-left:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <span aria-hidden="true" style="position:absolute;bottom:14px;right:14px;width:16px;height:16px;border-bottom:1.5px solid rgba(216,163,60,0.55);border-right:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+              <h2 style="font-size:19px;font-weight:600;letter-spacing:-0.02em;">Timeline Milestone Operasional</h2>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#737D90;">{{ roadmapTiming }}</span>
+            </div>
+            <sc-for list="{{ roadmapMilestones }}" as="m" hint-placeholder-count="4">
+              <div style="display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <div style="flex:none;width:34px;height:34px;border-radius:9px;border:1px solid rgba(78,155,255,0.3);background:rgba(0,88,190,0.12);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:#4E9BFF;">{{ m.weekLabel }}</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+                  <span style="font-size:14px;color:#F5F7FA;line-height:1.55;">{{ m.text }}</span>
+                  <span style="font-size:12px;color:#737D90;">PIC: {{ m.pic }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noRoadmap }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:22px;border:1px dashed rgba(255,255,255,0.14);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;">
+            <span style="font-size:13.5px;color:#8A93A3;line-height:1.55;max-width:560px;">Timeline Milestone Operasional muncul di sini setelah target dan durasi diisi.</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">MENUNGGU INPUT</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- CEK ANGGARAN -->
+    <sc-if value="{{ isBudget }}" hint-placeholder-val="{{ false }}">
+      <div data-page-pad="true" style="max-width:1220px;margin:0 auto;padding:32px 34px 110px;">
+        <div style="margin-bottom:24px;">
+          <h1 data-h1="true" style="font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">Cek Anggaran</h1>
+          <p style="font-size:14.5px;color:#8A93A3;margin-top:10px;max-width:600px;line-height:1.6;">Cek pengajuan belanja sebelum disetujui — cocok buat beli alat, renovasi, atau kebutuhan operasional lain.</p>
+        </div>
+
+        <div data-split="true" style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:20px;align-items:stretch;">
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);padding:22px;display:flex;flex-direction:column;gap:16px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">PENGAJUAN BELANJA</span>
+              <button onClick="{{ useSampleBudget }}" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:11.5px;padding:5px 11px;border-radius:7px;cursor:pointer;transition:color 170ms ease,border-color 170ms ease;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.4);">Pakai contoh</button>
+            </div>
+            <div data-form2="true" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">NOMINAL PENGAJUAN (RP)</span>
+                <input type="number" min="0" value="{{ budgetAmount }}" onChange="{{ setBudgetAmount }}" placeholder="mis. 15000000" style="width:100%;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:13.5px;padding:12px 14px;transition:border-color 180ms ease;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">KATEGORI OPERASIONAL</span>
+                <div style="position:relative;">
+                  <button onClick="{{ toggleCategory }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(255,255,255,0.09);border-radius:11px;background:rgba(255,255,255,0.025);padding:12px 14px;cursor:pointer;color:#F5F7FA;font-size:13.5px;text-align:left;transition:border-color 180ms ease,background 180ms ease;" style-hover="border-color:rgba(78,155,255,0.4);background:rgba(0,88,190,0.08);">
+                    <span>{{ budgetCategoryLabel }}</span>
+                    <span style="color:#737D90;font-size:11px;">▾</span>
+                  </button>
+                  <sc-if value="{{ menuIsCategory }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;border:1px solid rgba(255,255,255,0.1);border-radius:13px;background:#0B0E14;box-shadow:0 26px 70px rgba(0,0,0,0.65);padding:6px;display:flex;flex-direction:column;gap:2px;">
+                      <sc-for list="{{ categories }}" as="c" hint-placeholder-count="5">
+                        <button onClick="{{ c.pick }}" style="display:flex;align-items:center;gap:10px;border:none;background:transparent;color:#F5F7FA;font-size:13px;padding:9px 11px;border-radius:9px;cursor:pointer;text-align:left;transition:background 150ms ease;" style-hover="background:rgba(0,88,190,0.16);">{{ c.name }}</button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,0.07);"></div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button data-budget-btn="true" onClick="{{ checkBudgetGo }}" style="position:relative;display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--av-accent,#0058BE));border:none;padding:12px 20px;border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 170ms ease,filter 170ms ease;" style-hover="transform:translateY(-1px);filter:brightness(1.1);">
+                <span>{{ budgetBtnLabel }}</span>
+                <sc-if value="{{ isBudgetLoading }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:13px;height:13px;border-radius:50%;border:1.6px solid rgba(255,255,255,0.3);border-top-color:#fff;animation:avSpin 720ms linear infinite;"></span>
+                </sc-if>
+              </button>
+              <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(63,191,143,0.32);background:rgba(63,191,143,0.09);border-radius:999px;padding:6px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#3FBF8F;white-space:nowrap;">GRATIS</span>
+            </div>
+          </div>
+
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">SEGEL VERIFIKASI</span>
+              <span style="font-size:11.5px;color:#8A93A3;">Segel terbentuk begitu status keluar.</span>
+            </div>
+            <div data-visual-wrap="true" style="position:relative;flex:1;min-height:360px;">
+              <sc-if value="{{ visualsOn }}" hint-placeholder-val="{{ true }}">
+                <x-import component-from-global-scope="av-seal" from="./av-visuals.js" phase="{{ sealPhase }}" status="{{ sealStatus }}" po="{{ sealPo }}" accent="{{ accentHex }}" hint-size="100%,100%" style="position:absolute;inset:0;width:100%;height:100%;"></x-import>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ budgetApproved }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:22px;position:relative;border:1px solid rgba(63,191,143,0.3);border-radius:18px;background:linear-gradient(180deg,#16241F 0%,#0F131C 100%);padding:22px 24px;display:flex;flex-direction:column;gap:12px;">
+            <span aria-hidden="true" style="position:absolute;top:14px;left:14px;width:16px;height:16px;border-top:1.5px solid rgba(216,163,60,0.55);border-left:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <span aria-hidden="true" style="position:absolute;bottom:14px;right:14px;width:16px;height:16px;border-bottom:1.5px solid rgba(216,163,60,0.55);border-right:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(63,191,143,0.35);background:rgba(63,191,143,0.1);border-radius:999px;padding:5px 12px;">
+              <span style="width:5px;height:5px;border-radius:50%;background:#3FBF8F;"></span>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#3FBF8F;">{{ budgetStatusLabel }}</span>
+            </span>
+            <div style="display:flex;flex-wrap:wrap;gap:24px;">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.14em;color:#737D90;">NOMOR PO</span>
+                <span style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:600;letter-spacing:-0.01em;">{{ budgetPO }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.14em;color:#737D90;">NOMINAL</span>
+                <span style="font-size:15px;color:#F5F7FA;">{{ budgetAmountLabel }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.14em;color:#737D90;">KATEGORI</span>
+                <span style="font-size:15px;color:#F5F7FA;">{{ budgetCategoryOut }}</span>
+              </div>
+            </div>
+            <span style="font-size:12.5px;color:#8A93A3;line-height:1.5;">{{ budgetNote }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ budgetWarning }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:22px;position:relative;border:1px solid rgba(216,163,60,0.32);border-radius:18px;background:linear-gradient(180deg,#221C10 0%,#0F131C 100%);padding:22px 24px;display:flex;flex-direction:column;gap:12px;">
+            <span aria-hidden="true" style="position:absolute;top:14px;left:14px;width:16px;height:16px;border-top:1.5px solid rgba(216,163,60,0.55);border-left:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <span aria-hidden="true" style="position:absolute;bottom:14px;right:14px;width:16px;height:16px;border-bottom:1.5px solid rgba(216,163,60,0.55);border-right:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+            <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(216,163,60,0.35);background:rgba(216,163,60,0.1);border-radius:999px;padding:5px 12px;">
+              <span style="width:5px;height:5px;border-radius:50%;background:#D8A33C;"></span>
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#D8A33C;">{{ budgetStatusLabel }}</span>
+            </span>
+            <div style="display:flex;flex-wrap:wrap;gap:24px;">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.14em;color:#737D90;">NOMINAL</span>
+                <span style="font-size:15px;color:#F5F7FA;">{{ budgetAmountLabel }}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9px;letter-spacing:0.14em;color:#737D90;">KATEGORI</span>
+                <span style="font-size:15px;color:#F5F7FA;">{{ budgetCategoryOut }}</span>
+              </div>
+            </div>
+            <span style="font-size:12.5px;color:#8A93A3;line-height:1.5;">Belum ada nomor PO — nominal ini melebihi batas anggaran dari rencana bisnis aktif. {{ budgetNote }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noBudget }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:22px;border:1px dashed rgba(255,255,255,0.14);border-radius:16px;padding:26px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;">
+            <span style="font-size:13.5px;color:#8A93A3;line-height:1.55;max-width:560px;">Isi nominal dan kategori, lalu tekan &quot;Cek Anggaran&quot;. Gratis, tanpa potong kredit.</span>
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.14em;color:#737D90;">MENUNGGU INPUT</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- MEMORI KONTEKSTUAL -->
+    <sc-if value="{{ isMemory }}" hint-placeholder-val="{{ false }}">
+      <div data-page-pad="true" style="max-width:1220px;margin:0 auto;padding:32px 34px 110px;">
+        <div style="margin-bottom:24px;">
+          <h1 data-h1="true" style="font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">Memori Kontekstual</h1>
+          <p style="font-size:14.5px;color:#8A93A3;margin-top:10px;max-width:600px;line-height:1.6;">Simpan instruksi atau kebiasaan yang harus terus diingat asisten — buat kamu sendiri, atau buat satu tim.</p>
+        </div>
+
+        <div data-split="true" style="display:grid;grid-template-columns:1.02fr 0.98fr;gap:20px;align-items:stretch;">
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);padding:22px;display:flex;flex-direction:column;gap:14px;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">ISI INSTRUKSI ATAU MEMORI</span>
+              <button onClick="{{ useSampleMemory }}" style="border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:11.5px;padding:5px 11px;border-radius:7px;cursor:pointer;transition:color 170ms ease,border-color 170ms ease;" style-hover="color:#F5F7FA;border-color:rgba(78,155,255,0.4);">Pakai contoh</button>
+            </div>
+            <textarea value="{{ memContent }}" onChange="{{ setMemContent }}" placeholder="mis. Selalu tulis harga dalam Rupiah utuh, jangan disingkat jadi 'rb'." style="width:100%;min-height:120px;resize:vertical;border:1px solid rgba(255,255,255,0.09);border-radius:13px;background:rgba(255,255,255,0.025);color:#F5F7FA;font-size:14.5px;line-height:1.65;padding:15px 16px;transition:border-color 180ms ease,box-shadow 180ms ease;"></textarea>
+
+            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">CAKUPAN</span>
+            <div style="display:flex;gap:8px;">
+              <sc-if value="{{ memIsPersonal }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ pickPersonal }}" style="flex:1;border:1px solid rgba(78,155,255,0.4);background:rgba(0,88,190,0.16);color:#F5F7FA;font-size:13px;font-weight:600;padding:11px 14px;border-radius:10px;cursor:pointer;">Personal</button>
+              </sc-if>
+              <sc-if value="{{ memIsWorkspace }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ pickPersonal }}" style="flex:1;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:13px;font-weight:500;padding:11px 14px;border-radius:10px;cursor:pointer;">Personal</button>
+              </sc-if>
+              <sc-if value="{{ memIsWorkspace }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ pickWorkspace }}" style="flex:1;border:1px solid rgba(216,163,60,0.4);background:rgba(216,163,60,0.14);color:#F5F7FA;font-size:13px;font-weight:600;padding:11px 14px;border-radius:10px;cursor:pointer;">Seluruh Tim (Workspace)</button>
+              </sc-if>
+              <sc-if value="{{ memIsPersonal }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ pickWorkspace }}" style="flex:1;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:#8A93A3;font-size:13px;font-weight:500;padding:11px 14px;border-radius:10px;cursor:pointer;">Seluruh Tim (Workspace)</button>
+              </sc-if>
+            </div>
+
+            <div style="height:1px;background:rgba(255,255,255,0.07);"></div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button data-mem-btn="true" onClick="{{ saveMemory }}" style="display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:#fff;background:linear-gradient(180deg,#0F6FE0,var(--av-accent,#0058BE));border:none;padding:12px 20px;border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.24),0 2px 4px rgba(0,0,0,0.4);transition:transform 170ms ease,filter 170ms ease;" style-hover="transform:translateY(-1px);filter:brightness(1.1);">Simpan Memori</button>
+              <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(78,155,255,0.3);background:rgba(0,88,190,0.1);border-radius:999px;padding:6px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:9.5px;letter-spacing:0.12em;color:#4E9BFF;white-space:nowrap;">⚡ 5 KREDIT</span>
+            </div>
+          </div>
+
+          <div data-reveal="true" style="position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);box-shadow:0 24px 70px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity 700ms cubic-bezier(0.16,1,0.3,1),transform 700ms cubic-bezier(0.16,1,0.3,1);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;letter-spacing:0.16em;color:#737D90;">KONSTELASI MEMORI</span>
+              <span style="font-size:11.5px;color:#8A93A3;">Mengorbit &amp; mengalir ke ingatan utama. Arahkan kursor ke daftar di bawah.</span>
+            </div>
+            <div data-visual-wrap="true" style="position:relative;flex:1;min-height:360px;">
+              <sc-if value="{{ visualsOn }}" hint-placeholder-val="{{ true }}">
+                <x-import component-from-global-scope="av-constellation" from="./av-visuals.js" nodes="{{ nodeSpec }}" highlight="{{ hlIndex }}" accent="{{ accentHex }}" hint-size="100%,100%" style="position:absolute;inset:0;width:100%;height:100%;"></x-import>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;position:relative;border:1px solid rgba(255,255,255,0.13);border-radius:18px;background:linear-gradient(180deg,#171E2B 0%,#0F131C 100%);padding:8px 22px;display:flex;flex-direction:column;">
+          <span aria-hidden="true" style="position:absolute;top:14px;left:14px;width:16px;height:16px;border-top:1.5px solid rgba(216,163,60,0.55);border-left:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+          <span aria-hidden="true" style="position:absolute;bottom:14px;right:14px;width:16px;height:16px;border-bottom:1.5px solid rgba(216,163,60,0.55);border-right:1.5px solid rgba(216,163,60,0.55);pointer-events:none;"></span>
+          <sc-for list="{{ memItems }}" as="m" hint-placeholder-count="4">
+            <div onPointerEnter="{{ m.hoverIn }}" onPointerLeave="{{ m.hoverOut }}" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div style="display:flex;align-items:flex-start;gap:12px;min-width:0;flex:1;">
+                <sc-if value="{{ m.isWork }}" hint-placeholder-val="{{ false }}">
+                  <span style="flex:none;margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:8.5px;letter-spacing:0.1em;border:1px solid rgba(216,163,60,0.4);background:rgba(216,163,60,0.1);color:#D8A33C;border-radius:999px;padding:4px 9px;white-space:nowrap;">WORKSPACE</span>
+                </sc-if>
+                <sc-if value="{{ m.isPersonal }}" hint-placeholder-val="{{ true }}">
+                  <span style="flex:none;margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:8.5px;letter-spacing:0.1em;border:1px solid rgba(78,155,255,0.35);background:rgba(0,88,190,0.1);color:#4E9BFF;border-radius:999px;padding:4px 9px;white-space:nowrap;">PERSONAL</span>
+                </sc-if>
+                <span style="font-size:14px;color:#F5F7FA;line-height:1.55;">{{ m.content }}</span>
+              </div>
+              <button onClick="{{ m.del }}" aria-label="Hapus memori" style="flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);border-radius:9px;cursor:pointer;color:#8A93A3;font-size:12px;transition:color 170ms ease,border-color 170ms ease;" style-hover="color:#D8A33C;border-color:rgba(216,163,60,0.4);">✕</button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noMemItems }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 4px;text-align:center;">
+              <span style="font-size:13.5px;color:#8A93A3;">Belum ada memori yang tersimpan.</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+  </main>
+
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:95;display:flex;align-items:center;gap:11px;border:1px solid rgba(78,155,255,0.3);border-radius:999px;background:rgba(11,14,20,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:11px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+      <span style="width:6px;height:6px;border-radius:50%;background:#4E9BFF;"></span>
+      <span style="font-size:13px;color:#F5F7FA;">{{ toastText }}</span>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1400,&quot;height&quot;:900},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#0058BE&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#0058BE&quot;,&quot;#0F6FE0&quot;,&quot;#2F6BD8&quot;,&quot;#1E7A9E&quot;],&quot;section&quot;:&quot;Merek&quot;},&quot;animate&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Gerak&quot;},&quot;particleDensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.2,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Gerak&quot;},&quot;showVisuals&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Gerak&quot;}}">
+const CORPLAN_REF = 'Kedai Kopi Anitech Specialist';
+const BUDGET_LIMIT = 50000000;
+const CATS = ['Peralatan & Perlengkapan', 'Renovasi Tempat Usaha', 'Operasional Harian', 'Pemasaran & Promosi', 'Lainnya'];
+const CHAT_TEMPLATES = [
+  'Baik, soal {core} sudah saya terima. Saya proses sekarang dan kabari begitu selesai.',
+  'Terima kasih infonya. Untuk {core}, saya tindak lanjuti hari ini juga.',
+  'Oke, saya catat: {core}. Saya kerjakan dan update begitu ada perkembangan.',
+  'Sudah saya baca soal {core}. Saya susun dulu, nanti saya kirim hasilnya untuk dicek bareng.'
+];
+const MILESTONE_BANK = [
+  'Menyiapkan {goal}: kumpulkan kebutuhan dan bagi tugas awal.',
+  'Mulai jalan tahap pertama {goal}.',
+  'Jalan penuh — pantau progres {goal} tiap hari.',
+  'Evaluasi tengah jalan, cek apa yang masih perlu disesuaikan.',
+  'Percepatan menuju target akhir {goal}.',
+  'Rapikan hasil dan siapkan laporan {goal}.'
+];
+const SAMPLE_MSG = 'Mas, soal materi presentasi kemarin tolong dirapikan lagi ya. Nanti kita bahas. Bagian angkanya tolong dicek ulang, jangan sampai seperti terakhir kali. Secepatnya ya.';
+const SAMPLE_TONE = 'santai tapi tetap sopan, kayak ngomong ke rekan tim sendiri';
+const SEED_MEMORY = [
+  { content: 'Selalu tulis harga dalam Rupiah utuh, jangan disingkat jadi "rb" atau "K".', scope: 'WORKSPACE' },
+  { content: 'Kalau balas ke Bu Ratna, langsung ke inti - dia tidak suka basa-basi.', scope: 'PERSONAL' },
+  { content: 'Jam operasional toko 08.00-20.00, tutup tiap tanggal merah nasional.', scope: 'WORKSPACE' },
+  { content: 'Saya lebih suka draf balasan singkat, maksimal tiga kalimat.', scope: 'PERSONAL' }
+];
+
+class Component extends DCLogic {
+  state = {
+    tab: 'chat',
+    chatMsg: '', chatTone: '', chatPhase: 'idle', chatDrafts: [], chatTiming: '', chatLoadStatus: '',
+    roadmapGoal: '', roadmapWeeks: 4, roadmapPic: '', roadmapPhase: 'idle', roadmapMilestones: [], roadmapTiming: '',
+    budgetAmount: '', budgetCategory: CATS[0], budgetPhase: 'idle', budgetResult: null,
+    memContent: '', memScope: 'PERSONAL', memItems: SEED_MEMORY.map((m, i) => Object.assign({ id: 'm' + i }, m)),
+    hl: -1, menu: null, copied: '', toast: ''
+  };
+
+  componentDidMount() {
+    this.applyVars();
+    this.syncTabs();
+    this.syncButtons();
+    this.initParticles();
+    this.initReveal();
+    this.initTilt();
+    this.initEdge();
+  }
+
+  componentDidUpdate(prev) {
+    this.applyVars();
+    this.syncTabs();
+    this.syncButtons();
+    this.initReveal();
+    this.initTilt();
+    this.initEdge();
+    if (prev && prev.props && prev.props.accent !== this.props.accent) this.restartParticles();
+  }
+
+  componentWillUnmount() {
+    if (this.io) this.io.disconnect();
+    cancelAnimationFrame(this.pRaf);
+    clearTimeout(this._c1); clearTimeout(this._c2); clearTimeout(this._r1); clearTimeout(this._b1);
+    clearTimeout(this._toastT); clearTimeout(this._copyT);
+    window.removeEventListener('resize', this.onResize);
+  }
+
+  applyVars() {
+    document.documentElement.style.setProperty('--av-accent', this.props.accent || '#0058BE');
+  }
+
+  syncTabs() {
+    const tab = this.state.tab;
+    document.querySelectorAll('[data-tab-item]').forEach((el) => {
+      const on = el.getAttribute('data-tab-item') === tab;
+      el.style.background = on ? 'rgba(0,88,190,0.16)' : 'transparent';
+      el.style.borderBottomColor = on ? (this.props.accent || '#4E9BFF') : 'transparent';
+      el.style.color = on ? '#F5F7FA' : '#8A93A3';
+    });
+  }
+
+  syncButtons() {
+    const s = this.state;
+    const set = (sel, ok) => { const el = document.querySelector(sel); if (el) { el.style.opacity = ok ? '1' : '0.42'; el.style.pointerEvents = ok ? 'auto' : 'none'; } };
+    set('[data-chat-btn]', (s.chatMsg || '').trim().length > 0 && s.chatPhase !== 'loading');
+    set('[data-roadmap-btn]', (s.roadmapGoal || '').trim().length > 0 && s.roadmapPhase !== 'loading');
+    set('[data-budget-btn]', parseFloat(s.budgetAmount) > 0 && s.budgetPhase !== 'loading');
+    set('[data-mem-btn]', (s.memContent || '').trim().length > 0);
+  }
+
+  /* ---------- motion ---------- */
+  initReveal() {
+    const els = Array.from(document.querySelectorAll('[data-reveal]'));
+    const show = (el) => { el.style.opacity = '1'; el.style.transform = 'none'; el.style.filter = 'none'; };
+    if (this.props.animate === false || !('IntersectionObserver' in window)) { els.forEach(show); return; }
+    if (this.io) this.io.disconnect();
+    const seen = new Map();
+    els.forEach((el) => {
+      if (el.getAttribute('data-shown') === '1') { show(el); return; }
+      const p = el.parentElement;
+      const n = seen.get(p) || 0;
+      seen.set(p, n + 1);
+      el.style.transitionDelay = Math.min(n, 6) * 70 + 'ms';
+      if (el.style.filter === '') el.style.filter = 'blur(7px)';
+      if (el.style.transition.indexOf('filter') < 0) el.style.transition += ',filter 700ms cubic-bezier(0.16,1,0.3,1)';
+    });
+    this.io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.setAttribute('data-shown', '1');
+        show(e.target);
+        this.io.unobserve(e.target);
+      });
+    }, { rootMargin: '0px 0px -5% 0px', threshold: 0.06 });
+    els.forEach((el) => { if (el.getAttribute('data-shown') !== '1') this.io.observe(el); });
+  }
+
+  initEdge() {
+    if (this.props.animate === false) return;
+    Array.from(document.querySelectorAll('[data-tilt]')).forEach((card, i) => {
+      if (card.getAttribute('data-edged') === '1') return;
+      card.setAttribute('data-edged', '1');
+      const rail = document.createElement('div');
+      rail.setAttribute('aria-hidden', 'true');
+      rail.style.cssText = 'position:absolute;top:0;left:0;right:0;height:1px;overflow:hidden;pointer-events:none;z-index:3;border-radius:inherit;';
+      const line = document.createElement('div');
+      line.style.cssText = 'position:absolute;inset:0;background:linear-gradient(90deg,rgba(78,155,255,0) 0%,rgba(78,155,255,0.75) 45%,rgba(201,166,107,0.5) 60%,rgba(78,155,255,0) 100%);animation:avEdge 7s cubic-bezier(0.5,0,0.5,1) infinite;animation-delay:' + (i * 420) + 'ms;';
+      rail.appendChild(line);
+      card.appendChild(rail);
+    });
+  }
+
+  initTilt() {
+    if (window.innerWidth <= 1080 || this.props.animate === false) return;
+    Array.from(document.querySelectorAll('[data-tilt]')).forEach((panel) => {
+      if (panel.getAttribute('data-tilted') === '1') return;
+      panel.setAttribute('data-tilted', '1');
+      const parent = panel.parentElement;
+      if (parent) parent.style.perspective = '1600px';
+      panel.style.transformStyle = 'preserve-3d';
+      panel.style.willChange = 'transform';
+      const sheen = document.createElement('div');
+      sheen.setAttribute('aria-hidden', 'true');
+      sheen.style.cssText = 'position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity 220ms ease;z-index:2;';
+      panel.appendChild(sheen);
+      let raf = null, tx = 0, ty = 0, cx = 0, cy = 0;
+      const run = () => {
+        cx += (tx - cx) * 0.14;
+        cy += (ty - cy) * 0.14;
+        panel.style.transform = 'rotateY(' + (cx * 6).toFixed(2) + 'deg) rotateX(' + (-cy * 6).toFixed(2) + 'deg)';
+        if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) raf = requestAnimationFrame(run); else raf = null;
+      };
+      const kick = () => { if (!raf) raf = requestAnimationFrame(run); };
+      panel.addEventListener('pointermove', (e) => {
+        if (panel.style.opacity !== '1') return;
+        const r = panel.getBoundingClientRect();
+        tx = (e.clientX - r.left) / r.width - 0.5;
+        ty = (e.clientY - r.top) / r.height - 0.5;
+        sheen.style.opacity = '1';
+        sheen.style.background = 'radial-gradient(460px circle at ' + ((tx + 0.5) * 100).toFixed(1) + '% ' + ((ty + 0.5) * 100).toFixed(1) + '%, rgba(78,155,255,0.14), rgba(201,166,107,0.05) 38%, transparent 66%)';
+        kick();
+      });
+      panel.addEventListener('pointerleave', () => { tx = 0; ty = 0; sheen.style.opacity = '0'; kick(); });
+    });
+  }
+
+  restartParticles() { cancelAnimationFrame(this.pRaf); this.pRaf = null; this.initParticles(); }
+
+  initParticles() {
+    const canvas = document.querySelector('[data-particles]');
+    if (!canvas || window.innerWidth <= 720) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const hex = (this.props.accent || '#0058BE').replace('#', '');
+    const n = parseInt(hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex, 16);
+    const rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(',');
+    const dens = this.props.particleDensity == null ? 1 : this.props.particleDensity;
+    const fit = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this.pw = window.innerWidth;
+      this.ph = window.innerHeight;
+      canvas.width = Math.round(this.pw * dpr);
+      canvas.height = Math.round(this.ph * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    fit();
+    this.onResize = fit;
+    window.addEventListener('resize', this.onResize, { passive: true });
+    const count = Math.round(45 * dens);
+    const parts = [];
+    for (let i = 0; i < count; i++) {
+      const white = Math.random() < 0.7;
+      parts.push({
+        x: Math.random() * this.pw, y: Math.random() * this.ph,
+        r: 1 + Math.random() * 1.2, o: 0.12 + Math.random() * 0.32,
+        vy: -0.14 - Math.random() * 0.18, c: white ? '255,255,255' : rgb
+      });
+    }
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const draw = (move) => {
+      ctx.clearRect(0, 0, this.pw, this.ph);
+      parts.forEach((p) => {
+        if (move) { p.y += p.vy; if (p.y < -6) { p.y = this.ph + 6; p.x = Math.random() * this.pw; } }
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(' + p.c + ',' + p.o + ')';
+        ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+        ctx.fill();
+      });
+    };
+    if (reduce || this.props.animate === false) { draw(false); return; }
+    const loop = () => { this.pRaf = requestAnimationFrame(loop); draw(true); };
+    loop();
+  }
+
+  /* ---------- helpers ---------- */
+  extractCore(text) {
+    const clean = (text || '').replace(/\s+/g, ' ').trim();
+    if (!clean) return 'permintaan di pesan tadi';
+    const parts = clean.split(/(?<=[.!?])\s+/);
+    const verbs = /(tolong|mohon|minta|harap|bisa|coba|siapkan|kirim|cek|periksa|revisi|rapikan|update|konfirmasi|jadwalkan|follow up)/i;
+    let picked = parts.filter((s) => verbs.test(s));
+    if (!picked.length) picked = [parts[0]];
+    picked = picked.slice(0, 2).map((s) => {
+      let v = s.trim().replace(/[.!?]+$/, '');
+      v = v.replace(/^(mas|mbak|bu|pak|bro|sis|halo|hai|selamat pagi|selamat siang)[,\s]+/i, '');
+      v = v.replace(/\s+(ya|dong|nih|sih|deh)$/i, '');
+      return v.charAt(0).toLowerCase() + v.slice(1);
+    });
+    return picked.join('; ');
+  }
+
+  buildChatDrafts(msg, tone, seedOffset) {
+    const core = this.extractCore(msg);
+    const note = (tone || '').trim() ? 'Mengikuti gaya: \u201c' + tone.trim() + '\u201d' : 'Gaya netral - kolom nada belum diisi';
+    const off = seedOffset || 0;
+    return CHAT_TEMPLATES.map((_, i) => {
+      const idx = (i + off) % CHAT_TEMPLATES.length;
+      return { label: 'DRAF ' + (i + 1), text: CHAT_TEMPLATES[idx].replace('{core}', core), note: note };
+    });
+  }
+
+  buildMilestones(goal, weeks, pic) {
+    const n = Math.max(1, Math.min(12, parseInt(weeks, 10) || 1));
+    const g = (goal || 'target ini').trim();
+    const bankLen = MILESTONE_BANK.length;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const idx = n <= bankLen ? Math.round((i * (bankLen - 1)) / Math.max(1, n - 1)) : i % bankLen;
+      let text = MILESTONE_BANK[idx].replace('{goal}', g);
+      if (n > bankLen && i >= bankLen) text = 'Lanjutan - ' + text;
+      out.push({ weekLabel: 'M' + (i + 1), text: text, pic: (pic || '').trim() || 'Belum ditentukan' });
+    }
+    return out;
+  }
+
+  runCheckBudget(amount, category) {
+    const amt = parseFloat(amount) || 0;
+    const approved = amt > 0 && amt <= BUDGET_LIMIT;
+    return {
+      approved: approved,
+      statusLabel: approved ? 'Disetujui, Masih Sesuai Anggaran' : 'Melebihi Anggaran Rencana Bisnis',
+      po: approved ? ('PO-ANIVIRTUAL-' + Date.now()) : '',
+      category: category,
+      amountLabel: 'Rp ' + Math.round(amt).toLocaleString('id-ID'),
+      note: 'Dicek terhadap rencana bisnis aktif: ' + CORPLAN_REF
+    };
+  }
+
+  /* ---------- actions ---------- */
+  go(tab) { return () => this.setState({ tab: tab, menu: null }); }
+
+  setChatMsg = (e) => this.setState({ chatMsg: e.target.value });
+  setChatTone = (e) => this.setState({ chatTone: e.target.value });
+  useSampleChat = () => this.setState({ chatMsg: SAMPLE_MSG, chatTone: SAMPLE_TONE });
+
+  makeChat = () => {
+    if (!(this.state.chatMsg || '').trim() || this.state.chatPhase === 'loading') return;
+    const t0 = performance.now();
+    this.setState({ chatPhase: 'loading', chatLoadStatus: 'Membaca pesan…', chatDrafts: [] });
+    clearTimeout(this._c1); clearTimeout(this._c2);
+    this._c1 = setTimeout(() => this.setState({ chatLoadStatus: 'Menyusun empat gaya balasan…' }), 650);
+    this._c2 = setTimeout(() => {
+      const secs = ((performance.now() - t0) / 1000).toFixed(1).replace('.', ',');
+      this.setState({ chatPhase: 'done', chatDrafts: this.buildChatDrafts(this.state.chatMsg, this.state.chatTone, 0), chatTiming: 'SELESAI DALAM ' + secs + ' DETIK' });
+    }, 1500);
+  };
+
+  regenChat = () => {
+    if (!(this.state.chatMsg || '').trim()) return;
+    this._seed = (this._seed || 0) + 1;
+    this.setState({ chatDrafts: this.buildChatDrafts(this.state.chatMsg, this.state.chatTone, this._seed), chatTiming: 'DIPERBARUI' });
+  };
+
+  copyDraft(i) { return () => { const d = this.state.chatDrafts[i]; if (d) this.copy(d.text, 'chat' + i); }; }
+
+  setRoadmapGoal = (e) => this.setState({ roadmapGoal: e.target.value });
+  setRoadmapWeeks = (e) => this.setState({ roadmapWeeks: e.target.value });
+  setRoadmapPic = (e) => this.setState({ roadmapPic: e.target.value });
+  useSampleRoadmap = () => this.setState({ roadmapGoal: 'Buka cabang kedua di dekat kampus', roadmapWeeks: 6, roadmapPic: 'Dedi, Manajer Operasional' });
+
+  makeRoadmap = () => {
+    if (!(this.state.roadmapGoal || '').trim() || this.state.roadmapPhase === 'loading') return;
+    const t0 = performance.now();
+    this.setState({ roadmapPhase: 'loading' });
+    clearTimeout(this._r1);
+    this._r1 = setTimeout(() => {
+      const secs = ((performance.now() - t0) / 1000).toFixed(1).replace('.', ',');
+      this.setState({ roadmapPhase: 'done', roadmapMilestones: this.buildMilestones(this.state.roadmapGoal, this.state.roadmapWeeks, this.state.roadmapPic), roadmapTiming: 'TERSUSUN DALAM ' + secs + ' DETIK' });
+    }, 1300);
+  };
+
+  setBudgetAmount = (e) => this.setState({ budgetAmount: e.target.value });
+  useSampleBudget = () => this.setState({ budgetAmount: 15000000, budgetCategory: CATS[0] });
+  toggleMenu(name) { return () => this.setState((s) => ({ menu: s.menu === name ? null : name })); }
+  pickCategory(name) { return () => this.setState({ budgetCategory: name, menu: null }); }
+
+  checkBudgetGo = () => {
+    if (!(parseFloat(this.state.budgetAmount) > 0) || this.state.budgetPhase === 'loading') return;
+    this.setState({ budgetPhase: 'loading' });
+    clearTimeout(this._b1);
+    this._b1 = setTimeout(() => {
+      this.setState({ budgetPhase: 'done', budgetResult: this.runCheckBudget(this.state.budgetAmount, this.state.budgetCategory) });
+    }, 900);
+  };
+
+  setMemContent = (e) => this.setState({ memContent: e.target.value });
+  pickScope(sc) { return () => this.setState({ memScope: sc }); }
+  useSampleMemory = () => this.setState({ memContent: 'Kalau ada pelanggan komplain, tanggapi dalam 1 jam, jangan didiamkan.', memScope: 'WORKSPACE' });
+
+  saveMemory = () => {
+    if (!(this.state.memContent || '').trim()) return;
+    const item = { id: 'm' + Date.now(), content: this.state.memContent.trim(), scope: this.state.memScope };
+    this.setState((s) => ({ memItems: [item].concat(s.memItems), memContent: '' }));
+    this.toast('Memori tersimpan.');
+  };
+
+  deleteMemory(id) { return () => { this.setState((s) => ({ memItems: s.memItems.filter((m) => m.id !== id) })); this.toast('Memori dihapus.'); }; }
+  hoverMem(i) { return () => this.setState({ hl: i }); }
+  unhoverMem = () => this.setState({ hl: -1 });
+
+  copy(text, key) {
+    const done = () => { this.setState({ copied: key }); clearTimeout(this._copyT); this._copyT = setTimeout(() => this.setState({ copied: '' }), 1700); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done); else done();
+  }
+
+  toast(text) { this.setState({ toast: text }); clearTimeout(this._toastT); this._toastT = setTimeout(() => this.setState({ toast: '' }), 3000); }
+
+  /* ---------- view values ---------- */
+  renderVals() {
+    const s = this.state;
+    const crumbMap = { chat: 'OBROLAN ASISTEN', roadmap: 'ROADMAP MINGGUAN', budget: 'CEK ANGGARAN', memory: 'MEMORI KONTEKSTUAL' };
+    const weeksNum = Math.max(2, Math.min(8, parseInt(s.roadmapWeeks, 10) || 4));
+    const b = s.budgetResult;
+
+    return {
+      accentHex: this.props.accent || '#0058BE',
+      visualsOn: this.props.showVisuals !== false,
+      crumb: 'KLIR / ANIVIRTUAL / ' + crumbMap[s.tab],
+      corplanRef: CORPLAN_REF,
+      corplanAgo: 'diperbarui 2 jam lalu',
+
+      isChat: s.tab === 'chat', isRoadmap: s.tab === 'roadmap', isBudget: s.tab === 'budget', isMemory: s.tab === 'memory',
+      goChat: this.go('chat'), goRoadmap: this.go('roadmap'), goBudget: this.go('budget'), goMemory: this.go('memory'),
+
+      chatMsg: s.chatMsg, setChatMsg: this.setChatMsg, chatTone: s.chatTone, setChatTone: this.setChatTone, useSampleChat: this.useSampleChat,
+      makeChat: this.makeChat, chatBtnLabel: s.chatPhase === 'loading' ? 'Menyusun draf' : 'Buat 4 Balasan',
+      isChatLoading: s.chatPhase === 'loading', chatLoadStatus: s.chatLoadStatus,
+      hasChatDrafts: s.chatDrafts.length > 0, noChatDrafts: s.chatDrafts.length === 0, chatTiming: s.chatTiming,
+      chatActive: s.copied.indexOf('chat') === 0 ? s.copied.slice(4) : '-1',
+      regenChat: this.regenChat,
+      chatDrafts: s.chatDrafts.map((d, i) => ({
+        label: d.label, text: d.text, note: d.note,
+        copyLabel: s.copied === 'chat' + i ? 'Tersalin ✓' : 'Salin draf ini',
+        onCopy: this.copyDraft(i)
+      })),
+
+      roadmapGoal: s.roadmapGoal, setRoadmapGoal: this.setRoadmapGoal,
+      roadmapWeeksVal: s.roadmapWeeks, setRoadmapWeeks: this.setRoadmapWeeks,
+      roadmapPic: s.roadmapPic, setRoadmapPic: this.setRoadmapPic, useSampleRoadmap: this.useSampleRoadmap,
+      makeRoadmap: this.makeRoadmap, roadmapBtnLabel: s.roadmapPhase === 'loading' ? 'Menyusun roadmap' : 'Susun Roadmap',
+      isRoadmapLoading: s.roadmapPhase === 'loading',
+      hasRoadmap: s.roadmapMilestones.length > 0, noRoadmap: s.roadmapMilestones.length === 0, roadmapTiming: s.roadmapTiming,
+      roadmapMilestones: s.roadmapMilestones,
+      roadmapCount: String(weeksNum), roadmapStage: String(s.roadmapPhase === 'done' ? weeksNum - 1 : 0),
+
+      budgetAmount: s.budgetAmount, setBudgetAmount: this.setBudgetAmount, useSampleBudget: this.useSampleBudget,
+      budgetCategoryLabel: s.budgetCategory, menuIsCategory: s.menu === 'category', toggleCategory: this.toggleMenu('category'),
+      categories: CATS.map((c) => ({ name: c, pick: this.pickCategory(c) })),
+      checkBudgetGo: this.checkBudgetGo, budgetBtnLabel: s.budgetPhase === 'loading' ? 'Mengecek' : 'Cek Anggaran',
+      isBudgetLoading: s.budgetPhase === 'loading',
+      budgetApproved: !!(b && b.approved), budgetWarning: !!(b && !b.approved), noBudget: !b,
+      budgetStatusLabel: b ? b.statusLabel : '', budgetPO: b ? b.po : '—', budgetNote: b ? b.note : '',
+      budgetAmountLabel: b ? b.amountLabel : '', budgetCategoryOut: b ? b.category : '',
+      sealPhase: s.budgetPhase === 'loading' ? 'loading' : (b ? 'done' : 'idle'), sealStatus: b && b.approved ? 'approved' : 'warning', sealPo: b ? b.po : '',
+
+      memContent: s.memContent, setMemContent: this.setMemContent, useSampleMemory: this.useSampleMemory,
+      memIsPersonal: s.memScope === 'PERSONAL', memIsWorkspace: s.memScope === 'WORKSPACE',
+      pickPersonal: this.pickScope('PERSONAL'), pickWorkspace: this.pickScope('WORKSPACE'),
+      saveMemory: this.saveMemory,
+      memItems: s.memItems.map((m, i) => ({
+        id: m.id, content: m.content, isWork: m.scope === 'WORKSPACE', isPersonal: m.scope !== 'WORKSPACE',
+        del: this.deleteMemory(m.id), hoverIn: this.hoverMem(i), hoverOut: this.unhoverMem
+      })),
+      noMemItems: s.memItems.length === 0,
+      hlIndex: String(s.hl),
+      nodeSpec: s.memItems.map((m) => {
+        const label = m.content.slice(0, 22).replace(/[|~]/g, ' ') + (m.content.length > 22 ? '…' : '');
+        const weight = m.scope === 'WORKSPACE' ? 1 : 0.5;
+        return label + '~' + weight + '~' + m.scope;
+      }).join('|'),
+
+      toastOn: !!s.toast, toastText: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
