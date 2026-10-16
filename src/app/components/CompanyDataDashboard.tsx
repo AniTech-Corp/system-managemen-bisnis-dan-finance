@@ -2855,42 +2855,7 @@ export default function CompanyDataDashboard({
           </div>
         </div>
 
-        {useDemoData && (
-          <div
-            style={{
-              padding: '9px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '5px',
-              flexWrap: 'wrap',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '12px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#A78BFA' }} />
-              <span style={{ fontWeight: 600, color: '#F8FAFC' }}>
-                {multiYearSummary ? multiYearSummary.label : `Histori Bisnis 2017–2026 (${historicalYearSnapshot?.phaseName || 'Tahun Berjalan'})`}
-              </span>
-              <span style={{ color: '#64748B' }}>•</span>
-              <span style={{ color: '#CBD5E1' }}>
-                {multiYearSummary
-                  ? multiYearSummary.phaseSummary
-                  : historicalYearSnapshot
-                  ? `${historicalYearSnapshot.periodLabel} — Tantangan: ${historicalYearSnapshot.keyChallenge}`
-                  : 'Simulasi benchmark bisnis ritel/B2B'}
-              </span>
-            </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 600, padding: '2px 8px', borderRadius: '3px', background: 'rgba(167, 139, 250, 0.12)', color: '#C4B5FD', border: '1px solid rgba(167, 139, 250, 0.25)', letterSpacing: '0.04em' }}>
-                BENCHMARK SIMULATION
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* ========================================================================= */}
         {/* 1A. SNAPSHOT PERUSAHAAN — ringkasan Finance & Marketing, selalu terbuka */}
@@ -5945,6 +5910,7 @@ export default function CompanyDataDashboard({
         {/* ========================================================================= */}
         {/* 6. EXPANDABLE SECTION: KARYAWAN, SDM & BEBAN TIM */}
         {/* ========================================================================= */}
+        {isModuleEnabled(enabledModules, 'workspace') && (
         <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -6200,6 +6166,7 @@ export default function CompanyDataDashboard({
             </div>
           )}
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* 7. TWO-COLUMN: PROFIL PERUSAHAAN & LOG INSTRUKSI AI */}

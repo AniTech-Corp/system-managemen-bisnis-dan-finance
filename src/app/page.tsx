@@ -32,10 +32,12 @@ import type { ApprovalRequest } from '@/lib/security-guardrail';
 import { writeInitialPrompt } from '@/lib/initial-prompt-storage';
 import { DEFAULT_ENABLED_MODULES } from '@/lib/module-guard';
 
+const DEFAULT_FINANCE_MONITORING_MODULES = ['finance', 'corplan', 'analytics', 'dashboard'];
+
 const DEFAULT_WORKSPACE = {
   id: 'f451b290-1fc6-474d-8787-b8f1121c798b',
   name: 'KLIR Workspace',
-  enabledModules: DEFAULT_ENABLED_MODULES,
+  enabledModules: DEFAULT_FINANCE_MONITORING_MODULES,
 };
 
 const DEFAULT_USER = {
