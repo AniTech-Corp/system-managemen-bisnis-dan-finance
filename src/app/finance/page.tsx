@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   User,
   SlidersHorizontal,
+  Sparkles,
 } from 'lucide-react';
 import FinanceModuleView from '../components/FinanceModuleView';
 import FinanceAIAssistantView from '../components/FinanceAIAssistantView';
@@ -23,19 +24,19 @@ import { writeInitialPrompt } from '@/lib/initial-prompt-storage';
 import { DEFAULT_ENABLED_MODULES } from '@/lib/module-guard';
 
 const DEFAULT_WORKSPACE = {
-  id: 'f451b290-1fc6-474d-8787-b8f1121c798b',
-  name: 'KLIR Workspace',
+  id: 'a1000000-0000-0000-0000-000000000001',
+  name: 'Anitech Enterprise',
   enabledModules: DEFAULT_ENABLED_MODULES,
 };
 
 const DEFAULT_USER = {
-  email: 'finance@klir.id',
+  email: 'finance@anitech.id',
   fullName: 'Finance Lead',
 };
 
 export default function FinanceStandalonePage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'ai-assistant'>('dashboard');
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
@@ -187,16 +188,12 @@ export default function FinanceStandalonePage() {
       >
         {/* Left Side: Brand Logo, Module Badge & Workspace Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }} title="Kembali ke Beranda KLIR">
-            <img
-              src="/Logo-KLIR.png"
-              alt="KLIR"
-              width={20}
-              height={20}
-              style={{ display: 'block', filter: 'drop-shadow(0 0 8px rgba(63, 191, 143, 0.45))' }}
-            />
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }} title="Kembali ke Portal Sistem">
+            <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'linear-gradient(135deg, #3FBF8F 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(63, 191, 143, 0.4)' }}>
+              <Sparkles size={15} color="#FFFFFF" />
+            </div>
             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '15px', fontWeight: 800, letterSpacing: '0.08em', color: '#F5F7FA' }}>
-              KLIR
+              ANITECH
             </span>
           </Link>
 
@@ -395,26 +392,26 @@ export default function FinanceStandalonePage() {
 
           {/* Quick Cross-Link: Monitoring Usaha */}
           <Link
-            href="/monitoring-usaha"
+            href="/monitoring"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '5px 11px',
+              padding: '5px 12px',
               borderRadius: '6px',
-              background: 'rgba(78, 155, 255, 0.08)',
-              border: '1px solid rgba(78, 155, 255, 0.22)',
-              color: '#8CBEFF',
+              background: 'rgba(6, 182, 212, 0.08)',
+              border: '1px solid rgba(6, 182, 212, 0.25)',
+              color: '#38BDF8',
               fontSize: '11.5px',
               fontWeight: 600,
               textDecoration: 'none',
               fontFamily: "'Outfit', sans-serif",
               transition: 'all 0.15s ease',
             }}
-            title="Buka Halaman Monitoring Usaha"
+            title="Buka Sistem Monitoring Usaha"
           >
-            <TrendingUp size={12} color="#4E9BFF" />
-            <span>Monitoring Usaha</span>
+            <TrendingUp size={12} color="#38BDF8" />
+            <span>Monitoring Usaha →</span>
           </Link>
 
           {/* Settings Button */}
@@ -438,7 +435,7 @@ export default function FinanceStandalonePage() {
             <SlidersHorizontal size={13} />
           </button>
 
-          {/* Hub Exit Link */}
+          {/* Portal Exit Link */}
           <Link
             href="/"
             style={{
@@ -454,10 +451,10 @@ export default function FinanceStandalonePage() {
               textDecoration: 'none',
               fontFamily: "'Outfit', sans-serif",
             }}
-            title="Kembali ke Beranda Hub KLIR"
+            title="Kembali ke Portal 2 Sistem"
           >
             <ArrowLeft size={12} />
-            <span className="hidden md:inline">Hub Utama</span>
+            <span className="hidden md:inline">Portal</span>
           </Link>
 
           {/* User Pill */}

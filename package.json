@@ -1,5 +1,5 @@
 {
-  "name": "klir-finance-monitoring",
+  "name": "anitech-finance-monitoring",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,8 +11,7 @@
     "test:unit": "node --experimental-test-module-mocks --import tsx --test tests/activity-log.test.ts",
     "test:all": "node --experimental-test-module-mocks --import tsx --test \"tests/**/*.test.ts\"",
     "seed": "npx tsx prisma/seed.ts",
-    "seed:benchmark": "npx tsx scripts/seed-benchmark.ts",
-    "deploy:vps": "ssh -i ~/.ssh/id_ed25519 root@72.61.142.156 \"cd /var/www/KLIR && git checkout package-lock.json && git pull && npm install && npx prisma generate && npm run build && pm2 reload klir-os\""
+    "seed:benchmark": "npx tsx scripts/seed-benchmark.ts"
   },
   "dependencies": {
     "@breezystack/lamejs": "1.2.7",

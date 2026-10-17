@@ -8,8 +8,8 @@ const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
-    title: 'KLIR — The AI Operating System for Modern Businesses',
-    description: 'Purpose-built for financial strategy, operational intelligence, and workflow automation. Designed for the AI era.',
+    title: 'Anitech — Sistem Finance & Monitoring Usaha',
+    description: 'Sistem mandiri manajemen keuangan dan monitoring analitik performa usaha Anitech.',
 };
 
 export default function RootLayout({

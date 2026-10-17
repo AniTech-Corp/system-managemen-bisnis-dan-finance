@@ -16,6 +16,7 @@ import {
   User,
   Bell,
   SlidersHorizontal,
+  Sparkles,
 } from 'lucide-react';
 import CompanyDataDashboard from '../components/CompanyDataDashboard';
 import ExecutiveAIAssistantView from '../components/ExecutiveAIAssistantView';
@@ -26,19 +27,19 @@ import { writeInitialPrompt } from '@/lib/initial-prompt-storage';
 import { DEFAULT_ENABLED_MODULES } from '@/lib/module-guard';
 
 const DEFAULT_WORKSPACE = {
-  id: 'f451b290-1fc6-474d-8787-b8f1121c798b',
-  name: 'KLIR Workspace',
+  id: 'a1000000-0000-0000-0000-000000000001',
+  name: 'Anitech Enterprise',
   enabledModules: DEFAULT_ENABLED_MODULES,
 };
 
 const DEFAULT_USER = {
-  email: 'admin@klir.id',
-  fullName: 'Owner / CEO',
+  email: 'admin@anitech.id',
+  fullName: 'Executive Lead',
 };
 
 export default function MonitoringUsahaStandalonePage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'ai-assistant'>('dashboard');
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
@@ -224,16 +225,12 @@ export default function MonitoringUsahaStandalonePage() {
       >
         {/* Left Side: Brand Logo, Module Badge & Workspace Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }} title="Kembali ke Beranda KLIR">
-            <img
-              src="/Logo-KLIR.png"
-              alt="KLIR"
-              width={20}
-              height={20}
-              style={{ display: 'block', filter: 'drop-shadow(0 0 8px rgba(78, 155, 255, 0.45))' }}
-            />
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }} title="Kembali ke Portal Sistem">
+            <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: 'linear-gradient(135deg, #06B6D4 0%, #0284C7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(6, 182, 212, 0.4)' }}>
+              <Sparkles size={15} color="#FFFFFF" />
+            </div>
             <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '15px', fontWeight: 800, letterSpacing: '0.08em', color: '#F5F7FA' }}>
-              KLIR
+              ANITECH
             </span>
           </Link>
 
@@ -246,15 +243,15 @@ export default function MonitoringUsahaStandalonePage() {
                 letterSpacing: '0.1em',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: 'rgba(78, 155, 255, 0.12)',
-                border: '1px solid rgba(78, 155, 255, 0.28)',
-                color: '#8CBEFF',
+                background: 'rgba(6, 182, 212, 0.12)',
+                border: '1px solid rgba(6, 182, 212, 0.28)',
+                color: '#38BDF8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
               }}
             >
-              <Activity size={10} color="#4E9BFF" />
+              <BarChart2 size={10} color="#38BDF8" />
               MONITORING USAHA
             </span>
           </div>
@@ -499,7 +496,7 @@ export default function MonitoringUsahaStandalonePage() {
             title="Buka Halaman Sistem Finance"
           >
             <Wallet size={12} color="#3FBF8F" />
-            <span>Sistem Finance</span>
+            <span>Sistem Finance →</span>
           </Link>
 
           {/* Settings Button */}
@@ -518,12 +515,12 @@ export default function MonitoringUsahaStandalonePage() {
               color: '#8A93A3',
               cursor: 'pointer',
             }}
-            title="Pengaturan Direksi & Target Perusahaan"
+            title="Pengaturan Target Usaha"
           >
             <SlidersHorizontal size={13} />
           </button>
 
-          {/* Hub Exit Link */}
+          {/* Portal Exit Link */}
           <Link
             href="/"
             style={{
@@ -539,10 +536,10 @@ export default function MonitoringUsahaStandalonePage() {
               textDecoration: 'none',
               fontFamily: "'Outfit', sans-serif",
             }}
-            title="Kembali ke Beranda Hub KLIR"
+            title="Kembali ke Portal 2 Sistem"
           >
             <ArrowLeft size={12} />
-            <span className="hidden md:inline">Hub Utama</span>
+            <span className="hidden md:inline">Portal</span>
           </Link>
 
           {/* User Pill */}
