@@ -88,7 +88,7 @@ export async function detectCompanyProfileFromDocument(
 
   const lower = (fileName + ' ' + cleanName + ' ' + (rawContent || '')).toLowerCase();
 
-  let name = cleanName;
+  const name = cleanName;
   let industry = 'F&B / Kuliner Autentik Nusantara & Katering';
   let description = `Inisiatif bisnis modern ${cleanName} yang menghadirkan produk dan layanan bernilai tambah tinggi dengan standarisasi kualitas dan efisiensi operasional.`;
   let targetMarket = 'Konsumen keluarga, profesional aktif, pelanggan retail, dan mitra B2B.';

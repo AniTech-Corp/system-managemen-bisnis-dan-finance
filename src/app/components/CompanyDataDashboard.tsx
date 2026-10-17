@@ -917,7 +917,6 @@ export default function CompanyDataDashboard({
           setDataQualityFilesWithIssues(withIssues);
         } catch (e) {
           console.warn('Dashboard workspace-files data-quality parse error:', e);
-  const [totalWorkspaceFilesCount, setTotalWorkspaceFilesCount] = useState<number>(0);
         }
       }
       if (trendsRes.ok) {

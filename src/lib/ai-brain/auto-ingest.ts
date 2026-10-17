@@ -562,7 +562,7 @@ export function detectMenuCatalog(buffer: Buffer, fileName: string, extractedTex
 
     const CULINARY_CATEGORY_REGEX = /\b(makanan|minuman|snack|appetizer|dessert|kombo|paket|kopi|coffee|beverages?|food|dish|menu|ala\s+carte)\b/i;
 
-    for (let rawLine of lines) {
+    for (const rawLine of lines) {
       const line = rawLine.trim();
       if (!line || line.startsWith('===') || line.startsWith('---')) continue;
       if (/LAMPIRAN|HISTORI\s+HARGA|Catatan:/i.test(line)) {
