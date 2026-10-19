@@ -2,13 +2,13 @@
 
 import React from 'react';
 import {
-  Sparkles,
-  Info,
-  Bot,
-  ArrowRight,
-  X,
-  TrendingUp,
-} from 'lucide-react';
+  TbSparkles as Sparkles,
+  TbInfoCircle as Info,
+  TbRobot as Bot,
+  TbArrowRight as ArrowRight,
+  TbX as X,
+  TbTrendingUp as TrendingUp,
+} from 'react-icons/tb';
 import type { DrilldownDatum, CognitivePillars, CausalStep } from './InCardVisualDrilldown';
 
 export interface SnapshotFullDrilldownProps {
@@ -39,37 +39,37 @@ export default function SnapshotFullDrilldown({
       id={`snapshot-drilldown-${id}`}
       className="w-full mt-3 flex flex-col gap-3.5 transition-all duration-300"
       style={{
-        background: '#0B0E14',
-        border: `1px solid rgba(255, 255, 255, 0.09)`,
-        borderTop: `2px solid ${accentColor}`,
-        borderRadius: '6px',
-        padding: '16px 18px',
-        boxShadow: `0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 24px -6px ${accentColor}25`,
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        borderTop: `3px solid ${accentColor}`,
+        borderRadius: '16px',
+        padding: '18px 20px',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02)',
         animation: 'fadeIn 200ms ease-out',
       }}
     >
       {/* 1. Header: Judul Diagnosa, Subtitle, & Tombol Tutup */}
-      <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] pb-3">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className="w-5 h-5 rounded-[4px] flex items-center justify-center shrink-0"
-              style={{ background: `${accentColor}20` }}
+              className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: `${accentColor}15` }}
             >
-              <Sparkles size={12} color={accentColor} />
+              <Sparkles size={13} color={accentColor} />
             </span>
-            <h3 className="font-heading text-sm sm:text-base font-bold text-[#F5F7FA] tracking-tight">
+            <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 tracking-tight">
               {title}
             </h3>
             <span
-              className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-[3px]"
-              style={{ color: accentColor, background: `${accentColor}15` }}
+              className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full"
+              style={{ color: accentColor, background: `${accentColor}12` }}
             >
               {data.length} Indikator Kunci
             </span>
           </div>
           {subtitle && (
-            <p className="text-xs text-[#8A93A3] pl-7">
+            <p className="text-xs text-slate-500 pl-8">
               {subtitle}
             </p>
           )}
@@ -79,8 +79,7 @@ export default function SnapshotFullDrilldown({
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-xs font-medium text-[#8A93A3] hover:text-[#F5F7FA] hover:bg-white/[0.06] transition-colors shrink-0"
-          style={{ border: '1px solid rgba(255, 255, 255, 0.08)' }}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors shrink-0 cursor-pointer border border-slate-200"
           title="Tutup panel diagnosa"
         >
           <span>Tutup</span>
@@ -95,25 +94,21 @@ export default function SnapshotFullDrilldown({
             const itemCol = item.color || accentColor;
             const isWarn = item.status === 'warning';
             const isCrit = item.status === 'critical';
-            const statusBadgeBg = isCrit ? '#EF444415' : isWarn ? '#F59E0B15' : '#3FBF8F15';
-            const statusBadgeCol = isCrit ? '#EF4444' : isWarn ? '#F59E0B' : '#3FBF8F';
+            const statusBadgeBg = isCrit ? '#FEE2E2' : isWarn ? '#FEF3C7' : '#DCFCE7';
+            const statusBadgeCol = isCrit ? '#DC2626' : isWarn ? '#D97706' : '#16A34A';
             const statusText = isCrit ? 'Kritis' : isWarn ? 'Waspada' : 'Aman';
 
             return (
               <div
                 key={item.label}
-                className="flex flex-col justify-between gap-1.5 p-3 rounded-[4px] transition-colors"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.025)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                }}
+                className="flex flex-col justify-between gap-1.5 p-3 rounded-xl transition-colors bg-slate-50 border border-slate-200/80"
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="text-[11px] text-[#8A93A3] font-medium truncate">
+                  <span className="text-[11px] text-slate-600 font-medium truncate">
                     {item.label}
                   </span>
                   <span
-                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-[3px] shrink-0"
+                    className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
                     style={{ color: statusBadgeCol, background: statusBadgeBg }}
                   >
                     {statusText}
@@ -128,7 +123,7 @@ export default function SnapshotFullDrilldown({
                 </div>
 
                 {item.subtext && (
-                  <span className="text-[10px] text-[#687487] line-clamp-1">
+                  <span className="text-[10px] text-slate-500 line-clamp-1">
                     {item.subtext}
                   </span>
                 )}
@@ -140,27 +135,20 @@ export default function SnapshotFullDrilldown({
 
       {/* 3. HERO HIGHLIGHT: REKOMENDASI AI & ACTION PLAN */}
       <div
-        className="rounded-[4px] p-3.5 sm:p-4 flex flex-col gap-2.5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(63, 191, 143, 0.09) 0%, rgba(78, 155, 255, 0.05) 100%)',
-          border: '1px solid rgba(63, 191, 143, 0.25)',
-          boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.35)',
-        }}
+        className="rounded-xl p-3.5 sm:p-4 flex flex-col gap-2.5 bg-emerald-50/70 border border-emerald-200 shadow-xs"
       >
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span
-              className="w-5 h-5 rounded-[3px] flex items-center justify-center shrink-0"
-              style={{ background: `${accentColor}25` }}
+              className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 bg-emerald-600/10 text-emerald-700"
             >
-              <Bot size={13} color={accentColor} />
+              <Bot size={13} />
             </span>
-            <span className="text-xs font-extrabold text-[#F5F7FA] uppercase tracking-wider">
+            <span className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">
               Rekomendasi AI &amp; Action Plan
             </span>
             <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-[3px]"
-              style={{ color: accentColor, background: `${accentColor}20` }}
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800"
             >
               PRIORITAS
             </span>
@@ -174,20 +162,16 @@ export default function SnapshotFullDrilldown({
                   `Tolong berikan detail eksekusi dan panduan langkah demi langkah untuk rekomendasi berikut: "${cognitive.rekomendasi}" pada metrik ${title}`
                 )
               }
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[4px] text-[11px] font-semibold text-[#F5F7FA] transition-colors"
-              style={{
-                background: `${accentColor}22`,
-                border: `1px solid ${accentColor}40`,
-              }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-800 bg-white hover:bg-emerald-100/60 border border-emerald-300 transition-colors cursor-pointer shadow-xs"
             >
               <span>Tanya AI Asisten</span>
-              <ArrowRight size={11} color={accentColor} />
+              <ArrowRight size={11} />
             </button>
           )}
         </div>
 
         {/* Rekomendasi Utama Singkat Padat */}
-        <p className="text-xs sm:text-[13px] text-[#F5F7FA] font-semibold leading-relaxed m-0">
+        <p className="text-xs sm:text-[13px] text-emerald-900 font-semibold leading-relaxed m-0">
           {cognitive.rekomendasi}
         </p>
 
@@ -201,24 +185,16 @@ export default function SnapshotFullDrilldown({
               return (
                 <div
                   key={idx}
-                  className="flex items-start gap-2 p-2.5 rounded-[4px]"
-                  style={{
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
-                  }}
+                  className="flex items-start gap-2 p-2.5 rounded-lg bg-white border border-emerald-200/80 shadow-2xs"
                 >
                   <span
-                    className="text-[9.5px] font-bold font-mono px-1.5 py-0.5 rounded-[3px] shrink-0 mt-0.5"
-                    style={{
-                      color: accentColor,
-                      background: `${accentColor}20`,
-                    }}
+                    className="text-[9.5px] font-bold font-mono px-1.5 py-0.5 rounded-md shrink-0 mt-0.5 text-emerald-700 bg-emerald-100"
                   >
                     P{idx + 1}
                   </span>
-                  <p className="text-[11.5px] text-[#DCE3EC] leading-snug m-0 flex-1">
+                  <p className="text-[11.5px] text-slate-700 leading-snug m-0 flex-1">
                     {titlePart && (
-                      <strong className="text-[#F5F7FA] mr-1">{titlePart}:</strong>
+                      <strong className="text-slate-900 mr-1">{titlePart}:</strong>
                     )}
                     <span>{descPart}</span>
                   </p>
@@ -233,26 +209,22 @@ export default function SnapshotFullDrilldown({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {/* Kolom Kiri: Diagnosa Situasi & Dampak */}
         <div
-          className="p-3 rounded-[4px] flex flex-col gap-1.5"
-          style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-          }}
+          className="p-3.5 rounded-xl flex flex-col gap-1.5 bg-slate-50 border border-slate-200"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Info size={13} color="#4E9BFF" />
-              <span className="text-[10.5px] font-bold text-[#8A93A3] uppercase tracking-wider">
+              <Info size={13} className="text-sky-600" />
+              <span className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">
                 Diagnosa Situasi &amp; Dampak Finansial
               </span>
             </div>
             {cognitive.sumberData && (
-              <span className="text-[9.5px] text-[#687487] truncate max-w-[200px]" title={cognitive.sumberData}>
+              <span className="text-[9.5px] text-slate-500 truncate max-w-[200px]" title={cognitive.sumberData}>
                 {cognitive.sumberData}
               </span>
             )}
           </div>
-          <p className="text-[11.5px] text-[#DCE3EC] leading-relaxed m-0">
+          <p className="text-[11.5px] text-slate-700 leading-relaxed m-0">
             {cognitive.artinya}{' '}
             {cognitive.dampakPraktis ? `Dampaknya: ${cognitive.dampakPraktis}` : ''}
           </p>
@@ -260,28 +232,23 @@ export default function SnapshotFullDrilldown({
 
         {/* Kolom Kanan: Ambang Batas & Aturan Main */}
         <div
-          className="p-3 rounded-[4px] flex flex-col gap-1.5"
-          style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-          }}
+          className="p-3.5 rounded-xl flex flex-col gap-1.5 bg-slate-50 border border-slate-200"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Sparkles size={13} color="#F2A83B" />
-              <span className="text-[10.5px] font-bold text-[#8A93A3] uppercase tracking-wider">
+              <Sparkles size={13} className="text-amber-500" />
+              <span className="text-[10.5px] font-bold text-slate-700 uppercase tracking-wider">
                 Aturan Main &amp; Ambang Batas
               </span>
             </div>
             <span
-              className="text-[9px] font-bold px-1.5 py-0.5 rounded-[3px]"
-              style={{ color: '#F2A83B', background: '#F2A83B20' }}
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded-full text-amber-700 bg-amber-100"
             >
               Evaluasi
             </span>
           </div>
-          <p className="text-[11.5px] text-[#DCE3EC] leading-relaxed m-0">
-            <strong className="text-[#F5F7FA]">{cognitive.caraMembaca}:</strong>{' '}
+          <p className="text-[11.5px] text-slate-700 leading-relaxed m-0">
+            <strong className="text-slate-900">{cognitive.caraMembaca}:</strong>{' '}
             {cognitive.mengapaPenting}
           </p>
         </div>
@@ -290,15 +257,11 @@ export default function SnapshotFullDrilldown({
       {/* 5. Causal Flow Chain (Jika Ada) */}
       {causalFlow && causalFlow.length > 0 && (
         <div
-          className="p-2.5 rounded-[4px] flex flex-col gap-2"
-          style={{
-            background: 'rgba(255, 255, 255, 0.015)',
-            border: '1px solid rgba(255, 255, 255, 0.04)',
-          }}
+          className="p-3 rounded-xl flex flex-col gap-2 bg-slate-50 border border-slate-200"
         >
           <div className="flex items-center gap-1.5">
             <TrendingUp size={12} color={accentColor} />
-            <span className="text-[10px] font-bold text-[#8A93A3] uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
               Rantai Sebab-Akibat (Causal Flow)
             </span>
           </div>
@@ -306,15 +269,15 @@ export default function SnapshotFullDrilldown({
             {causalFlow.map((step, idx) => (
               <div
                 key={idx}
-                className="flex flex-col gap-1 p-2 rounded-[3px] bg-black/20 border border-white/[0.04]"
+                className="flex flex-col gap-1 p-2.5 rounded-lg bg-white border border-slate-200"
               >
                 <div className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: accentColor }}>
-                  <span className="w-3.5 h-3.5 rounded-[2px] bg-white/[0.06] flex items-center justify-center text-[8.5px]">
+                  <span className="w-3.5 h-3.5 rounded-full bg-slate-100 flex items-center justify-center text-[8.5px] text-slate-700">
                     {idx + 1}
                   </span>
                   <span>{step.step}</span>
                 </div>
-                <span className="text-[10.5px] text-[#8A93A3] leading-snug">
+                <span className="text-[10.5px] text-slate-600 leading-snug">
                   {step.desc}
                 </span>
               </div>

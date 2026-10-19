@@ -80,8 +80,9 @@ async function computeHealth(workspaceId: string, monthParam?: string | null, cu
   const resolution = resolveDateRange({ month: monthParam });
 
   if (!hasCustomRevenue || !hasCustomExpense || !hasCustomCash) {
-    const [periodTxs, allTxs] = await Promise.all([
-      prisma.cashTransaction.findMany({
+    const [periodAggregates, allTimeAggregates] = await Promise.all([
+      prisma.cashTransaction.groupBy({
+        by: ['type'],
         where: {
           workspaceId,
           transactionDate: {
@@ -89,34 +90,38 @@ async function computeHealth(workspaceId: string, monthParam?: string | null, cu
             lte: resolution.endDate,
           },
         },
-        select: { type: true, amount: true },
+        _sum: { amount: true },
+        _count: { id: true },
       }),
-      prisma.cashTransaction.findMany({
+      prisma.cashTransaction.groupBy({
+        by: ['type'],
         where: {
           workspaceId,
           transactionDate: {
             lte: resolution.endDate,
           },
         },
-        select: { type: true, amount: true },
+        _sum: { amount: true },
       }),
     ]);
 
     let inc = 0;
     let exp = 0;
-    for (const t of periodTxs) {
-      if (t.type === TransactionType.INCOME) inc += t.amount;
-      else exp += t.amount;
+    let periodTxCount = 0;
+    for (const agg of periodAggregates) {
+      if (agg.type === TransactionType.INCOME) inc += agg._sum.amount || 0;
+      else exp += agg._sum.amount || 0;
+      periodTxCount += agg._count.id || 0;
     }
 
     let allInc = 0;
     let allExp = 0;
-    for (const t of allTxs) {
-      if (t.type === TransactionType.INCOME) allInc += t.amount;
-      else allExp += t.amount;
+    for (const agg of allTimeAggregates) {
+      if (agg.type === TransactionType.INCOME) allInc += agg._sum.amount || 0;
+      else allExp += agg._sum.amount || 0;
     }
 
-    if (periodTxs.length > 0) {
+    if (periodTxCount > 0) {
       if (!hasCustomRevenue) revenue = inc;
       if (!hasCustomExpense) expense = exp;
       if (!hasCustomCash) cash = allInc - allExp;

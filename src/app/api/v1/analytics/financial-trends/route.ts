@@ -74,17 +74,19 @@ export const GET = withTenantGuard(
         // Historical closing cash must be derived from the ledger, not inferred
         // from the current balance or a profit ratio. This query establishes the
         // real opening balance immediately before the first requested bucket.
-        const transactionsBeforeRange = await prisma.cashTransaction.findMany({
+        const aggregatesBeforeRange = await prisma.cashTransaction.groupBy({
+          by: ['type'],
           where: {
             workspaceId: targetWorkspaceId,
             transactionDate: { lt: earliestDate },
           },
-          select: { type: true, amount: true },
+          _sum: { amount: true },
         });
-        const openingCash = transactionsBeforeRange.reduce(
-          (balance, transaction) => balance + (transaction.type === TransactionType.INCOME ? transaction.amount : -transaction.amount),
-          0
-        );
+        let openingCash = 0;
+        for (const agg of aggregatesBeforeRange) {
+          if (agg.type === TransactionType.INCOME) openingCash += agg._sum.amount || 0;
+          else openingCash -= agg._sum.amount || 0;
+        }
 
         // Agregasi in-memory per "YYYY-MM"
         const aggregatesMap = new Map<

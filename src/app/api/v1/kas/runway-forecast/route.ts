@@ -25,35 +25,47 @@ export const POST = withTenantGuard(
       if (!hasCustomCashReserve || !hasCustomMonthlyExpense || !hasCustomMonthlyRevenue) {
         const now = new Date();
         const lookbackStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 1));
-        const transactions = await prisma.cashTransaction.findMany({ where: { workspaceId: auth.workspace.id } });
+        const [allTimeAggregates, lookbackTransactions] = await Promise.all([
+          prisma.cashTransaction.groupBy({
+            by: ['type'],
+            where: {
+              workspaceId: auth.workspace.id,
+              transactionDate: { lte: now },
+            },
+            _sum: { amount: true },
+          }),
+          prisma.cashTransaction.findMany({
+            where: {
+              workspaceId: auth.workspace.id,
+              transactionDate: {
+                gte: lookbackStart,
+                lte: now,
+              },
+            },
+            select: { type: true, amount: true, transactionDate: true },
+          }),
+        ]);
+
         let balanceIncome = 0;
         let balanceExpense = 0;
+        for (const agg of allTimeAggregates) {
+          if (agg.type === TransactionType.INCOME) balanceIncome += agg._sum.amount || 0;
+          else balanceExpense += agg._sum.amount || 0;
+        }
+
         let runRateIncome = 0;
         let runRateExpense = 0;
         const runRateMonths = new Set<string>();
-        for (const transaction of transactions) {
+        for (const transaction of lookbackTransactions) {
           const amount = Number(transaction.amount) || 0;
-          const transactionTime = transaction.transactionDate ? new Date(transaction.transactionDate).getTime() : Number.NaN;
-          const hasUsableDate = Number.isFinite(transactionTime);
-          const isBeforeNow = !hasUsableDate || transactionTime <= now.getTime();
-          const isInLookback = !hasUsableDate || transactionTime >= lookbackStart.getTime();
-
-          if (isBeforeNow) {
-            if (transaction.type === TransactionType.INCOME) balanceIncome += amount;
-            if (transaction.type === TransactionType.EXPENSE) balanceExpense += amount;
-          }
-          if (isBeforeNow && isInLookback) {
-            if (transaction.type === TransactionType.INCOME) runRateIncome += amount;
-            if (transaction.type === TransactionType.EXPENSE) runRateExpense += amount;
-            if (hasUsableDate) {
-              const d = new Date(transactionTime);
-              runRateMonths.add(`${d.getUTCFullYear()}-${d.getUTCMonth()}`);
-            }
+          if (transaction.type === TransactionType.INCOME) runRateIncome += amount;
+          if (transaction.type === TransactionType.EXPENSE) runRateExpense += amount;
+          if (transaction.transactionDate) {
+            const d = new Date(transaction.transactionDate);
+            runRateMonths.add(`${d.getUTCFullYear()}-${d.getUTCMonth()}`);
           }
         }
 
-        // Rows created by older versions without a usable date are treated as
-        // one current run-rate bucket, never as a lifetime monthly total.
         const monthCount = Math.max(1, runRateMonths.size);
         if (!hasCustomCashReserve) currentCashReserve = balanceIncome - balanceExpense;
         if (!hasCustomMonthlyExpense) monthlyExpense = runRateExpense / monthCount;

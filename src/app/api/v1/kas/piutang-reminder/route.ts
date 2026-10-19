@@ -26,6 +26,7 @@ function overdueWhere(workspaceId: string) {
 }
 
 import { normalizePhone } from '@/lib/validators';
+import { decryptField, decryptFields } from '@/lib/crypto';
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
@@ -49,7 +50,8 @@ export const GET = withTenantGuard(
       });
 
       const today = new Date();
-      const data = invoices.map((inv) => {
+      const decryptedInvoices = invoices.map((inv) => decryptFields(inv, ['clientPhone']));
+      const data = decryptedInvoices.map((inv) => {
         const dueDate = new Date(inv.dueDate);
         const daysOverdue = Math.max(0, Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
         return {
@@ -99,11 +101,12 @@ export const POST = withTenantGuard(
         return NextResponse.json({ message: 'Invoice tidak ditemukan.' }, { status: 404 });
       }
 
-      if (!invoice.clientPhone) {
+      const decryptedPhone = invoice.clientPhone ? decryptField(invoice.clientPhone) : null;
+      if (!decryptedPhone) {
         return NextResponse.json({ message: 'Invoice ini tidak punya nomor WhatsApp pelanggan.' }, { status: 400 });
       }
 
-      const cleanPhone = normalizePhone(invoice.clientPhone);
+      const cleanPhone = normalizePhone(decryptedPhone);
       const formattedDueDate = new Date(invoice.dueDate).toLocaleDateString('id-ID', {
         weekday: 'long',
         year: 'numeric',

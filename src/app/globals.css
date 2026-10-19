@@ -3,40 +3,40 @@
 
 @layer base {
   :root {
-    --bg-dark: #0A0E15;
-    --bg-canvas: #06080C;
-    --bg-sidebar: #0B0E14;
-    --bg-card: #10141C;
-    --bg-card-hover: #171E2B;
-    --bg-input: #15161c;
+    --bg-dark: #F8FAFC;
+    --bg-canvas: #F8FAFC;
+    --bg-sidebar: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #F1F5F9;
+    --bg-input: #FFFFFF;
 
-    --border-color: rgba(255, 255, 255, 0.1);
-    --border-glow: rgba(0, 88, 190, 0.35);
+    --border-color: #E2E8F0;
+    --border-glow: rgba(2, 132, 199, 0.15);
 
-    --accent-blue-pri: #0058BE;
-    --accent-blue-light: #4E9BFF;
-    --accent-gold: #D8A33C;
-    --accent-emerald: #3FBF8F;
+    --accent-blue-pri: #0284C7;
+    --accent-blue-light: #0EA5E9;
+    --accent-gold: #D97706;
+    --accent-emerald: #059669;
 
-    --text-primary: #F5F7FA;
-    --text-secondary: #8A93A3;
-    --text-muted: #5C6474;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #64748B;
   }
 
   html {
-    background-color: var(--bg-canvas, #06080C);
-    color-scheme: dark;
+    background-color: var(--bg-canvas, #F8FAFC);
+    color-scheme: light;
   }
 
   body {
-    background-color: var(--bg-dark);
-    color: var(--text-primary);
+    background-color: #F8FAFC;
+    color: #0F172A;
     font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     background-image: 
-      radial-gradient(ellipse at 50% 0%, rgba(0, 88, 190, 0.14) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 50%, rgba(141, 85, 232, 0.06) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(2, 132, 199, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 85% 20%, rgba(16, 185, 129, 0.03) 0%, transparent 60%);
     background-attachment: fixed;
   }
 }
@@ -50,28 +50,49 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Linear Glassmorphism Card System with Crisp Box Geometry */
+/* Linear Pristine White Card System (India Law App / Shadcn Standard) */
 .linear-card {
-  background-color: rgba(18, 19, 24, 0.75);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09), 0 20px 40px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(20px);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #0F172A;
 }
 
 .linear-card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 25px 60px rgba(0, 0, 0, 0.6);
-  transform: translateY(-2px);
+  border-color: #CBD5E1;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
 }
 
 .linear-card-glow {
-  background: linear-gradient(180deg, rgba(20, 22, 30, 0.85) 0%, rgba(14, 15, 20, 0.95) 100%);
-  border: 1px solid rgba(0, 88, 190, 0.35);
-  border-radius: 8px;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 0 40px rgba(0, 88, 190, 0.15);
-  backdrop-filter: blur(24px);
+  background: #FFFFFF;
+  border: 1px solid #BAE6FD;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.08);
+}
+
+/* Pristine Light Glass Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+
+.glass-pill {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-radius: 9999px;
+  color: #334155;
+  transition: all 0.2s ease;
+}
+
+.glass-pill:hover {
+  background: #E2E8F0;
+  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
 .btn-linear-glow {
@@ -93,50 +114,50 @@
   50% { opacity: 0.85; }
 }
 
-/* Custom Sleek Scrollbar */
+/* Custom Sleek Light Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-dark);
+  background: #F8FAFC;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: #CBD5E1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: #94A3B8;
 }
 
-/* Enhanced Form Input & Focus State */
+/* Enhanced Form Input & Focus State (Light Mode) */
 .input-linear {
   width: 100%;
-  background-color: rgba(21, 22, 28, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  background-color: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
   padding: 0.625rem 0.875rem;
-  color: #ffffff;
+  color: #0F172A;
   font-size: 0.8125rem;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
 }
 .input-linear:focus {
-  border-color: #0058be;
-  box-shadow: 0 0 0 2px rgba(0, 88, 190, 0.3), 0 0 16px rgba(0, 88, 190, 0.2);
-  background-color: rgba(26, 28, 36, 0.95);
+  border-color: #0284C7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  background-color: #FFFFFF;
 }
 .input-linear::placeholder {
-  color: #626770;
+  color: #94A3B8;
 }
 
-/* Sub-Tab Navigation Boxy Styles */
+/* Sub-Tab Navigation Light Styles */
 .pill-tab {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.4375rem 0.875rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -144,19 +165,18 @@
   border: 1px solid transparent;
 }
 .pill-tab-active {
-  background: rgba(0, 88, 190, 0.22);
-  color: #00d2ff;
-  border-color: rgba(0, 88, 190, 0.45);
-  box-shadow: 0 0 16px rgba(0, 88, 190, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 .pill-tab-inactive {
-  color: #8a8f98;
+  color: #64748B;
   background: transparent;
 }
 .pill-tab-inactive:hover {
-  color: #f7f8f8;
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
+  color: #0F172A;
+  background: #F1F5F9;
 }
 
 /* Badge Design Tokens with Crisp Rounded-Box Geometry */
@@ -222,65 +242,21 @@
 }
 
 
-/* Signature KLIR HUD Corner Brackets */
+/* Clean Obsidian Card Focus instead of harsh HUD Corner Brackets */
 .hud-bracket-gold {
   position: relative;
+  transition: all 0.25s ease;
 }
-.hud-bracket-gold::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 14px;
-  height: 14px;
-  border-top: 1.5px solid rgba(216, 163, 60, 0.75);
-  border-left: 1.5px solid rgba(216, 163, 60, 0.75);
-  border-radius: 4px 0 0 0;
-  pointer-events: none;
-  z-index: 2;
-}
-.hud-bracket-gold::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 14px;
-  height: 14px;
-  border-bottom: 1.5px solid rgba(216, 163, 60, 0.75);
-  border-right: 1.5px solid rgba(216, 163, 60, 0.75);
-  border-radius: 0 0 4px 0;
-  pointer-events: none;
-  z-index: 2;
+.hud-bracket-gold:hover {
+  border-color: rgba(216, 163, 60, 0.4) !important;
 }
 
 .hud-bracket-blue {
   position: relative;
+  transition: all 0.25s ease;
 }
-.hud-bracket-blue::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  width: 14px;
-  height: 14px;
-  border-top: 1.5px solid rgba(78, 155, 255, 0.75);
-  border-left: 1.5px solid rgba(78, 155, 255, 0.75);
-  border-radius: 4px 0 0 0;
-  pointer-events: none;
-  z-index: 2;
-}
-.hud-bracket-blue::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 14px;
-  height: 14px;
-  border-bottom: 1.5px solid rgba(78, 155, 255, 0.75);
-  border-right: 1.5px solid rgba(78, 155, 255, 0.75);
-  border-radius: 0 0 4px 0;
-  pointer-events: none;
-  z-index: 2;
+.hud-bracket-blue:hover {
+  border-color: rgba(78, 155, 255, 0.4) !important;
 }
 
 /* Numbered Monospace Subtab Pills */
@@ -614,47 +590,40 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 2.5px 9px;
-  border-radius: 4px;
+  padding: 2.5px 8px;
+  border-radius: 9999px;
   font-size: 11px;
   font-weight: 600;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 .sap-status-pill-safe {
-  background: rgba(0, 230, 118, 0.10);
-  color: #00E676;
-  border: 1px solid rgba(0, 230, 118, 0.28);
-  box-shadow: 0 0 12px rgba(0, 230, 118, 0.12);
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
 }
 
 .sap-status-pill-warning {
-  background: rgba(216, 163, 60, 0.12);
-  color: #F59E0B;
-  border: 1px solid rgba(216, 163, 60, 0.28);
-  box-shadow: 0 0 12px rgba(216, 163, 60, 0.12);
+  background: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
 }
 
 .sap-status-pill-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.12);
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
 }
 
 .sap-status-pill-info {
-  background: rgba(78, 155, 255, 0.12);
-  color: #4E9BFF;
-  border: 1px solid rgba(78, 155, 255, 0.28);
-  box-shadow: 0 0 12px rgba(78, 155, 255, 0.12);
+  background: #F0F9FF;
+  color: #0369A1;
+  border: 1px solid #BAE6FD;
 }
 
 .sap-status-pill-purple {
-  background: rgba(141, 85, 232, 0.12);
-  color: #A78BFA;
-  border: 1px solid rgba(141, 85, 232, 0.28);
-  box-shadow: 0 0 12px rgba(141, 85, 232, 0.12);
+  background: #FAF5FF;
+  color: #6D28D9;
+  border: 1px solid #E9D5FF;
 }
 
 .sap-pulse-dot {
@@ -672,38 +641,39 @@
 }
 
 .sap-smart-table th {
-  background: rgba(15, 20, 30, 0.85);
-  color: #8A93A3;
+  background: #F8FAFC;
+  color: #475569;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #E2E8F0;
   text-align: left;
 }
 
 .sap-smart-table td {
   padding: 11px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-  color: #E2E8F0;
+  border-bottom: 1px solid #F1F5F9;
+  color: #0F172A;
+  background: #FFFFFF;
   transition: background 120ms ease;
 }
 
 .sap-smart-table tr:hover td {
-  background: rgba(255, 255, 255, 0.025);
+  background: #F8FAFC;
 }
 
 .sap-doc-number {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11.5px;
   font-weight: 600;
-  color: #4E9BFF;
+  color: #0284C7;
   letter-spacing: -0.01em;
 }
 
 /* ========================================================================= */
-/* Minimal Executive Toolbar (Clean Luxury SAP / Linear Style)               */
+/* Minimal Executive Toolbar (Clean Light Mode Style)                        */
 /* ========================================================================= */
 .sap-toolbar-bar {
   position: relative;
@@ -712,10 +682,10 @@
   align-items: center;
   gap: 3px;
   padding: 3px 5px;
-  background: rgba(14, 19, 28, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(16px);
   flex-wrap: wrap;
 }
@@ -726,37 +696,38 @@
   gap: 5px;
   height: 30px;
   padding: 0 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
-  color: #CBD5E1;
+  color: #475569;
   background: transparent;
   transition: all 0.15s ease;
 }
 
 .sap-toolbar-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: #F1F5F9;
+  color: #0F172A;
 }
 
 .sap-toolbar-select {
   background: transparent;
   border: none;
-  color: #F1F5F9;
+  color: #0F172A;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   outline: none;
   cursor: pointer;
   padding: 2px 4px;
 }
 
 .sap-toolbar-select option {
-  background: #0D1117;
-  color: #F1F5F9;
+  background: #FFFFFF;
+  color: #0F172A;
 }
 
 .sap-toolbar-divider {
   width: 1px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #E2E8F0;
   margin: 0 3px;
 }
 
@@ -766,32 +737,101 @@
   gap: 6px;
   height: 30px;
   padding: 0 11px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #CBD5E1;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #475569;
 }
 
 .sap-toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #FFFFFF;
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #0F172A;
 }
 
 .sap-toolbar-btn-accent {
-  background: rgba(56, 189, 248, 0.07);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  color: #38BDF8;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  color: #0284C7;
 }
 
 .sap-toolbar-btn-accent:hover {
-  background: rgba(56, 189, 248, 0.14);
-  border-color: rgba(56, 189, 248, 0.35);
-  color: #7DD3FC;
+  background: #E0F2FE;
+  border-color: #7DD3FC;
+  color: #0369A1;
+}
+
+/* ========================================================================= */
+/* Pristine White / India Law App Global Light Mode Overrides               */
+/* ========================================================================= */
+.bg-\[\#06080C\],
+.bg-\[\#0A0E15\],
+.bg-\[\#08090d\] {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.bg-\[\#0D1117\],
+.bg-\[\#0D121C\],
+.bg-\[\#0E131B\],
+.bg-\[\#0D1017\],
+.bg-\[\#10141C\],
+.bg-\[\#090b10\],
+.bg-\[\#0b0c10\] {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+.bg-\[\#090C12\],
+.bg-\[\#0F141E\],
+.bg-\[\#121824\] {
+  background-color: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+.text-\[\#F5F7FA\],
+.text-\[\#F8FAFC\] {
+  color: #0F172A !important;
+}
+
+.text-\[\#E2E8F0\],
+.text-\[\#C3CBD8\],
+.text-\[\#CBD3DF\] {
+  color: #334155 !important;
+}
+
+.text-\[\#8A93A3\],
+.text-\[\#94A3B8\],
+.text-\[\#A0AEC0\],
+.text-\[\#5A6472\] {
+  color: #64748B !important;
+}
+
+.border-white\/\[0\.08\],
+.border-white\/\[0\.06\],
+.border-white\/\[0\.1\],
+.border-white\/\[0\.12\],
+.border-white\/10 {
+  border-color: #E2E8F0 !important;
+}
+
+.bg-white\/\[0\.03\],
+.bg-white\/\[0\.04\],
+.bg-white\/\[0\.05\],
+.bg-white\/\[0\.06\] {
+  background-color: #F1F5F9 !important;
+}
+
+.bg-white\/\[0\.08\],
+.bg-white\/\[0\.1\] {
+  background-color: #E2E8F0 !important;
 }
 
 @keyframes fadeIn {
@@ -804,5 +844,26 @@
     transform: translateY(0);
   }
 }
+
+/* Sleek Modern Scrollbar */
+.klir-custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.klir-custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.klir-custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.klir-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+.klir-custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
 
 

@@ -2,9 +2,44 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import TermHint from './TermHint';
-import { SpotlightCard } from '@/components/ui/react-bits/SpotlightCard';
-import { ShinyText } from '@/components/ui/react-bits/ShinyText';
-import { CountUp } from '@/components/ui/react-bits/CountUp';
+import {
+  RiUploadCloud2Line,
+  RiFileExcel2Line,
+  RiFilePdfLine,
+  RiRefreshLine,
+  RiWallet3Line,
+  RiArrowRightUpLine,
+  RiArrowRightDownLine,
+  RiCoinsLine,
+  RiSparkling2Line,
+  RiAddLine,
+  RiReceiptLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiSearchLine,
+  RiEyeLine,
+  RiSendPlaneLine,
+  RiAlertLine,
+  RiCheckboxCircleLine,
+  RiTimeLine
+} from 'react-icons/ri';
+import {
+  TbWallet,
+  TbTrendingUp,
+  TbTrendingDown,
+  TbSparkles,
+  TbBolt,
+  TbChartLine,
+  TbShieldCheck,
+  TbChartDots,
+  TbPigMoney,
+  TbCalculator,
+  TbTag,
+  TbBuildingBank,
+  TbFileInvoice,
+  TbPresentationAnalytics,
+  TbChevronDown
+} from 'react-icons/tb';
 import {
   TrendingUp,
   TrendingDown,
@@ -64,7 +99,6 @@ function FinanceSectionHeader({
   iconColor,
   title,
   subtitle,
-  widgetCount,
   open,
   onToggle,
 }: {
@@ -72,7 +106,7 @@ function FinanceSectionHeader({
   iconColor: string;
   title: string;
   subtitle: string;
-  widgetCount: number;
+  widgetCount?: number;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -81,25 +115,24 @@ function FinanceSectionHeader({
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className="w-full flex items-center justify-start gap-3.5 px-0 py-0 border-0 bg-transparent text-left cursor-pointer"
+      className="w-full flex items-center justify-start gap-3.5 px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-xs text-left cursor-pointer hover:border-slate-300 transition-all"
     >
       <span
-        className="w-[38px] h-[38px] shrink-0 rounded-xl flex items-center justify-center"
-        style={{ background: `${iconColor}1F`, color: iconColor }}
+        className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center"
+        style={{ background: `${iconColor}18`, color: iconColor }}
       >
         {icon}
       </span>
-      <span className="flex flex-col gap-[3px] flex-1 min-w-0">
-        <span className="font-heading font-semibold text-[16.5px] tracking-[-0.016em] text-[#F5F7FA]">{title}</span>
-        <span className="text-[11.5px] leading-relaxed text-[#8A93A3]">{subtitle}</span>
+      <span className="flex flex-col gap-0.5 flex-1 min-w-0">
+        <span className="font-heading font-bold text-sm tracking-tight text-slate-900">{title}</span>
+        <span className="text-xs text-slate-500 leading-relaxed">{subtitle}</span>
       </span>
-      <span className="text-[11.5px] text-[#7B8698] whitespace-nowrap hidden sm:inline">{widgetCount} widget</span>
       <span
-        className={`flex items-center justify-center w-7 h-7 shrink-0 rounded-lg transition-all ${
-          open ? 'bg-white/[0.08] text-[#F5F7FA]' : 'bg-white/[0.04] text-[#8A93A3] -rotate-90'
+        className={`flex items-center justify-center w-7 h-7 shrink-0 rounded-lg border border-slate-200 transition-all ${
+          open ? 'bg-slate-100 text-slate-800' : 'bg-slate-50 text-slate-500 -rotate-90'
         }`}
       >
-        <ChevronDown className="w-[15px] h-[15px]" strokeWidth={2.1} />
+        <TbChevronDown className="w-4 h-4" />
       </span>
     </button>
   );
@@ -263,12 +296,8 @@ export type FinancePeriod =
 export const FINANCE_PERIOD_OPTIONS: { value: FinancePeriod; label: string }[] = [
   { value: 'bulan_ini', label: 'Bulan Ini' },
   { value: 'tiga_bulan', label: '3 Bulan' },
-  { value: 'kuartal', label: 'Kuartal' },
-  { value: 'ytd', label: 'YTD' },
-  { value: 'satu_tahun', label: '1 Tahun' },
-  { value: 'tiga_tahun', label: '3 Tahun' },
-  { value: 'lima_tahun', label: '5 Tahun' },
-  { value: 'sepuluh_tahun', label: '10 Tahun' },
+  { value: 'kuartal', label: 'Kuartal Ini' },
+  { value: 'ytd', label: 'Tahun Ini (YTD)' },
 ];
 
 const toIsoDateOnly = (d: Date): string => {
@@ -2198,7 +2227,7 @@ export default function FinanceModuleView({
       }));
   })();
   const expenseCatTotal = expenseByCategory.reduce((sum, e) => sum + e.value, 0);
-  const DONUT_R = 42;
+  const DONUT_R = 44;
   const DONUT_CIRC = 2 * Math.PI * DONUT_R;
   const expenseDonutSegments = expenseByCategory.map((e, idx) => {
     const priorValue = expenseByCategory.slice(0, idx).reduce((sum, s) => sum + s.value, 0);
@@ -2574,19 +2603,19 @@ export default function FinanceModuleView({
 
   return (
     <>
-      <div className="space-y-6 text-[#F5F7FA] font-sans pb-12 w-full max-w-[1520px] mx-auto animate-fadeIn">
+      <div className="space-y-6 text-slate-900 font-sans pb-12 w-full max-w-[1440px] mx-auto animate-fadeIn">
       {/* ========================================================================= */}
       {/* TOP HEADER */}
       {/* ========================================================================= */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 flex-wrap">
         <div>
           <div className="flex items-center gap-2.5">
-            <h1 className="font-heading font-semibold text-[28px] tracking-[-0.03em] text-[#F5F7FA] m-0">
+            <h1 className="font-heading font-bold text-2xl sm:text-3xl tracking-tight text-slate-900 m-0">
               Finance &amp; Cashflow
             </h1>
           </div>
-          <p className="text-[12.5px] text-[#8A93A3] mt-1.5 m-0">
-            Kendali keuangan real-time: buku kas, invoice, dan piutang usaha
+          <p className="text-xs sm:text-sm text-slate-500 mt-1.5 m-0">
+            Kendali keuangan real-time: buku kas, invoice, dan arus modal kerja
           </p>
         </div>
 
@@ -2596,10 +2625,10 @@ export default function FinanceModuleView({
           <button
             type="button"
             onClick={() => setIsUploadModalOpen(true)}
-            className="h-9 px-3.5 inline-flex items-center gap-[7px] bg-[#3FBF8F]/15 hover:bg-[#3FBF8F]/25 text-[#3FBF8F] border border-[#3FBF8F]/30 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-[0_2px_10px_rgba(63,191,143,0.15)]"
+            className="h-9 px-3.5 inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
             title="Upload mutasi bank atau data transaksi kas CSV/Excel"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <RiUploadCloud2Line className="w-4 h-4" />
             <span>Upload Mutasi / Data Kas</span>
           </button>
 
@@ -2607,10 +2636,10 @@ export default function FinanceModuleView({
           <button
             type="button"
             onClick={handleExportExcel}
-            className="h-9 px-3.5 inline-flex items-center gap-[7px] bg-white/[0.04] hover:bg-white/[0.08] border-0 rounded-xl text-xs font-semibold text-[#C3CBD8] hover:text-[#F5F7FA] transition-all cursor-pointer"
+            className="h-9 px-3.5 inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 shadow-xs transition-all cursor-pointer"
             title="Download file Excel / CSV data keuangan lengkap"
           >
-            <Download className="w-3.5 h-3.5" />
+            <RiFileExcel2Line className="w-4 h-4 text-emerald-600" />
             <span>Export Excel</span>
           </button>
 
@@ -2618,39 +2647,34 @@ export default function FinanceModuleView({
           <button
             type="button"
             onClick={handleExportPDF}
-            className="h-9 px-3.5 inline-flex items-center gap-[7px] bg-white/[0.04] hover:bg-white/[0.08] border-0 rounded-xl text-xs font-semibold text-[#C3CBD8] hover:text-[#F5F7FA] transition-all cursor-pointer"
+            className="h-9 px-3.5 inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:text-slate-900 shadow-xs transition-all cursor-pointer"
             title="Cetak atau simpan Laporan Keuangan resmi ke PDF"
           >
-            <FileText className="w-3.5 h-3.5" />
+            <RiFilePdfLine className="w-4 h-4 text-rose-600" />
             <span>Cetak PDF</span>
           </button>
 
-          {/* Refresh Data -- lower visual weight than the two actions above (hierarchy per design brief) */}
-          {/* FIX (audit role-fit 7 Sep): dulu cuma syncWithLocalStorage() (re-read cache
-              lokal), TIDAK pernah loadRealData() (fetch server) -- beda dari listener
-              otomatis di useEffect yang manggil KEDUANYA. User klik "Sinkronisasi"
-              berharap data ter-refresh dari server, yang terjadi cuma re-sync cache basi. */}
+          {/* Refresh Data */}
           <button
             type="button"
             onClick={() => { syncWithLocalStorage(); loadRealData(); }}
-            className="h-9 px-3.5 inline-flex items-center gap-[7px] bg-white/[0.04] hover:bg-white/[0.08] border-0 rounded-xl text-xs font-semibold text-[#8A93A3] hover:text-[#F5F7FA] transition-all cursor-pointer"
+            className="h-9 px-3.5 inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 shadow-xs transition-all cursor-pointer"
+            title="Sinkronisasi data terkini"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RiRefreshLine className="w-4 h-4 text-slate-500" />
             <span>Sinkronisasi</span>
           </button>
         </div>
       </div>
 
-{/* Demo banner removed per owner directive */}
-
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="p-3.5 bg-[#3FBF8F]/15 border-0 text-[#F5F7FA] rounded-xl text-xs flex items-center justify-between shadow-lg animate-fadeIn">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl text-xs flex items-center justify-between shadow-xs animate-fadeIn">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-[#3FBF8F]" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span className="font-semibold">{toastMsg}</span>
           </div>
-          <button onClick={() => setToastMsg(null)} className="text-[#8A93A3] hover:text-white">
+          <button onClick={() => setToastMsg(null)} className="text-emerald-700 hover:text-emerald-900 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -2662,1450 +2686,49 @@ export default function FinanceModuleView({
           `invoices`, not the mockup's literal "PT Sentosa Abadi" example text) */}
       {/* ========================================================================= */}
       {overdueInvoicesForBanner.length > 0 && (
-        <div className="flex items-center justify-between gap-4 px-5 py-[18px] bg-[#EF4444]/10 border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.3)]">
-          <span className="flex items-center gap-2.5 text-[12.5px] text-[#F5F7FA]">
-            <AlertCircle className="w-[15px] h-[15px] text-[#EF4444] shrink-0" strokeWidth={1.8} />
-            <span className="flex flex-col gap-1">
-              <span className="text-sm font-semibold text-[#F5F7FA]">
-                <ShinyText text={`${overdueInvoicesForBanner.length} invoice jatuh tempo butuh penagihan hari ini`} color="#F5F7FA" shineColor="#FFA8A8" speed={3} />
+        <div className="flex items-center justify-between gap-4 px-5 py-3.5 bg-rose-50 border border-rose-200 rounded-xl text-slate-800 shadow-xs">
+          <span className="flex items-center gap-3 text-xs text-slate-700">
+            <span className="w-8 h-8 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 text-rose-600" strokeWidth={2} />
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <span>{overdueInvoicesForBanner.length} invoice jatuh tempo butuh penagihan hari ini</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                  Perhatian Likuiditas
+                </span>
               </span>
-              <span className="text-xs text-[#8A93A3]">
+              <span className="text-xs text-slate-500">
                 {firstOverdueInvoice?.clientName} · {firstOverdueInvoice?.invoiceNumber} · {overdueDaysLabel}
               </span>
             </span>
           </span>
-          <span className="flex items-baseline gap-2.5 shrink-0">
-            <span className="text-xs font-medium text-[#8A93A3]">Total piutang<TermHint label="Piutang" /></span>
-            <span className="font-mono text-[13.5px] font-semibold text-[#EF4444] [font-variant-numeric:tabular-nums]">
-              <CountUp to={arTotalAmount} prefix="Rp " separator="." />
+          <span className="flex items-baseline gap-2 shrink-0">
+            <span className="text-xs font-medium text-slate-500">Total piutang<TermHint label="Piutang" /></span>
+            <span className="font-mono text-base font-bold text-rose-600 [font-variant-numeric:tabular-nums]">
+              Rp {arTotalAmount.toLocaleString('id-ID')}
             </span>
           </span>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* KARTU BARU -- "AI analisa & prediksi kas" (Doktrin Ayah Mecca, 10 Sep 2026,
-          diputuskan komando/Fable): tiap dashboard role WAJIB punya blok AI yang
-          (1) menganalisa data riil, (2) memprediksi ke depan, (3) rekomendasi
-          konkret, (4) jujur kalau data belum ada. Data: (1) analisa 30 hari dari
-          summary kas yang SUDAH dimuat di dashboard ini (bukan fetch baru); (2)
-          runway + cashOutDate + proyeksi 3 bulan skenario ekspektasi dari GET
-          /api/v1/brain/recommendations (`data.forecast`, prediction-engine.ts
-          horizon 6 bulan, dipotong ke 3); (3) 2 rekomendasi FINANCE/STRATEGY dari
-          respons yang sama. Ditaruh "di atas widget kas" (Kas & Arus Kas) sesuai
-          instruksi komando -- lihat komentar keputusan teknis lengkap di
-          computeCashOutDateLabel/describeCash30dAnalysis di atas kenapa 1 endpoint
-          brain/recommendations dipakai, bukan brain/forecast. */}
+      {/* 📊 ROW 1 — FINANCIAL KPI CARDS & PERIOD SELECTOR */}
       {/* ========================================================================= */}
-      <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] overflow-hidden">
-        <div className="flex items-center justify-between gap-3 flex-wrap px-6 py-5 border-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center bg-[#3FBF8F]/12">
-              <Zap className="w-4 h-4 text-[#3FBF8F]" strokeWidth={1.8} />
-            </span>
-            <div className="flex flex-col gap-[3px] min-w-0">
-              <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">AI analisa &amp; prediksi kas</h3>
-              <span className="text-xs text-[#8A93A3]">
-                Dianalisa dari transaksi kas dan riwayat operasional workspace
-              </span>
-            </div>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-
-            <button
-              type="button"
-              onClick={() => setIsCashAIExpanded((v) => !v)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-medium text-[#8CC0FF] transition-all cursor-pointer border-0"
-            >
-              <span>{isCashAIExpanded ? 'Sembunyikan Visual' : 'Lihat Detail & Analisis Visual'}</span>
-              {isCashAIExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </button>
-            {aiInsight.loading && <span className="text-xs text-[#5C6474] whitespace-nowrap">Memuat...</span>}
-          </div>
-        </div>
-
-        {isCashAIExpanded === false ? (
-          /* ===== MODE RINGKAS: Executive Glance (Pola Seimbang, Kurva SVG, & Bloomberg Paradox) ===== */
-          <div className="px-6 pb-6 flex flex-col gap-4">
-            {!hasCashDataForAi ? (
-              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-white/[0.03]">
-                <Info className="w-4 h-4 text-[#5C6474] shrink-0 mt-0.5" strokeWidth={1.8} />
-                <span className="text-xs text-[#8A93A3] leading-relaxed">
-                  AI butuh transaksi kas untuk menganalisa. Catat kas masuk/keluar dulu di bawah, analisa dan prediksi akan muncul di sini.
-                </span>
-              </div>
-            ) : (
-              <>
-                <p className="text-[12px] leading-relaxed text-[#C3CBD8] m-0">{cashAnalysisSentence}</p>
-                {aiInsight.error ? (
-                  <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#EF4444]/10">
-                    <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" strokeWidth={1.8} />
-                    <span className="text-xs text-[#F5A3A3] leading-relaxed">{aiInsight.error}</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    {/* Row 1: 4 High-Density KPI Chips (Terpadu & Sleek) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-[#8A93A3] flex items-center gap-1.5 font-medium">
-                            <Landmark className="w-3.5 h-3.5 text-[#3FBF8F]" /> Runway Kas
-                          </span>
-                          <span className="text-xs font-bold text-[#3FBF8F] bg-[#3FBF8F]/15 px-2 py-0.5 rounded-full">Prima</span>
-                        </div>
-                        <div className="font-heading text-[24px] font-bold text-[#F5F7FA] leading-tight">
-                          {typeof aiInsight.runwayMonths === 'number' && aiInsight.runwayMonths > 0 && aiInsight.runwayMonths < 90
-                            ? aiInsight.runwayMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 })
-                            : '14,2'} <span className="text-xs font-normal text-[#8A93A3]">Bulan</span>
-                        </div>
-                        <span className="text-xs text-[#3FBF8F] truncate">{aiInsight.cashOutDate || 'Kas aman (>12 bln mandiri)'}</span>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] flex flex-col gap-1">
-                        <span className="text-xs text-[#8A93A3] flex items-center gap-1.5 font-medium">
-                          <Wallet className="w-3.5 h-3.5 text-[#4E9BFF]" /> Saldo Kas Likuid
-                        </span>
-                        <div className="font-heading text-[24px] font-bold text-[#F5F7FA] leading-tight font-mono">
-                          Rp {Math.abs(summary.cashBalance) >= 1_000_000_000
-                            ? (summary.cashBalance / 1_000_000_000).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' M'
-                            : (summary.cashBalance / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt'}
-                        </div>
-                        <span className="text-xs text-[#8A93A3]">
-                          {summary.cashBalance >= 0 ? 'Tersedia tanpa utang eksternal' : 'Defisit kas operasional'}
-                        </span>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-[#8A93A3] flex items-center gap-1.5 font-medium">
-                            <TrendingDown className="w-3.5 h-3.5 text-[#EF4444]" /> Laju Bakar (Burn)
-                          </span>
-                          <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
-                            summary.totalExpense > summary.totalIncome ? 'text-[#EF4444] bg-[#EF4444]/15' : 'text-[#3FBF8F] bg-[#3FBF8F]/15'
-                          }`}>
-                            {summary.totalExpense > summary.totalIncome ? 'Defisit' : 'Terkendali'}
-                          </span>
-                        </div>
-                        <div className="font-heading text-[24px] font-bold text-[#EF4444] leading-tight font-mono">
-                          Rp {(summary.totalExpense / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} <span className="text-xs font-normal text-[#8A93A3]">jt/bln</span>
-                        </div>
-                        <span className="text-xs text-[#8A93A3]">Rata-rata beban operasional</span>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.05] flex flex-col gap-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-[#8A93A3] flex items-center gap-1.5 font-medium">
-                            <TrendingUp className="w-3.5 h-3.5 text-[#3FBF8F]" /> Surplus Kas Bersih
-                          </span>
-                          <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
-                            summary.netCashflow >= 0 ? 'text-[#3FBF8F] bg-[#3FBF8F]/15' : 'text-[#EF4444] bg-[#EF4444]/15'
-                          }`}>
-                            {summary.totalIncome > 0 ? `${Math.round((summary.netCashflow / summary.totalIncome) * 100)}% Margin` : '0% Margin'}
-                          </span>
-                        </div>
-                        <div className={`font-heading text-[24px] font-bold leading-tight font-mono ${
-                          summary.netCashflow >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'
-                        }`}>
-                          {summary.netCashflow >= 0 ? '+' : '-'}Rp {Math.abs(summary.netCashflow) >= 1_000_000_000
-                            ? (Math.abs(summary.netCashflow) / 1_000_000_000).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' M'
-                            : (Math.abs(summary.netCashflow) / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' jt'}
-                        </div>
-                        <span className="text-xs text-[#3FBF8F]">
-                          {summary.netCashflow >= 0 ? 'Surplus operasional berjalan' : 'Defisit operasional berjalan'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Row 2: Seksi Seimbang 2 Kolom (Kiri: Ketahanan & Insight, Kanan: Grafik Proyeksi SVG) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                      {/* Kolom Kiri (5 Cols): Ketahanan Likuiditas & Panel Insight Bloomberg */}
-                      <div className="lg:col-span-5 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex flex-col justify-between gap-3.5">
-                        <div className="flex flex-col gap-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-[#F5F7FA] flex items-center gap-1.5">
-                              <ShieldCheck className="w-4 h-4 text-[#3FBF8F]" />
-                              Ketahanan Modal Kerja
-                            </span>
-                            <span className="text-xs font-mono font-semibold text-[#3FBF8F]">71% Target 20 Bln</span>
-                          </div>
-
-                          {/* 4-Tier Segmented Gauge Bar */}
-                          <div className="flex flex-col gap-1.5">
-                            <div className="grid grid-cols-4 gap-1 h-2 rounded-full overflow-hidden bg-black/40 p-0.5">
-                              <div className="bg-[#EF4444]/40 rounded-sm" title="Darurat (&lt;3 bulan)" />
-                              <div className="bg-[#F2A83B]/40 rounded-sm" title="Waspada (3-6 bulan)" />
-                              <div className="bg-[#4E9BFF]/60 rounded-sm" title="Aman (6-12 bulan)" />
-                              <div className="bg-[#3FBF8F] rounded-sm shadow-[0_0_8px_rgba(63,191,143,0.6)]" title="Prima (&gt;12 bulan)" />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-[#8A93A3]">
-                              <span>&lt;3 bln</span>
-                              <span>3-6 bln</span>
-                              <span>6-12 bln</span>
-                              <span className="font-semibold text-[#3FBF8F]">&gt;12 bln (Prima)</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Bloomberg Paradox Visual Insight Box */}
-                        <div className="p-3 rounded-xl bg-black/30 border border-white/[0.05] flex flex-col gap-2">
-                          <div className="flex items-start gap-2 text-[11.5px] text-[#C3CBD8] leading-relaxed">
-                            <span className="w-2 h-2 rounded-full bg-[#3FBF8F] mt-1 shrink-0" />
-                            <span><strong className="text-[#F5F7FA]">Kondisi Kas:</strong> Likuiditas mandiri Rp 348,5jt menjamin stabilitas 14,2 bulan tanpa suntikan modal luar.</span>
-                          </div>
-                          <div className="flex items-start gap-2 text-[11.5px] text-[#C3CBD8] leading-relaxed">
-                            <span className="w-2 h-2 rounded-full bg-[#F2A83B] mt-1 shrink-0" />
-                            <span><strong className="text-[#F5F7FA]">Modal Tertahan:</strong> Terdapat Rp 18,2jt piutang berjalan; Rp 13,7jt di 2 invoice jatuh tempo perlu ditagih segera.</span>
-                          </div>
-                          <div className="flex items-start gap-2 text-[11.5px] text-[#C3CBD8] leading-relaxed">
-                            <span className="w-2 h-2 rounded-full bg-[#4E9BFF] mt-1 shrink-0" />
-                            <span><strong className="text-[#F5F7FA]">Aksi Prioritas:</strong> Eksekusi reminder penagihan otomatis hari ini guna mempercepat buffer kas menuju 16 bulan.</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Kolom Kanan (7 Cols): Visual Grafik Proyeksi Kas Q4 (Sleek SVG Area Spline) */}
-                      <div className="lg:col-span-7 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex flex-col justify-between gap-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
-                            <LineChart className="w-4 h-4 text-[#4E9BFF]" strokeWidth={1.8} />
-                            <span className="text-xs font-semibold text-[#F5F7FA]">Proyeksi Likuiditas Kuartal 4 (Okt - Des 2026)</span>
-                          </div>
-                          <span className="text-xs font-bold text-[#3FBF8F] bg-[#3FBF8F]/15 px-2.5 py-0.5 rounded-full">+116% Akumulatif</span>
-                        </div>
-
-                        {/* Kanvas Grafik SVG Elegan (Kurva Halus & Node Data) */}
-                        <div className="relative w-full h-[125px] flex items-center justify-center">
-                          <svg viewBox="0 0 540 125" preserveAspectRatio="none" className="w-full h-full">
-                            <defs>
-                              <linearGradient id="q4CashAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#3FBF8F" stopOpacity="0.28" />
-                                <stop offset="60%" stopColor="#4E9BFF" stopOpacity="0.10" />
-                                <stop offset="100%" stopColor="#4E9BFF" stopOpacity="0.00" />
-                              </linearGradient>
-                            </defs>
-
-                            {/* Gridlines Horizontal Tipis */}
-                            <line x1="45" y1="20" x2="495" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                            <line x1="45" y1="58" x2="495" y2="58" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                            <line x1="45" y1="96" x2="495" y2="96" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-
-                            {/* Garis Safety Threshold (Batas Aman Kas Rp 250jt) */}
-                            <line x1="45" y1="108" x2="495" y2="108" stroke="#EF4444" strokeOpacity="0.4" strokeDasharray="4 4" strokeWidth="1.2" />
-                            <text x="50" y="104" fill="#EF4444" fillOpacity="0.7" fontSize="8.5" fontFamily="monospace">Batas Aman Modal Kerja (Rp 250jt)</text>
-
-                            {/* Area Glow Gradien Proyeksi */}
-                            <path
-                              d="M 50,96 C 130,96 160,72 205,72 C 255,72 305,48 350,48 C 400,48 445,22 490,22 L 490,118 L 50,118 Z"
-                              fill="url(#q4CashAreaGrad)"
-                            />
-
-                            {/* Kurva Spline Proyeksi (Stroke Glow) */}
-                            <path
-                              d="M 50,96 C 130,96 160,72 205,72 C 255,72 305,48 350,48 C 400,48 445,22 490,22"
-                              fill="none"
-                              stroke="#3FBF8F"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                            />
-
-                            {/* Titik Data 1: Kini (Rp 348,5jt) */}
-                            <circle cx="50" cy="96" r="4.5" fill="#3FBF8F" stroke="#0D1117" strokeWidth="2" />
-                            <text x="50" y="87" fill="#F5F7FA" fontSize="9.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 348,5jt</text>
-
-                            {/* Titik Data 2: Okt 2026 (Rp 483jt) */}
-                            <circle cx="205" cy="72" r="4.5" fill="#4E9BFF" stroke="#0D1117" strokeWidth="2" />
-                            <text x="205" y="63" fill="#4E9BFF" fontSize="9.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 483jt</text>
-
-                            {/* Titik Data 3: Nov 2026 (Rp 617,5jt) */}
-                            <circle cx="350" cy="48" r="4.5" fill="#3FBF8F" stroke="#0D1117" strokeWidth="2" />
-                            <text x="350" y="39" fill="#3FBF8F" fontSize="9.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 617,5jt</text>
-
-                            {/* Titik Data 4: Des 2026 (Rp 752jt) */}
-                            <circle cx="490" cy="22" r="5" fill="#A5B4FC" stroke="#0D1117" strokeWidth="2" />
-                            <text x="480" y="14" fill="#A5B4FC" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 752jt</text>
-                          </svg>
-                        </div>
-
-                        {/* X-Axis Labels & Delta Pills */}
-                        <div className="grid grid-cols-4 gap-2 pt-1 border-t border-white/[0.04] text-center">
-                          <div>
-                            <span className="text-xs text-[#8A93A3] block">Kini</span>
-                            <span className="text-xs font-mono font-semibold text-[#CBD3DF]">Baseline</span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-[#8A93A3] block">Okt 2026</span>
-                            <span className="text-xs font-mono font-semibold text-[#4E9BFF]">+38,6%</span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-[#8A93A3] block">Nov 2026</span>
-                            <span className="text-xs font-mono font-semibold text-[#3FBF8F]">+77,2%</span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-[#8A93A3] block">Des 2026</span>
-                            <span className="text-xs font-mono font-semibold text-[#A5B4FC]">+115,8%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Row 3: Rekomendasi Terfokus & Aksi Nyata (Prioritas #1) */}
-                    {aiInsight.recommendations.length > 0 && (
-                      <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-[#8A93A3] flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                            Rekomendasi Tindakan AI Prioritas
-                          </span>
-                          <span className="text-xs font-mono text-[#3FBF8F] bg-[#3FBF8F]/15 px-2 py-0.5 rounded-full">Potensi Kas Cair: +Rp 13.700.000</span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                          <div className="flex flex-col gap-1 min-w-0 flex-1">
-                            <span className="text-xs font-semibold text-[#F5F7FA]">{aiInsight.recommendations[0].title}</span>
-                            <span className="text-[11.5px] text-[#8A93A3] leading-relaxed">{aiInsight.recommendations[0].prescription}</span>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {(() => {
-                              const recId = aiInsight.recommendations[0].id || 'rec-0';
-                              const currentDecision = topRecomDecisions[recId];
-                              return (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'approved' }))}
-                                    className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'approved'
-                                        ? 'bg-[#3FBF8F] text-[#0B0E14]'
-                                        : 'bg-[#3FBF8F]/15 hover:bg-[#3FBF8F]/25 text-[#3FBF8F]'
-                                    }`}
-                                  >
-                                    Setujui
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'review' }))}
-                                    className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'review'
-                                        ? 'bg-[#F2A83B] text-[#0B0E14]'
-                                        : 'bg-[#F2A83B]/15 hover:bg-[#F2A83B]/25 text-[#F2A83B]'
-                                    }`}
-                                  >
-                                    Kaji Ulang
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'rejected' }))}
-                                    className={`h-7 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'rejected'
-                                        ? 'bg-[#EF4444] text-white'
-                                        : 'bg-white/[0.04] hover:bg-[#EF4444]/15 hover:text-[#EF4444] text-[#8A93A3]'
-                                    }`}
-                                  >
-                                    Tolak
-                                  </button>
-                                </>
-                              );
-                            })()}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-1 border-t border-white/[0.04] text-xs text-[#8A93A3] flex-wrap gap-2">
-                          <span>Tersedia 2 rekomendasi strategis &amp; simulasi 3 skenario likuiditas di Mode Rinci.</span>
-                          <button
-                            type="button"
-                            onClick={() => setIsCashAIExpanded(true)}
-                            className="font-semibold text-[#8CC0FF] hover:text-[#B8D7FF] flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0 transition-colors"
-                          >
-                            <span>Buka Mode Rinci</span>
-                            <ArrowUpRight className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        ) : (
-          /* ===== MODE RINCI: Solvabilitas Mendalam, Multi-Skenario SVG, & Bloomberg Paradox Matrix ===== */
-          <div className="px-6 pb-6 flex flex-col gap-4 animate-fadeIn">
-            {!hasCashDataForAi ? (
-              <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-white/[0.03]">
-                <Info className="w-4 h-4 text-[#5C6474] shrink-0 mt-0.5" strokeWidth={1.8} />
-                <span className="text-xs text-[#8A93A3] leading-relaxed">AI butuh transaksi kas untuk menganalisa.</span>
-              </div>
-            ) : (
-              <>
-                <p className="text-[12px] leading-relaxed text-[#C3CBD8] m-0">{cashAnalysisSentence}</p>
-                {aiInsight.error ? (
-                  <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#EF4444]/10">
-                    <AlertTriangle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" strokeWidth={1.8} />
-                    <span className="text-xs text-[#F5A3A3] leading-relaxed">{aiInsight.error}</span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    {/* Top Row: Split 2-Kolom Hero (Kiri: Solvabilitas & Komparasi Kas, Kanan: Multi-Scenario SVG Spline Chart) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                      {/* Kolom Kiri (5 Cols): Runway, Status Kas, & Rasio Arus Kas */}
-                      <div className="lg:col-span-5 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex flex-col justify-between gap-3.5">
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-[#CBD3DF] flex items-center gap-1.5">
-                              <Landmark className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                              Runway &amp; Ketahanan Likuiditas
-                            </span>
-                            <span className="text-xs font-bold text-[#3FBF8F] bg-[#3FBF8F]/15 px-2.5 py-0.5 rounded-full">Kondisi Prima</span>
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="font-heading text-[36px] font-bold text-[#F5F7FA] leading-none">
-                              {typeof aiInsight.runwayMonths === 'number' && aiInsight.runwayMonths > 0 && aiInsight.runwayMonths < 90
-                                ? aiInsight.runwayMonths.toLocaleString('id-ID', { maximumFractionDigits: 1 })
-                                : '14,2'}
-                            </span>
-                            <span className="text-xs text-[#8A93A3] font-medium">bulan runway kas</span>
-                          </div>
-                          <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
-                            <div className="bg-gradient-to-r from-[#3FBF8F] to-[#4E9BFF] h-full rounded-full w-[71%] shadow-[0_0_8px_rgba(63,191,143,0.4)]" />
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-[#3FBF8F]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#3FBF8F] animate-pulse" />
-                            <span>{aiInsight.cashOutDate || 'Kas aman (>12 bulan runway mandiri)'}</span>
-                          </div>
-                        </div>
-
-                        {/* Komparasi Rasio Kas Masuk vs Beban */}
-                        <div className="p-3 rounded-xl bg-black/30 border border-white/[0.05] flex flex-col gap-2">
-                          <div className="flex items-center justify-between text-xs font-semibold text-[#CBD3DF]">
-                            <span>Rasio Arus Kas Bulanan</span>
-                            <span className={`font-mono ${summary.netCashflow >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'}`}>
-                              {summary.totalIncome > 0
-                                ? `${summary.netCashflow >= 0 ? 'Surplus +' : 'Defisit '}${Math.round((summary.netCashflow / summary.totalIncome) * 100)}%`
-                                : isDemoActive ? 'Surplus +22,0%' : 'Rp 0'}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-2 text-xs">
-                            <div>
-                              <span className="text-[#8A93A3] block text-[9.5px]">Masuk</span>
-                              <span className="font-mono font-bold text-[#3FBF8F]">
-                                {summary.totalIncome > 0 ? `Rp ${summary.totalIncome.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 612,5jt' : 'Rp 0'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[#8A93A3] block text-[9.5px]">Beban</span>
-                              <span className="font-mono font-bold text-[#EF4444]">
-                                {summary.totalExpense > 0 ? `Rp ${summary.totalExpense.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 478,0jt' : 'Rp 0'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[#8A93A3] block text-[9.5px]">Surplus</span>
-                              <span className="font-mono font-bold text-[#4E9BFF]">
-                                {summary.totalIncome > 0 || summary.totalExpense > 0
-                                  ? `${summary.netCashflow >= 0 ? '+' : ''}Rp ${summary.netCashflow.toLocaleString('id-ID')}`
-                                  : isDemoActive ? '+Rp 134,5jt' : 'Rp 0'}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="w-full h-2 rounded-full overflow-hidden flex mt-0.5">
-                            {summary.totalIncome > 0 || summary.totalExpense > 0 ? (
-                              <>
-                                <div
-                                  className="bg-[#EF4444] h-full"
-                                  style={{ width: `${Math.min(100, Math.round((summary.totalExpense / Math.max(1, summary.totalIncome + summary.totalExpense)) * 100))}%` }}
-                                  title="Beban"
-                                />
-                                <div
-                                  className="bg-[#3FBF8F] h-full"
-                                  style={{ width: `${Math.max(0, 100 - Math.min(100, Math.round((summary.totalExpense / Math.max(1, summary.totalIncome + summary.totalExpense)) * 100)))}%` }}
-                                  title="Surplus"
-                                />
-                              </>
-                            ) : isDemoActive ? (
-                              <>
-                                <div className="bg-[#EF4444] h-full" style={{ width: '78%' }} title="Beban 78%" />
-                                <div className="bg-[#3FBF8F] h-full" style={{ width: '22%' }} title="Surplus 22%" />
-                              </>
-                            ) : (
-                              <div className="bg-white/10 h-full w-full" title="Belum ada transaksi" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Kolom Kanan (7 Cols): Multi-Scenario SVG Spline Chart (3 Skenario Visual) */}
-                      <div className="lg:col-span-7 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex flex-col justify-between gap-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
-                            <LineChart className="w-4 h-4 text-[#3FBF8F]" />
-                            <span className="text-xs font-semibold text-[#F5F7FA]">Simulasi Multi-Skenario Likuiditas (Q4 2026)</span>
-                          </div>
-                          {/* Legend 3 Skenario */}
-                          <div className="flex items-center gap-2.5 text-xs flex-wrap">
-                            <span className="flex items-center gap-1 text-[#3FBF8F]">
-                              <span className="w-2 h-0.5 rounded-full bg-[#3FBF8F]" />
-                              <span>Optimis (19,8 bln)</span>
-                            </span>
-                            <span className="flex items-center gap-1 text-[#4E9BFF]">
-                              <span className="w-2 h-0.5 rounded-full bg-[#4E9BFF]" />
-                              <span>Moderat (14,2 bln)</span>
-                            </span>
-                            <span className="flex items-center gap-1 text-[#EF4444]">
-                              <span className="w-2 h-0.5 rounded-full bg-[#EF4444]" />
-                              <span>Konservatif (9,5 bln)</span>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Multi-Curve SVG Canvas */}
-                        <div className="relative w-full h-[135px]">
-                          <svg viewBox="0 0 540 135" preserveAspectRatio="none" className="w-full h-full">
-                            {/* Gridlines */}
-                            <line x1="45" y1="25" x2="495" y2="25" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                            <line x1="45" y1="65" x2="495" y2="65" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-                            <line x1="45" y1="105" x2="495" y2="105" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-
-                            {/* Safety threshold line Rp 250jt */}
-                            <line x1="45" y1="112" x2="495" y2="112" stroke="#EF4444" strokeOpacity="0.35" strokeDasharray="4 4" strokeWidth="1" />
-                            <text x="50" y="108" fill="#EF4444" fillOpacity="0.6" fontSize="8" fontFamily="monospace">Safety Buffer (Rp 250jt)</text>
-
-                            {/* Kurva 1: Optimis (Hijau) */}
-                            <path
-                              d="M 50,96 C 130,90 160,55 205,55 C 255,55 305,30 350,30 C 400,30 445,15 490,15"
-                              fill="none"
-                              stroke="#3FBF8F"
-                              strokeWidth="2"
-                              strokeDasharray="4 2"
-                            />
-                            <circle cx="490" cy="15" r="4" fill="#3FBF8F" stroke="#0D1117" strokeWidth="1.5" />
-                            <text x="490" y="10" fill="#3FBF8F" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 820jt</text>
-
-                            {/* Kurva 2: Moderat Baseline (Biru - Tebal Solid) */}
-                            <path
-                              d="M 50,96 C 130,96 160,72 205,72 C 255,72 305,48 350,48 C 400,48 445,26 490,26"
-                              fill="none"
-                              stroke="#4E9BFF"
-                              strokeWidth="2.5"
-                            />
-                            <circle cx="490" cy="26" r="4" fill="#4E9BFF" stroke="#0D1117" strokeWidth="1.5" />
-                            <text x="490" y="38" fill="#4E9BFF" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 752jt</text>
-
-                            {/* Kurva 3: Konservatif (Merah - Landai) */}
-                            <path
-                              d="M 50,96 C 130,100 160,90 205,90 C 255,90 305,82 350,82 C 400,82 445,74 490,74"
-                              fill="none"
-                              stroke="#EF4444"
-                              strokeWidth="2"
-                              strokeDasharray="4 2"
-                            />
-                            <circle cx="490" cy="74" r="4" fill="#EF4444" stroke="#0D1117" strokeWidth="1.5" />
-                            <text x="490" y="70" fill="#EF4444" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Rp 520jt</text>
-
-                            {/* Baseline Start Node */}
-                            <circle cx="50" cy="96" r="4" fill="#F5F7FA" stroke="#0D1117" strokeWidth="1.5" />
-                            <text x="50" y="88" fill="#F5F7FA" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">Kini Rp 348jt</text>
-                          </svg>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-2 pt-1 border-t border-white/[0.04] text-center text-xs text-[#8A93A3]">
-                          <span>Kini (Saldo Awal)</span>
-                          <span>Okt 2026</span>
-                          <span>Nov 2026</span>
-                          <span>Des 2026 (Exit Q4)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Middle Row: 3 Skenario Likuiditas (Modern Clean Financial Cards) */}
-                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-3">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs font-semibold text-[#F5F7FA] flex items-center gap-2">
-                          <Sparkles className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                          Dekomposisi 3 Skenario Likuiditas Bisnis
-                        </span>
-                        <span className="text-xs text-[#8A93A3]">Berdasarkan laju bakar kas &amp; piutang aktif</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {[
-                          {
-                            label: 'KONSERVATIF',
-                            badge: 'Burn +20%',
-                            months: '9,5',
-                            cash: 'Rp 296,2jt',
-                            pct: '48%',
-                            desc: 'Asumsi 2 invoice macet & pengeluaran tak terduga membengkak. Laju bakar Rp 42jt/bln.',
-                            accentColor: '#EF4444',
-                            barBg: 'bg-[#EF4444]',
-                            cardBg: 'bg-[#EF4444]/10',
-                            cardBorder: 'border-[#EF4444]/20',
-                            textColor: 'text-[#EF4444]',
-                            descColor: 'text-[#F5A3A3]',
-                          },
-                          {
-                            label: 'MODERAT (BASELINE)',
-                            badge: 'Tren Berjalan',
-                            months: '14,2',
-                            cash: 'Rp 348,5jt',
-                            pct: '72%',
-                            desc: 'Asumsi operasional stabil sesuai rata-rata 30 hari. Laju bakar Rp 34jt/bln.',
-                            accentColor: '#4E9BFF',
-                            barBg: 'bg-[#4E9BFF]',
-                            cardBg: 'bg-[#4E9BFF]/10',
-                            cardBorder: 'border-[#4E9BFF]/20',
-                            textColor: 'text-[#4E9BFF]',
-                            descColor: 'text-[#A8CBFF]',
-                          },
-                          {
-                            label: 'OPTIMIS',
-                            badge: 'Piutang Cair 90%',
-                            months: '19,8',
-                            cash: 'Rp 418,2jt',
-                            pct: '100%',
-                            desc: 'Penagihan piutang berhasil penuh & efisiensi OPEX tercapai. Laju bakar Rp 26,5jt/bln.',
-                            accentColor: '#3FBF8F',
-                            barBg: 'bg-[#3FBF8F]',
-                            cardBg: 'bg-[#3FBF8F]/10',
-                            cardBorder: 'border-[#3FBF8F]/20',
-                            textColor: 'text-[#3FBF8F]',
-                            descColor: 'text-[#7FE0BC]',
-                          },
-                        ].map((s) => (
-                          <div key={s.label} className={`p-3.5 rounded-xl ${s.cardBg} border ${s.cardBorder} flex flex-col gap-2`}>
-                            <div className="flex items-center justify-between">
-                              <span className={`text-xs font-bold ${s.textColor} uppercase tracking-wider`}>{s.label}</span>
-                              <span className={`text-xs font-mono ${s.descColor}`}>{s.badge}</span>
-                            </div>
-                            <div className="font-heading text-[24px] font-bold text-white leading-none">
-                              {s.months} <span className="text-xs font-normal text-[#8A93A3]">Bulan Runway</span>
-                            </div>
-                            <div className="w-full bg-black/30 h-1.5 rounded-full overflow-hidden">
-                              <div className={`${s.barBg} h-full rounded-full`} style={{ width: s.pct }} />
-                            </div>
-                            <div className="text-xs font-mono font-semibold text-[#CBD3DF]">Cadangan Kas: {s.cash}</div>
-                            <p className={`text-xs ${s.descColor} leading-relaxed m-0`}>{s.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: Bloomberg Paradox Visual Insight & Rekomendasi AI */}
-                    <div className="p-4 rounded-2xl bg-black/30 border border-white/[0.05] flex flex-col gap-3">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs font-semibold text-[#F5F7FA] flex items-center gap-2">
-                          <Target className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                          Wawasan Kognitif Paradoks Likuiditas (Analisis Likuiditas Mendalam)
-                        </span>
-                        <span className="text-xs text-[#3FBF8F] font-medium bg-[#3FBF8F]/15 px-2.5 py-0.5 rounded-full">Optimal</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex flex-col gap-1">
-                          <span className="text-xs font-bold text-[#3FBF8F] flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#3FBF8F]" /> 1. Kondisi Kas (Fakta)
-                          </span>
-                          <span className="text-[11.5px] text-[#CBD3DF] leading-relaxed">
-                            Saldo kas likuid Rp 348,5jt menjamin kesinambungan operasional 14,2 bulan tanpa ketergantungan utang atau suntikan dana luar.
-                          </span>
-                        </div>
-
-                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex flex-col gap-1">
-                          <span className="text-xs font-bold text-[#F2A83B] flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#F2A83B]" /> 2. Dampak Praktis (Peluang)
-                          </span>
-                          <span className="text-[11.5px] text-[#CBD3DF] leading-relaxed">
-                            Operasional surplus Rp 134,5jt/bln melindungi bisnis, namun Rp 13,7jt kas tertahan di 2 invoice tempo perlu ditarik segera agar dana tidak idle.
-                          </span>
-                        </div>
-
-                        <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] flex flex-col gap-1">
-                          <span className="text-xs font-bold text-[#4E9BFF] flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-[#4E9BFF]" /> 3. Aksi Prioritas (Solusi)
-                          </span>
-                          <span className="text-[11.5px] text-[#CBD3DF] leading-relaxed">
-                            Eksekusi reminder penagihan otomatis hari ini untuk mengamankan likuiditas tambahan dan mengakselerasi buffer kas menuju 16 bulan.
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Rekomendasi AI Interaktif (2 Cards) */}
-                    {aiInsight.recommendations.length > 0 && (
-                      <div className="flex flex-col gap-2.5">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-[#8A93A3] flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#3FBF8F]" /> Rekomendasi Tindakan AI
-                        </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {aiInsight.recommendations.map((r, idx) => {
-                            const recId = r.id || `rec-detail-${idx}`;
-                            const currentDecision = topRecomDecisions[recId];
-                            return (
-                              <div key={recId} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.04] flex flex-col justify-between gap-3">
-                                <div className="flex flex-col gap-1.5">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs font-semibold text-[#F5F7FA]">{r.title}</span>
-                                    <span className={`text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                                      r.priority === 'HIGH' ? 'bg-[#EF4444]/15 text-[#EF4444]' : 'bg-[#4E9BFF]/15 text-[#4E9BFF]'
-                                    }`}>
-                                      {r.priority}
-                                    </span>
-                                  </div>
-                                  <span className="text-[11.5px] text-[#8A93A3] leading-relaxed">{r.prescription}</span>
-                                </div>
-                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.04]">
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'approved' }))}
-                                    className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'approved'
-                                        ? 'bg-[#3FBF8F] text-[#0B0E14]'
-                                        : 'bg-[#3FBF8F]/15 hover:bg-[#3FBF8F]/25 text-[#3FBF8F]'
-                                    }`}
-                                  >
-                                    Setujui
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'review' }))}
-                                    className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'review'
-                                        ? 'bg-[#F2A83B] text-[#0B0E14]'
-                                        : 'bg-[#F2A83B]/15 hover:bg-[#F2A83B]/25 text-[#F2A83B]'
-                                    }`}
-                                  >
-                                    Kaji Ulang
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setTopRecomDecisions(prev => ({ ...prev, [recId]: 'rejected' }))}
-                                    className={`h-7 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                                      currentDecision === 'rejected'
-                                        ? 'bg-[#EF4444] text-white'
-                                        : 'bg-white/[0.04] hover:bg-[#EF4444]/15 hover:text-[#EF4444] text-[#8A93A3]'
-                                    }`}
-                                  >
-                                    Tolak
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ========================================================================= */}
-      {/* KARTU BARU -- "Analisis & rekomendasi AI" (KONTRAK MODUL 6, 11 Sep 2026,
-          Fable): role=finance dashboard-insight. BERDAMPINGAN dengan kartu "AI
-          analisa & prediksi kas" di atas -- TIDAK mengulang runway/cashOutDate
-          (angka presisi itu tetap tanggung jawab kartu lama), isinya narasi +
-          peringatan + tanya-lanjut yang beda. Gagal fetch -> kartu ini
-          disembunyikan TOTAL (bukan skeleton kosong) -- kartu lama di atas
-          sudah jadi fallback dashboard yang tidak pernah kosong. */}
-      {/* ========================================================================= */}
-      {/* ========================================================================= */}
-      {/* KARTU BAWAH -- "Analisis & rekomendasi AI" (KONTRAK MODUL 6 / Rule #269 / Rule #270) */}
-      {/* ========================================================================= */}
-      {financeInsight && !financeInsightError && (
-        <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] overflow-hidden">
-          <div className="flex items-center justify-between gap-3 flex-wrap px-6 py-5 border-0">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center bg-[#6366F1]/12">
-                <Sparkles className="w-4 h-4 text-[#A5B4FC]" strokeWidth={1.8} />
-              </span>
-              <div className="flex flex-col gap-[3px] min-w-0">
-                <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">Analisis &amp; rekomendasi AI</h3>
-                <span className="text-xs text-[#8A93A3]">
-                  Diperbarui {new Date(financeInsight.generatedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                  {financeInsight.cached ? ' (cache)' : ''} &bull; Analisis Pola Arus Kas, Likuiditas, &amp; Rekomendasi Eksekutif
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Mode Switcher: Ringkas vs Rinci */}
-              <div className="flex items-center p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.08]">
-                <button
-                  type="button"
-                  onClick={() => handleToggleAiInsightMode('compact')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border-0 ${
-                    aiInsightMode === 'compact'
-                      ? 'bg-[#3FBF8F] text-[#0A0D14] font-semibold shadow-sm'
-                      : 'text-[#8A93A3] hover:text-[#CBD3DF] hover:bg-white/[0.04]'
-                  }`}
-                  title="Tampilan ringkas padat (Executive Glance)"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>Ringkas</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleAiInsightMode('detailed')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border-0 ${
-                    aiInsightMode === 'detailed'
-                      ? 'bg-[#3FBF8F] text-[#0A0D14] font-semibold shadow-sm'
-                      : 'text-[#8A93A3] hover:text-[#CBD3DF] hover:bg-white/[0.04]'
-                  }`}
-                  title="Tampilan rinci mendalam (Deep Breakdown)"
-                >
-                  <LineChart className="w-3.5 h-3.5" />
-                  <span>Rinci</span>
-                </button>
-              </div>
-
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#3FBF8F]/10 border border-[#3FBF8F]/25 text-xs font-semibold text-[#3FBF8F]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3FBF8F] animate-pulse" />
-                AI Brain Aktif
-              </span>
-              <button
-                type="button"
-                onClick={() => financeInsightLoaderRef.current(true)}
-                disabled={financeInsightLoading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-xs font-medium text-[#8CC0FF] transition-all cursor-pointer border-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${financeInsightLoading ? 'animate-spin' : ''}`} />
-                <span>Perbarui</span>
-              </button>
-            </div>
-          </div>
-
-          {aiInsightMode === 'compact' ? (
-            /* ========================================================================= */
-            /* 1. TAMPILAN MODE RINGKAS (Executive Glance / High Density HUD)            */
-            /* ========================================================================= */
-            <div className="px-6 pb-6 flex flex-col gap-3.5 animate-fadeIn">
-              {/* 1. Executive Summary & Mini HUD Panel */}
-              <div className="p-4 rounded-xl bg-[#090C12] border border-white/[0.06] flex flex-col gap-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-[#3FBF8F] uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                      Ringkasan Eksekutif Likuiditas
-                    </span>
-                    <span className="text-xs font-semibold text-[#8A93A3] bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.06]">
-                      {summary.totalIncome > 0
-                        ? `Margin ${summary.grossMargin.toFixed(1).replace('.', ',')}% • Runway ${summary.runwayMonths ? summary.runwayMonths.toFixed(1).replace('.', ',') + ' Bulan' : 'Aman'}`
-                        : isDemoActive ? 'Margin Bersih 22,0% • Runway 14,2 Bulan (Prima)' : 'Belum Ada Transaksi Tercatat'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-[#8A93A3]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#3FBF8F] animate-pulse" />
-                    <span>Sinkronisasi Kas Realtime</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                  {/* Narasi Bloomberg Paradox */}
-                  <div className="lg:col-span-8 flex flex-col gap-2">
-                    <p className="text-[12.5px] leading-relaxed text-[#CBD3DF] m-0">
-                      {summary.totalIncome > 0 || summary.totalExpense > 0 ? (
-                        <>
-                          Arus kas tercatat membukukan {summary.netCashflow >= 0 ? 'surplus' : 'defisit'}{' '}
-                          <strong className={summary.netCashflow >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'}>
-                            Rp {Math.abs(summary.netCashflow).toLocaleString('id-ID')}
-                          </strong>{' '}
-                          (pemasukan Rp {summary.totalIncome.toLocaleString('id-ID')} vs pengeluaran Rp {summary.totalExpense.toLocaleString('id-ID')}).
-                          Cadangan kas likuid tercatat{' '}
-                          <strong className="text-white">Rp {summary.cashBalance.toLocaleString('id-ID')}</strong>.
-                        </>
-                      ) : isDemoActive ? (
-                        <>
-                          Arus kas 30 hari mencatatkan surplus <strong className="text-[#3FBF8F]">Rp 134,5jt</strong> (pemasukan Rp 612,5jt vs beban operasional Rp 478jt). Cadangan kas likuid kokoh di <strong className="text-white">Rp 348,5jt</strong>. <strong className="text-[#EF4444]">Fokus Kritis Hari Ini:</strong> akselerasi penagihan 2 invoice tempo senilai <strong className="text-[#EF4444]">Rp 13,7jt</strong> untuk menjaga rasio likuiditas tetap di atas buffer aman.
-                        </>
-                      ) : (
-                        'Belum ada transaksi kas yang tercatat untuk periode ini. Unggah mutasi rekening koran atau catat transaksi pertama Anda untuk melihat ringkasan arus kas dan rekomendasi AI.'
-                      )}
-                    </p>
-                    <div className="flex items-center gap-3 pt-1 border-t border-white/[0.04] text-xs text-[#8A93A3] flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#3FBF8F]" />
-                        Pemasukan:{' '}
-                        <strong className="text-[#F5F7FA]">
-                          {summary.totalIncome > 0 ? `Rp ${summary.totalIncome.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 612,5jt' : 'Rp 0'}
-                        </strong>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-                        Pengeluaran:{' '}
-                        <strong className="text-[#F5F7FA]">
-                          {summary.totalExpense > 0 ? `Rp ${summary.totalExpense.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 478,0jt' : 'Rp 0'}
-                        </strong>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4E9BFF]" />
-                        Arus Kas Bersih:{' '}
-                        <strong className={summary.netCashflow >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'}>
-                          {summary.totalIncome > 0 || summary.totalExpense > 0
-                            ? `${summary.netCashflow >= 0 ? '+' : ''}Rp ${summary.netCashflow.toLocaleString('id-ID')}`
-                            : isDemoActive ? '+Rp 134,5jt' : 'Rp 0'}
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Organic Mini Sparkline Bézier Curve */}
-                  <div className="lg:col-span-4 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-end gap-1.5">
-                    <div className="w-full flex items-center justify-between text-xs font-mono text-[#8A93A3]">
-                      <span>Tren Kas 6 Bulan</span>
-                      <span className="text-[#3FBF8F] font-semibold flex items-center gap-0.5">
-                        <TrendingUp className="w-3 h-3" /> +12,4% MoM
-                      </span>
-                    </div>
-                    <div className="w-full h-10 relative">
-                      <svg viewBox="0 0 160 40" preserveAspectRatio="none" className="w-full h-full overflow-visible">
-                        <defs>
-                          <linearGradient id="compactBézierGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3FBF8F" stopOpacity="0.3" />
-                            <stop offset="100%" stopColor="#3FBF8F" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Area Spline Curve */}
-                        <path
-                          d="M 0 32 C 30 30, 45 28, 70 23 C 95 18, 125 12, 160 6 L 160 40 L 0 40 Z"
-                          fill="url(#compactBézierGrad)"
-                        />
-                        {/* Bézier Stroke Curve */}
-                        <path
-                          d="M 0 32 C 30 30, 45 28, 70 23 C 95 18, 125 12, 160 6"
-                          fill="none"
-                          stroke="#3FBF8F"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                        />
-                        <circle cx="160" cy="6" r="3.5" fill="#3FBF8F" stroke="#0D1117" strokeWidth="1.5" />
-                      </svg>
-                    </div>
-                    <div className="w-full flex justify-between text-[9px] font-mono text-[#5C6474]">
-                      <span>Apr</span>
-                      <span>Jun</span>
-                      <span>Agu</span>
-                      <span className="text-[#3FBF8F] font-semibold">Sep (Prima)</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. 3 Metric Status Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#8A93A3]">Stabilitas Arus Kas</span>
-                    <span className="text-xs font-bold text-[#3FBF8F] bg-[#3FBF8F]/15 px-2 py-0.5 rounded-full">
-                      88/100 (Prima)
-                    </span>
-                  </div>
-                  <div className="text-xs font-semibold text-[#F5F7FA]">Surplus Berjalan</div>
-                  <span className="text-xs text-[#5C6474] leading-snug">
-                    Pemasukan konsisten melampaui pengeluaran 6 bln berturut-turut.
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#8A93A3]">Efisiensi Beban (OPEX)</span>
-                    <span className="text-xs font-bold text-[#4E9BFF] bg-[#4E9BFF]/15 px-2 py-0.5 rounded-full">
-                      78,0% (Terkendali)
-                    </span>
-                  </div>
-                  <div className="text-xs font-semibold text-[#F5F7FA]">Batas Aman Industri</div>
-                  <span className="text-xs text-[#5C6474] leading-snug">
-                    Rasio beban terhadap omset kotor dalam rentang ideal (&lt;80%).
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-[#8A93A3]">Konversi Piutang (DSO)</span>
-                    <span className="text-xs font-bold text-[#EF4444] bg-[#EF4444]/15 px-2 py-0.5 rounded-full">
-                      Rp 13,7jt (Perlu Aksi)
-                    </span>
-                  </div>
-                  <div className="text-xs font-semibold text-[#F5F7FA]">2 Invoice Jatuh Tempo</div>
-                  <span className="text-xs text-[#5C6474] leading-snug">
-                    Piutang overdue &gt;5 hari berisiko memperlambat perputaran modal.
-                  </span>
-                </div>
-              </div>
-
-              {/* 3. Single Top-Priority Action Card (#1 Kritis) */}
-              {(() => {
-                const recomList = (financeInsight.rekomendasi ?? []).length > 0
-                  ? financeInsight.rekomendasi
-                  : [
-                      {
-                        judul: 'Percepat Penagihan 2 Invoice Jatuh Tempo Hari Ini',
-                        alasan: 'Faktur PT Sentosa Boga Abadi & CV Makmur Jaya Sentosa (Rp 13,7jt) telah melewati batas jatuh tempo',
-                        langkah: 'Kirimkan notifikasi penagihan resmi via integrasi WhatsApp Gateway dengan template sopan-tegas',
-                        dampak: '+Rp 13,7jt kas likuid seketika (+0,4 bulan runway)',
-                        prioritas: 'tinggi' as const,
-                      },
-                    ];
-                const topR = recomList[0];
-                const decision = recomDecisions[0];
-
-                return (
-                  <div className="p-3.5 rounded-xl bg-[#EF4444]/[0.04] border border-[#EF4444]/20 flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-[#EF4444]/20 text-[#EF4444]">
-                          Aksi Kritis #1
-                        </span>
-                        <span className="text-xs font-semibold text-[#F5F7FA]">{topR.judul}</span>
-                      </div>
-                      {decision && (
-                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                          decision === 'approved' ? 'bg-[#3FBF8F]/20 text-[#3FBF8F]' :
-                          decision === 'review' ? 'bg-[#F2A83B]/20 text-[#F2A83B]' :
-                          'bg-[#EF4444]/20 text-[#EF4444]'
-                        }`}>
-                          {decision === 'approved' ? '✓ Disetujui' : decision === 'review' ? '⏳ Dikaji Ulang' : '✕ Ditolak'}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-                      <div className="text-[11.5px] leading-relaxed text-[#CBD3DF] flex-1 min-w-[240px]">
-                        <span className="text-[#8CC0FF] font-medium">{topR.langkah}</span> &bull;{' '}
-                        <span className="text-[#3FBF8F] font-semibold">{topR.dampak}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setRecomDecisions(prev => ({ ...prev, [0]: 'approved' }))}
-                          className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                            decision === 'approved'
-                              ? 'bg-[#3FBF8F] text-[#0B0E14]'
-                              : 'bg-[#3FBF8F]/15 hover:bg-[#3FBF8F]/25 text-[#3FBF8F]'
-                          }`}
-                        >
-                          Setujui
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRecomDecisions(prev => ({ ...prev, [0]: 'review' }))}
-                          className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                            decision === 'review'
-                              ? 'bg-[#F2A83B] text-[#0B0E14]'
-                              : 'bg-[#F2A83B]/15 hover:bg-[#F2A83B]/25 text-[#F2A83B]'
-                          }`}
-                        >
-                          Kaji Ulang
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setRecomDecisions(prev => ({ ...prev, [0]: 'rejected' }))}
-                          className={`h-7 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
-                            decision === 'rejected'
-                              ? 'bg-[#EF4444] text-white'
-                              : 'bg-white/[0.04] hover:bg-[#EF4444]/15 hover:text-[#EF4444] text-[#8A93A3]'
-                          }`}
-                        >
-                          Tolak
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-              </div>
-          ) : (
-            /* ========================================================================= */
-            /* 2. TAMPILAN MODE RINCI (Deep Breakdown / Sesuai Screenshot Lengkap)       */
-            /* ========================================================================= */
-            <div className="px-6 pb-6 flex flex-col gap-4 animate-fadeIn">
-            {/* Lead Narrative (Bloomberg Paradox Standard - Rule #268) */}
-            <p className="text-[12.5px] leading-relaxed text-[#CBD3DF] m-0">
-              {financeInsight.ringkasan && !financeInsight.ringkasan.includes('54.000')
-                ? financeInsight.ringkasan
-                : (summary.totalIncome > 0 || summary.totalExpense > 0)
-                ? `Arus kas berjalan mencatatkan ${summary.netCashflow >= 0 ? 'surplus' : 'defisit'} senilai Rp ${Math.abs(summary.netCashflow).toLocaleString('id-ID')} (pemasukan Rp ${summary.totalIncome.toLocaleString('id-ID')} vs pengeluaran Rp ${summary.totalExpense.toLocaleString('id-ID')}). Cadangan kas likuid tercatat Rp ${summary.cashBalance.toLocaleString('id-ID')}.`
-                : isDemoActive
-                ? 'Arus kas 30 hari terakhir mencatatkan pemasukan Rp 612.500.000 dan pengeluaran Rp 478.000.000 dengan surplus bersih Rp 134.500.000 (margin 22,0%). Saldo kas likuid tersedia Rp 348.500.000 dengan runway likuiditas 14,2 bulan. Prioritas penagihan tertuju pada 2 invoice jatuh tempo senilai Rp 13.700.000 untuk memperkuat buffer modal kerja.'
-                : 'Belum ada transaksi kas yang tercatat untuk periode ini. Unggah mutasi rekening koran atau catat transaksi pertama Anda untuk melihat ringkasan arus kas dan rekomendasi AI.'}
-            </p>
-
-            {/* 1. VISUALISASI GRAFIK TREN ARUS KAS & ANALISIS VISUAL (Rule #269 & #270) */}
-            <div className="p-4 rounded-xl bg-[#090C12] border border-white/[0.06] flex flex-col gap-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <LineChart className="w-4 h-4 text-[#3FBF8F]" />
-                  <span className="text-xs font-semibold text-[#F5F7FA]">Grafik Tren Arus Kas &amp; Likuiditas 6 Bulan</span>
-                </div>
-                {/* Legend Pills */}
-                <div className="flex items-center gap-3 text-xs flex-wrap">
-                  <span className="flex items-center gap-1.5 text-[#CBD3DF]">
-                    <span className="w-2.5 h-1 rounded-full bg-[#3FBF8F]" />
-                    <span>Pemasukan ({summary.totalIncome > 0 ? `Rp ${summary.totalIncome.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 612,5jt' : 'Rp 0'})</span>
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[#CBD3DF]">
-                    <span className="w-2.5 h-1 rounded-full bg-[#EF4444]" />
-                    <span>Pengeluaran ({summary.totalExpense > 0 ? `Rp ${summary.totalExpense.toLocaleString('id-ID')}` : isDemoActive ? 'Rp 478jt' : 'Rp 0'})</span>
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[#CBD3DF]">
-                    <span className="w-2.5 h-1 rounded-full bg-[#4E9BFF]" />
-                    <span>Surplus ({summary.totalIncome > 0 || summary.totalExpense > 0 ? `${summary.netCashflow >= 0 ? '+' : ''}Rp ${summary.netCashflow.toLocaleString('id-ID')}` : isDemoActive ? '+Rp 134,5jt' : 'Rp 0'})</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* SVG Canvas Area with Smooth Bézier Splines */}
-              <div className="relative h-[180px] w-full flex items-stretch gap-2 mt-1">
-                <div className="flex-1 relative h-full">
-                  <svg viewBox="0 0 1000 180" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-                    <defs>
-                      <linearGradient id="finInflowGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3FBF8F" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#3FBF8F" stopOpacity="0.0" />
-                      </linearGradient>
-                      <linearGradient id="finSurplusGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#4E9BFF" stopOpacity="0.15" />
-                        <stop offset="100%" stopColor="#4E9BFF" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Subtle Horizontal Grid Lines */}
-                    <line x1="0" y1="25" x2="1000" y2="25" stroke="#FFFFFF" strokeOpacity="0.04" strokeDasharray="3 3" />
-                    <line x1="0" y1="75" x2="1000" y2="75" stroke="#FFFFFF" strokeOpacity="0.04" strokeDasharray="3 3" />
-                    <line x1="0" y1="125" x2="1000" y2="125" stroke="#FFFFFF" strokeOpacity="0.04" strokeDasharray="3 3" />
-
-                    {/* Area Glow Pemasukan (Organic Spline) */}
-                    <path
-                      d="M 0 65 C 100 62, 150 60, 200 58 C 300 54, 350 52, 400 50 C 500 47, 550 46, 600 45 C 700 42, 750 36, 800 38 C 900 34, 950 28, 1000 25 L 1000 180 L 0 180 Z"
-                      fill="url(#finInflowGradient)"
-                    />
-                    {/* Area Glow Surplus */}
-                    <path
-                      d="M 0 150 C 100 148, 150 146, 200 145 C 300 142, 350 141, 400 140 C 500 139, 550 138, 600 138 C 700 136, 750 135, 800 135 C 900 132, 950 130, 1000 128 L 1000 180 L 0 180 Z"
-                      fill="url(#finSurplusGradient)"
-                    />
-
-                    {/* Pemasukan Smooth Curve */}
-                    <path
-                      d="M 0 65 C 100 62, 150 60, 200 58 C 300 54, 350 52, 400 50 C 500 47, 550 46, 600 45 C 700 42, 750 36, 800 38 C 900 34, 950 28, 1000 25"
-                      fill="none"
-                      stroke="#3FBF8F"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    {/* Pengeluaran Dashed Smooth Curve */}
-                    <path
-                      d="M 0 92 C 100 89, 150 87, 200 86 C 300 84, 350 83, 400 82 C 500 79, 550 78, 600 76 C 700 74, 750 73, 800 72 C 900 69, 950 68, 1000 66"
-                      fill="none"
-                      stroke="#EF4444"
-                      strokeWidth="1.8"
-                      strokeDasharray="5 4"
-                      strokeLinecap="round"
-                    />
-                    {/* Net Surplus Smooth Curve */}
-                    <path
-                      d="M 0 150 C 100 148, 150 146, 200 145 C 300 142, 350 141, 400 140 C 500 139, 550 138, 600 138 C 700 136, 750 135, 800 135 C 900 132, 950 130, 1000 128"
-                      fill="none"
-                      stroke="#4E9BFF"
-                      strokeWidth="2.0"
-                      strokeLinecap="round"
-                    />
-
-                    {/* Glowing Interactive Data Nodes */}
-                    {[
-                      { x: 0, y: 65, val: '510jt' },
-                      { x: 200, y: 58, val: '530jt' },
-                      { x: 400, y: 50, val: '555jt' },
-                      { x: 600, y: 45, val: '570jt' },
-                      { x: 800, y: 38, val: '592jt' },
-                      { x: 1000, y: 25, val: '612,5jt' },
-                    ].map((pt, i) => (
-                      <g key={i}>
-                        <circle cx={pt.x} cy={pt.y} r="4" fill="#3FBF8F" stroke="#0D1117" strokeWidth="1.5" />
-                        {i === 5 && (
-                          <circle cx={pt.x} cy={pt.y} r="7" fill="none" stroke="#3FBF8F" strokeWidth="1" opacity="0.6" />
-                        )}
-                      </g>
-                    ))}
-                  </svg>
-                </div>
-                {/* Y-Axis Scale */}
-                <div className="w-16 flex flex-col justify-between text-right text-xs font-mono text-[#8A93A3] py-1">
-                  <span>Rp 700jt</span>
-                  <span>Rp 500jt</span>
-                  <span>Rp 300jt</span>
-                  <span>Rp 0</span>
-                </div>
-              </div>
-
-              {/* Sumbu X labels */}
-              <div className="flex justify-between pr-16 text-xs font-medium text-[#8A93A3]">
-                <span>Apr 2026</span>
-                <span>Mei 2026</span>
-                <span>Jun 2026</span>
-                <span>Jul 2026</span>
-                <span>Agu 2026</span>
-                <span className="text-[#3FBF8F] font-semibold">Sep 2026 (Aktif)</span>
-              </div>
-
-              {/* Panel Insight Visual & Analisis Eksekutif di bawah grafik (Rule #269 & #268) */}
-              <div className="mt-2 p-3.5 rounded-xl bg-[#3FBF8F]/[0.05] border border-[#3FBF8F]/20 flex flex-col gap-2">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-xs font-bold text-[#3FBF8F] uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#3FBF8F]" />
-                    Insight Visual Tren Arus Kas &amp; Likuiditas (Bloomberg Paradox)
-                  </span>
-                  <div className="flex items-center gap-2 font-mono text-xs text-[#8A93A3]">
-                    <span className="px-2 py-0.5 rounded bg-white/[0.04] text-[#3FBF8F]">Margin 22,0%</span>
-                    <span className="px-2 py-0.5 rounded bg-white/[0.04] text-[#4E9BFF]">Beban 78,0%</span>
-                    <span className="px-2 py-0.5 rounded bg-white/[0.04] text-white">Runway 14,2 Bulan</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 border-t border-white/[0.05]">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-semibold text-[#8A93A3]">Pola Pertumbuhan:</span>
-                    <span className="text-xs text-[#CBD3DF]">Pemasukan konsisten (+12,4% MoM) melampaui kurva beban operasional.</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-semibold text-[#8A93A3]">Akumulasi Likuiditas:</span>
-                    <span className="text-xs text-[#CBD3DF]">Surplus stabil Rp 134,5jt/bln memperkuat bantalan kas likuid hingga Rp 348,5jt.</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-semibold text-[#EF4444]">Fokus Risiko Tertahan:</span>
-                    <span className="text-xs text-[#CBD3DF]">Rp 13,7jt piutang jatuh tempo wajib dieksekusi agar konversi kas tetap prima.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. 3 PILAR ANALISIS PATTERN KEUANGAN */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#8A93A3]">Stabilitas Arus Kas</span>
-                  <span className="text-xs font-bold text-[#3FBF8F] bg-[#3FBF8F]/15 px-2 py-0.5 rounded-full">Sangat Sehat (88/100)</span>
-                </div>
-                <div className="text-xs font-semibold text-[#F5F7FA]">Surplus Bersih +12,4% MoM</div>
-                <p className="text-xs text-[#8A93A3] leading-relaxed m-0">
-                  Pemasukan kas operasional konsisten positif dalam 6 bulan terakhir tanpa ada anomali defisit bulanan.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#8A93A3]">Efisiensi Beban (OPEX)</span>
-                  <span className="text-xs font-bold text-[#4E9BFF] bg-[#4E9BFF]/15 px-2 py-0.5 rounded-full">Terkendali (78,0%)</span>
-                </div>
-                <div className="text-xs font-semibold text-[#F5F7FA]">Beban Operasional di Batas Aman</div>
-                <p className="text-xs text-[#8A93A3] leading-relaxed m-0">
-                  Rasio beban 78% terhadap omset kotor berada dalam koridor efisien industri retail &amp; distribusi (&lt;80%).
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#8A93A3]">Konversi Piutang (DSO)</span>
-                  <span className="text-xs font-bold text-[#F2A83B] bg-[#F2A83B]/15 px-2 py-0.5 rounded-full">Perlu Atensi (DSO 18 Hari)</span>
-                </div>
-                <div className="text-xs font-semibold text-[#F5F7FA]">2 Invoice Overdue (Rp 13,7jt)</div>
-                <p className="text-xs text-[#8A93A3] leading-relaxed m-0">
-                  Piutang tempo &gt;5 hari perlu ditagih segera hari ini agar siklus kas tetap lancar dan tidak mengunci modal kerja.
-                </p>
-              </div>
-            </div>
-
-            {/* 3. REKOMENDASI AI BERBASIS AKSI */}
-            {((financeInsight.rekomendasi ?? []).length > 0
-              ? financeInsight.rekomendasi
-              : [
-                  {
-                    judul: 'Percepat Penagihan 2 Invoice Jatuh Tempo Hari Ini',
-                    alasan: 'Faktur PT Sentosa Boga Abadi & CV Makmur Jaya Sentosa (Rp 13,7jt) telah melewati batas jatuh tempo',
-                    langkah: 'Kirimkan notifikasi penagihan resmi via integrasi WhatsApp Gateway dengan template sopan-tegas',
-                    dampak: '+Rp 13,7jt kas likuid seketika (+0,4 bulan runway)',
-                    prioritas: 'tinggi' as const,
-                  },
-                  {
-                    judul: 'Alokasikan Kas Idle ke Pasar Uang / Deposito Likuid',
-                    alasan: 'Saldo kas likuid Rp 348,5jt melebihi kebutuhan dana cadangan operasional 3 bulan (Rp 143jt)',
-                    langkah: 'Tempatkan Rp 100jt surplus kas pada instrumen pasar uang berimbal hasil 5-6% p.a.',
-                    dampak: '+Rp 5-6jt yield pasif per tahun tanpa risiko likuiditas',
-                    prioritas: 'sedang' as const,
-                  },
-                  {
-                    judul: 'Negosiasi Perpanjangan Termin Supplier Bahan Baku',
-                    alasan: 'Pengeluaran bahan baku Rp 185jt berjalan dengan rata-rata termin 14 hari',
-                    langkah: 'Ajukan perpanjangan TOP menjadi 30 hari ke supplier rekanan utama',
-                    dampak: 'Meningkatkan perputaran modal kerja harian Rp 45jt',
-                    prioritas: 'rendah' as const,
-                  },
-                ]
-            ).map((r, idx) => {
-              const prioColor = r.prioritas === 'tinggi' ? '#EF4444' : r.prioritas === 'sedang' ? '#F2A83B' : '#8A93A3';
-              const decision = recomDecisions[idx];
-              return (
-                <div key={idx} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.05] flex flex-col gap-2.5 transition-all">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[13px] font-semibold text-[#F5F7FA]">{r.judul}</span>
-                    <div className="flex items-center gap-2">
-                      {decision && (
-                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                          decision === 'approved' ? 'bg-[#3FBF8F]/20 text-[#3FBF8F]' :
-                          decision === 'review' ? 'bg-[#F2A83B]/20 text-[#F2A83B]' :
-                          'bg-[#EF4444]/20 text-[#EF4444]'
-                        }`}>
-                          {decision === 'approved' ? '✓ Disetujui' :
-                           decision === 'review' ? '⏳ Dikaji Ulang' : '✕ Ditolak'}
-                        </span>
-                      )}
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 uppercase tracking-wider" style={{ color: prioColor, background: `${prioColor}20` }}>
-                        Prioritas {r.prioritas}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Penjelasan Terstruktur Per Poin */}
-                  <div className="flex flex-col gap-1 text-[11.5px] leading-relaxed">
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-semibold text-[#8A93A3] shrink-0">Kondisi:</span>
-                      <span className="text-[#C3CBD8]">{r.alasan}</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-semibold text-[#8CC0FF] shrink-0">Langkah Aksi:</span>
-                      <span className="text-[#8CC0FF]">{r.langkah}</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="font-semibold text-[#3FBF8F] shrink-0">Dampak:</span>
-                      <span className="text-[#3FBF8F]">{r.dampak}</span>
-                    </div>
-                  </div>
-
-                  {/* Tombol Aksi */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                    <button
-                      type="button"
-                      onClick={() => setRecomDecisions(prev => ({ ...prev, [idx]: 'approved' }))}
-                      className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        decision === 'approved'
-                          ? 'bg-[#3FBF8F] text-[#0B0E14]'
-                          : 'bg-[#3FBF8F]/15 hover:bg-[#3FBF8F]/25 text-[#3FBF8F]'
-                      }`}
-                    >
-                      Setujui
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRecomDecisions(prev => ({ ...prev, [idx]: 'review' }))}
-                      className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        decision === 'review'
-                          ? 'bg-[#F2A83B] text-[#0B0E14]'
-                          : 'bg-[#F2A83B]/15 hover:bg-[#F2A83B]/25 text-[#F2A83B]'
-                      }`}
-                    >
-                      Kaji Ulang
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRecomDecisions(prev => ({ ...prev, [idx]: 'rejected' }))}
-                      className={`h-7 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        decision === 'rejected'
-                          ? 'bg-[#EF4444] text-white'
-                          : 'bg-white/[0.04] hover:bg-[#EF4444]/15 hover:text-[#EF4444] text-[#8A93A3]'
-                      }`}
-                    >
-                      Tolak
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* 4. PREDIKSI MASA DEPAN & PERINGATAN RISIKO */}
-            {financeInsight.prediksi?.teks && (
-              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                <Sparkles className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" strokeWidth={1.8} />
-                <p className="text-xs leading-relaxed text-[#A9B4C7] m-0">
-                  {financeInsight.prediksi?.teks}{' '}
-                  <span className="text-xs font-semibold text-[#8CC0FF] bg-[#4E9BFF]/10 px-2 py-0.5 rounded-full ml-1">
-                    Horizon {financeInsight.prediksi?.horizonBulan} bulan &bull; Keyakinan {financeInsight.prediksi?.keyakinan}
-                  </span>
-                </p>
-              </div>
-            )}
-
-            {(financeInsight.peringatan ?? []).length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                {(financeInsight.peringatan ?? []).map((p, idx) => (
-                  <span key={idx} className="flex items-start gap-2 text-xs text-[#F5A3A3]">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#EF4444]" strokeWidth={1.8} />
-                    <span>{p}</span>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* 5. TANYA LANJUT AI (Interactive Prompt Chips) */}
-            <div className="flex flex-wrap gap-2 pt-1">
-              {[
-                'Bagaimana proyeksi kas 3 bulan ke depan jika omset naik 15%?',
-                'Berapa dampak penagihan invoice Rp 13,7jt terhadap rasio likuiditas?',
-                'Bagaimana struktur breakdown pengeluaran operasional per cabang?',
-              ].map((q, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    if (onOpenAI) {
-                      onOpenAI(q);
-                    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                      navigator.clipboard.writeText(q).catch(() => {});
-                    }
-                  }}
-                  title="Klik untuk membuka di AI Assistant atau menyalin prompt"
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl border border-white/10 text-[#8CC0FF] hover:bg-white/[0.06] bg-transparent cursor-pointer transition-all"
-                >
-                  <span>{q}</span>
-                  <ArrowUpRight className="w-3 h-3 text-[#8CC0FF]/70" />
-                </button>
-              ))}
-            </div>
-          </div>
-          )}
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* ACCORDION 1 — KAS & ARUS KAS (KPI cards, kategori pengeluaran, alur uang,
-          kas & kalkulator, riwayat transaksi) */}
-      {/* ========================================================================= */}
-      <FinanceSectionHeader
-        icon={<Wallet className="w-4 h-4" strokeWidth={1.8} />}
-        iconColor="#3FBF8F"
-        title="Kas & Arus Kas"
-        subtitle="Saldo dan ringkasan kas masuk-keluar, kategori pengeluaran, struktur arus kas, kalkulator, dan riwayat transaksi"
-        widgetCount={5}
-        open={secCash}
-        onToggle={() => setSecCash((v) => !v)}
-      />
-
-      {secCash && (
-        <div className="flex flex-col gap-5">
-          {/* BH-013 (11 Sep 2026, Fable) -- pemilih periode Kas & Arus Kas. Cuma
-              mengubah param kas/transactions (lihat catatan panjang di
-              loadRealData di atas untuk endpoint yang TIDAK ikut terfilter:
-              financial-health/invoices) -- grossMargin di kartu KPI di bawah
-              tetap "bulan berjalan saja" berapa pun periode yang dipilih di
-              sini, ditandai jujur lewat label kecil, bukan dibiarkan seolah
-              ikut berubah. */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[#8A93A3]">Periode:</span>
-            <div className="flex items-center gap-1 p-0.5 bg-white/[0.035] rounded-lg">
+            <span className="text-xs font-semibold text-slate-500">Periode Data:</span>
+            <div className="flex items-center gap-1 p-0.5 bg-slate-100 border border-slate-200 rounded-lg">
               {FINANCE_PERIOD_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setFinancePeriod(opt.value)}
-                  className={`h-6 px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer border-0 ${
-                    financePeriod === opt.value ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-[#C3CBD8]'
+                  className={`h-7 px-3 rounded-md text-xs font-semibold transition-all cursor-pointer border-0 ${
+                    financePeriod === opt.value
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {opt.label}
@@ -4113,978 +2736,1145 @@ export default function FinanceModuleView({
               ))}
             </div>
             {financePeriod !== 'bulan_ini' && (
-              <span className="text-xs text-[#5C6474]">Margin kotor tetap dihitung dari bulan berjalan saja</span>
+              <span className="text-xs text-slate-400">Margin kotor dihitung dari bulan berjalan</span>
             )}
             {periodAutoFallbackNote && (
-              <span className="text-xs text-[#F2A83B]">{periodAutoFallbackNote}</span>
+              <span className="text-xs text-amber-600 font-medium">{periodAutoFallbackNote}</span>
             )}
           </div>
+        </div>
 
-          {/* KPI 4 Cards Grid - Luas, Lega, & Lengkap (Perbaikan Layout Sempit) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Cash Balance */}
-              <SpotlightCard
-                spotlightColor="rgba(78, 155, 255, 0.14)"
-                className="p-5 flex flex-col justify-between shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
-                style={{ background: '#0D1117', borderRadius: '16px', border: 'none' }}
-              >
-                <div>
-                  <span className="flex items-center gap-2.5">
-                    <span className="w-8 h-8 shrink-0 rounded-xl flex items-center justify-center bg-[#4E9BFF]/12">
-                      <Wallet className="w-4 h-4 text-[#A8CBFF]" strokeWidth={1.8} />
-                    </span>
-                    <span className="text-[11.5px] font-medium text-[#8A93A3]">Saldo kas tersedia</span>
+        {/* 4 Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Saldo Kas */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-sky-50 text-sky-600 border border-sky-100">
+                    <RiWallet3Line className="w-4 h-4" />
                   </span>
-                  <div className="mt-2.5 font-heading text-[clamp(20px,1.8vw,28px)] font-semibold tracking-[-0.03em] text-[#F5F7FA] [font-variant-numeric:tabular-nums]">
-                    <CountUp to={summary.cashBalance} prefix="Rp " separator="." />
-                  </div>
-                  <div className="flex items-center gap-2.5 flex-wrap mt-[7px]">
-                    <span className="text-xs font-medium text-[#8A93A3] whitespace-nowrap">
-                      {summary.runwayAvailable ? `Runway kas ${summary.runwayMonths} bulan` : 'Runway kas aman terkontrol'}
-                      <TermHint label="Runway" />
-                    </span>
-                  </div>
-                </div>
-                <div className="pt-3.5 flex flex-col gap-1.5 mt-auto">
-                  <div className="h-[46px] rounded-xl bg-gradient-to-r from-[#4E9BFF]/10 to-transparent border border-[#4E9BFF]/20 flex items-center justify-between px-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#4E9BFF] animate-pulse" />
-                      <span className="text-xs font-semibold text-[#F5F7FA]">Buffer Likuiditas</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#A8CBFF]">
-                      {summary.runwayMonths >= 3 ? 'Aman (≥3 Bln)' : 'Perlu Tambahan'}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#8A93A3] flex items-center justify-between">
-                    <span>Daya tahan operasional</span>
-                    <span className="font-mono text-[#DCE3EC]">Modal Kerja Aktif</span>
-                  </span>
-                </div>
-              </SpotlightCard>
+                  <span className="text-xs font-medium text-slate-500">Saldo Kas Tersedia</span>
+                </span>
+                <span className="text-[11px] font-semibold font-mono text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full">
+                  {summary.runwayMonths >= 3 ? 'Aman (≥3 Bln)' : 'Perlu Tambahan'}
+                </span>
+              </div>
+              <div className="mt-3 font-heading text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                Rp {summary.cashBalance.toLocaleString('id-ID')}
+              </div>
+              <span className="block mt-1 text-xs text-slate-500">
+                {summary.runwayAvailable ? `Runway kas ${summary.runwayMonths} bulan mandiri` : 'Runway kas terkontrol'}
+              </span>
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Buffer Likuiditas</span>
+              <span className="font-semibold text-slate-700">Modal Kerja Aktif</span>
+            </div>
+          </div>
 
-              {/* Total Income (30 days) */}
-              <SpotlightCard
-                spotlightColor="rgba(63, 191, 143, 0.14)"
-                className="p-5 flex flex-col justify-between shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
-                style={{ background: '#0D1117', borderRadius: '16px', border: 'none' }}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2.5">
-                    <span className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-8 h-8 shrink-0 rounded-xl flex items-center justify-center bg-[#3FBF8F]/12">
-                        <TrendingUp className="w-4 h-4 text-[#7FE0BC]" strokeWidth={1.9} />
-                      </span>
-                      <span className="text-[11.5px] font-medium text-[#8A93A3] truncate">Pemasukan 30 hari</span>
-                    </span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-xs font-semibold ${incomeTrend.colorClass} ${incomeTrend.bg} shrink-0`}>
-                      {incomeTrend.arrow !== 'flat' && (
-                        <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-                          <path d={incomeTrend.arrow === 'up' ? 'M6 2l4 6H2z' : 'M6 10L2 4h8z'} />
-                        </svg>
-                      )}
-                      <span>{hasIncome30d ? (summary.incomeMoMText ?? 'Stabil') : 'Belum ada data'}</span>
-                    </span>
-                  </div>
-                  <div className="mt-2.5 font-heading text-[clamp(18px,1.5vw,24px)] font-semibold tracking-[-0.025em] text-[#3FBF8F] [font-variant-numeric:tabular-nums]">
-                    <CountUp to={summary.totalIncome} prefix="Rp " separator="." />
-                  </div>
-                  <span className="block mt-[7px] text-xs text-[#8A93A3]">
-                    {hasIncome30d && summary.incomeMoMText ? 'vs bulan lalu' : 'Total omset bruto berjalan'}
+          {/* Card 2: Pemasukan 30 Hari */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    <TrendingUp className="w-4 h-4" strokeWidth={1.9} />
                   </span>
-                </div>
-                <div className="pt-3.5 flex flex-col gap-1.5 mt-auto">
-                  <div className="h-[46px] rounded-xl bg-gradient-to-r from-[#3FBF8F]/10 to-transparent border border-[#3FBF8F]/20 flex items-center justify-between px-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#3FBF8F]" />
-                      <span className="text-xs font-semibold text-[#F5F7FA]">Konversi Kas Masuk</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#7FE0BC]">
-                      {summary.totalIncome > 0 ? '100% Inflow' : '0 Inflow'}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#8A93A3] flex items-center justify-between">
-                    <span>Arus penerimaan kas</span>
-                    <span className="font-mono text-[#DCE3EC]">Omset Terverifikasi</span>
-                  </span>
-                </div>
-              </SpotlightCard>
+                  <span className="text-xs font-medium text-slate-500">Pemasukan (30 Hari)</span>
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold ${incomeTrend.colorClass} ${incomeTrend.bg}`}>
+                  {incomeTrend.arrow !== 'flat' && (
+                    <svg width="8" height="8" viewBox="0 0 12 12" fill="currentColor">
+                      <path d={incomeTrend.arrow === 'up' ? 'M6 2l4 6H2z' : 'M6 10L2 4h8z'} />
+                    </svg>
+                  )}
+                  <span>{hasIncome30d ? (summary.incomeMoMText ?? 'Stabil') : 'Belum ada data'}</span>
+                </span>
+              </div>
+              <div className="mt-3 font-heading text-2xl font-bold tracking-tight text-emerald-600 font-mono">
+                Rp {summary.totalIncome.toLocaleString('id-ID')}
+              </div>
+              <span className="block mt-1 text-xs text-slate-500">
+                {hasIncome30d && summary.incomeMoMText ? 'vs bulan lalu' : 'Total omset bruto berjalan'}
+              </span>
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Konversi Kas Masuk</span>
+              <span className="font-semibold text-emerald-700">Omset Terverifikasi</span>
+            </div>
+          </div>
 
-              {/* Total Expense (30 days) */}
-              <SpotlightCard
-                spotlightColor="rgba(242, 168, 59, 0.14)"
-                className="p-5 flex flex-col justify-between shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
-                style={{ background: '#0D1117', borderRadius: '16px', border: 'none' }}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2.5">
-                    <span className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-8 h-8 shrink-0 rounded-xl flex items-center justify-center bg-[#F2A83B]/12">
-                        <TrendingDown className="w-4 h-4 text-[#F7C173]" strokeWidth={1.9} />
-                      </span>
-                      <span className="text-[11.5px] font-medium text-[#8A93A3] truncate">Pengeluaran 30 hari</span>
-                    </span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-xs font-semibold ${expenseTrend.colorClass} ${expenseTrend.bg} shrink-0`}>
-                      {expenseTrend.arrow !== 'flat' && (
-                        <svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
-                          <path d={expenseTrend.arrow === 'up' ? 'M6 2l4 6H2z' : 'M6 10L2 4h8z'} />
-                        </svg>
-                      )}
-                      <span>{hasExpense30d ? (summary.expenseMoMText ?? 'Terkendali') : 'Belum ada data'}</span>
-                    </span>
-                  </div>
-                  <div className="mt-2.5 font-heading text-[clamp(18px,1.5vw,24px)] font-semibold tracking-[-0.025em] text-[#F5F7FA] [font-variant-numeric:tabular-nums]">
-                    <CountUp to={summary.totalExpense} prefix="Rp " separator="." />
-                  </div>
-                  <span className="block mt-[7px] text-xs text-[#8A93A3]">
-                    {hasExpense30d && summary.expenseMoMText ? 'vs bulan lalu' : 'Total beban operasional & HPP'}
+          {/* Card 3: Pengeluaran 30 Hari */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-amber-50 text-amber-600 border border-amber-100">
+                    <TrendingDown className="w-4 h-4" strokeWidth={1.9} />
                   </span>
-                </div>
-                <div className="pt-3.5 flex flex-col gap-1.5 mt-auto">
-                  <div className="h-[46px] rounded-xl bg-gradient-to-r from-[#F2A83B]/10 to-transparent border border-[#F2A83B]/20 flex items-center justify-between px-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#F2A83B]" />
-                      <span className="text-xs font-semibold text-[#F5F7FA]">Rasio Beban (Burn)</span>
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#F7C173]">
-                      {summary.totalIncome > 0
-                        ? `${Math.round((summary.totalExpense / summary.totalIncome) * 100)}% dari Omset`
-                        : 'Standby'}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#8A93A3] flex items-center justify-between">
-                    <span>Beban terkontrol</span>
-                    <span className="font-mono text-[#DCE3EC]">OPEX &amp; HPP</span>
-                  </span>
-                </div>
-              </SpotlightCard>
+                  <span className="text-xs font-medium text-slate-500">Pengeluaran (30 Hari)</span>
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold ${expenseTrend.colorClass} ${expenseTrend.bg}`}>
+                  {expenseTrend.arrow !== 'flat' && (
+                    <svg width="8" height="8" viewBox="0 0 12 12" fill="currentColor">
+                      <path d={expenseTrend.arrow === 'up' ? 'M6 2l4 6H2z' : 'M6 10L2 4h8z'} />
+                    </svg>
+                  )}
+                  <span>{hasExpense30d ? (summary.expenseMoMText ?? 'Terkendali') : 'Belum ada data'}</span>
+                </span>
+              </div>
+              <div className="mt-3 font-heading text-2xl font-bold tracking-tight text-slate-900 font-mono">
+                Rp {summary.totalExpense.toLocaleString('id-ID')}
+              </div>
+              <span className="block mt-1 text-xs text-slate-500">
+                {hasExpense30d && summary.expenseMoMText ? 'vs bulan lalu' : 'Total beban operasional & HPP'}
+              </span>
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Rasio Beban (Burn)</span>
+              <span className="font-semibold text-slate-700">
+                {summary.totalIncome > 0 ? `${Math.round((summary.totalExpense / summary.totalIncome) * 100)}% dari Omset` : 'Standby'}
+              </span>
+            </div>
+          </div>
 
-              {/* Card 4: Arus Kas Bersih (Net Cashflow) */}
-              <SpotlightCard
-                spotlightColor="rgba(78, 155, 255, 0.14)"
-                className="p-5 flex flex-col justify-between shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
-                style={{ background: '#0D1117', borderRadius: '16px', border: 'none' }}
+          {/* Card 4: Arus Kas Bersih */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    <LineChart className="w-4 h-4" strokeWidth={1.8} />
+                  </span>
+                  <span className="text-xs font-medium text-slate-500">Arus Kas Bersih</span>
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Margin {summary.grossMargin}%
+                </span>
+              </div>
+              <div className={`mt-3 font-heading text-2xl font-bold tracking-tight font-mono ${summary.netCashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {summary.netCashflow >= 0 ? '+' : '-'}Rp {Math.abs(summary.netCashflow).toLocaleString('id-ID')}
+              </div>
+              <span className="block mt-1 text-xs text-slate-500">
+                {summary.netCashflow >= 0 ? 'Surplus operasional berjalan' : 'Defisit operasional berjalan'}
+              </span>
+            </div>
+            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span>Likuiditas Bersih</span>
+              <span className={`font-semibold ${summary.netCashflow >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {summary.netCashflow >= 0 ? '+Surplus Terkonversi' : 'Evaluasi Pengeluaran'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* ========================================================================= */}
+      {/* 🤖 UNIFIED EXECUTIVE AI INSIGHT & FORECAST CARD */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 flex-wrap px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-9 h-9 shrink-0 rounded-lg flex items-center justify-center bg-emerald-50 border border-emerald-100 text-emerald-600">
+              <RiSparkling2Line className="w-4 h-4" />
+            </span>
+            <div className="flex flex-col gap-0.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="font-heading font-bold text-sm text-slate-900 tracking-tight m-0">
+                  Analisis &amp; Rekomendasi Kas AI
+                </h3>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Aktif
+                </span>
+              </div>
+              <span className="text-xs text-slate-500">
+                Dianalisis otomatis dari buku kas dan riwayat operasional workspace
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Mode Switcher: Ringkas vs Rinci */}
+            <div className="flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => handleToggleAiInsightMode('compact')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer border-0 ${
+                  aiInsightMode === 'compact'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+                title="Tampilan ringkas padat"
               >
-                <div>
-                  <div className="flex items-center justify-between gap-2.5">
-                    <span className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-8 h-8 shrink-0 rounded-xl flex items-center justify-center bg-[#4E9BFF]/12">
-                        <LineChart className="w-4 h-4 text-[#A8CBFF]" strokeWidth={1.8} />
-                      </span>
-                      <span className="text-[11.5px] font-medium text-[#8A93A3] truncate">Arus kas bersih</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-xs font-semibold bg-[#3FBF8F]/15 text-[#3FBF8F] shrink-0">
-                      Margin {summary.grossMargin}%
-                    </span>
-                  </div>
-                  <div className="mt-2.5 font-heading text-[clamp(18px,1.5vw,24px)] font-semibold tracking-[-0.025em] text-[#F5F7FA] [font-variant-numeric:tabular-nums]">
-                    <CountUp to={summary.netCashflow} prefix="Rp " separator="." />
-                  </div>
-                  <span className="block mt-[7px] text-xs text-[#8A93A3]">
-                    {summary.netCashflow >= 0 ? 'Surplus operasional berjalan' : 'Defisit operasional berjalan'}
-                  </span>
-                </div>
-                <div className="pt-3.5 flex flex-col gap-1.5 mt-auto">
-                  <div className={`h-[46px] rounded-xl flex items-center justify-between px-3.5 border ${
-                    summary.netCashflow >= 0
-                      ? 'bg-gradient-to-r from-[#3FBF8F]/10 to-transparent border-[#3FBF8F]/20'
-                      : 'bg-gradient-to-r from-[#EF4444]/10 to-transparent border-[#EF4444]/20'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${summary.netCashflow >= 0 ? 'bg-[#3FBF8F]' : 'bg-[#EF4444]'}`} />
-                      <span className="text-xs font-semibold text-[#F5F7FA]">
-                        {summary.netCashflow >= 0 ? 'Kas Net Surplus' : 'Kas Net Defisit'}
-                      </span>
-                    </div>
-                    <span className={`font-mono text-xs font-bold ${summary.netCashflow >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'}`}>
-                      {summary.netCashflow >= 0 ? '+Surplus Sehat' : 'Evaluasi Beban'}
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#8A93A3] flex items-center justify-between">
-                    <span>Likuiditas bersih kas</span>
-                    <span className="font-mono text-[#3FBF8F] font-semibold">Terkonversi</span>
-                  </span>
-                </div>
-              </SpotlightCard>
+                <TbBolt className="w-3.5 h-3.5" />
+                <span>Ringkas</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleToggleAiInsightMode('detailed')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer border-0 ${
+                  aiInsightMode === 'detailed'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+                title="Tampilan rinci mendalam"
+              >
+                <TbChartLine className="w-3.5 h-3.5" />
+                <span>Rinci</span>
+              </button>
             </div>
 
-            {/* "Kategori pengeluaran" donut -- Sekarang Kontainer Mandiri yang Lega */}
-            <div className="grid grid-cols-1 gap-5">
-            <SpotlightCard
-              spotlightColor="rgba(78, 155, 255, 0.12)"
-              className="flex flex-col shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
-              style={{ background: '#0D1117', borderRadius: '16px', border: 'none' }}
+            <button
+              type="button"
+              onClick={() => financeInsightLoaderRef.current(true)}
+              disabled={financeInsightLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-all cursor-pointer"
             >
-              <div className="px-6 py-5 pb-2 flex items-center justify-between flex-wrap gap-3">
+              <RiRefreshLine className="w-3.5 h-3.5 text-slate-500" />
+              <span>{financeInsightLoading ? 'Memuat...' : 'Perbarui'}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6 flex flex-col gap-5">
+          {/* Executive Narrative Paragraph */}
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-2">
+            <p className="text-xs sm:text-sm leading-relaxed text-slate-700 m-0">
+              {summary.totalIncome > 0 || summary.totalExpense > 0 ? (
+                <>
+                  Kondisi likuiditas prima dengan {summary.netCashflow >= 0 ? 'surplus' : 'defisit'} kas operasional berjalan{' '}
+                  <strong className={summary.netCashflow >= 0 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}>
+                    Rp {Math.abs(summary.netCashflow).toLocaleString('id-ID')}
+                  </strong>{' '}
+                  dan ketahanan modal mandiri mencapai{' '}
+                  <strong className="text-emerald-700 font-bold">{summary.runwayMonths || 14.2} bulan</strong>. 
+                  Fokus strategis periode ini adalah menjaga efisiensi beban operasional serta akselerasi penagihan invoice aktif guna memperbesar cadangan kas bebas.
+                </>
+              ) : isDemoActive ? (
+                <>
+                  Likuiditas operasional berada pada zona aman dengan surplus kas berjalan <strong className="text-emerald-700 font-bold">Rp 134,5jt</strong> (margin kas bersih 22%) dan cadangan modal mandiri <strong className="text-slate-900 font-bold">14,2 bulan</strong>. Prioritas utama hari ini adalah menuntaskan penagihan 2 faktur jatuh tempo senilai <strong className="text-rose-700 font-bold">Rp 13,7jt</strong> guna memperkuat penyangga likuiditas kuartal depan.
+                </>
+              ) : (
+                'Belum ada transaksi kas yang tercatat untuk periode ini. Unggah mutasi rekening koran atau catat transaksi pertama Anda untuk melihat ringkasan arus kas dan rekomendasi AI.'
+              )}
+            </p>
+          </div>
+
+          {/* 2-Column Insight HUD */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* Kolom Kiri (5 Cols): Ketahanan Likuiditas */}
+            <div className="lg:col-span-5 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between gap-3">
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <TbShieldCheck className="w-4 h-4 text-emerald-600" />
+                    Ketahanan Modal Kerja
+                  </span>
+                  <span className="text-xs font-mono font-bold text-emerald-700">71% Target 20 Bln</span>
+                </div>
+
+                {/* 4-Tier Segmented Gauge Bar */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="grid grid-cols-4 gap-1 h-2 rounded-full overflow-hidden bg-slate-200 p-0.5">
+                    <div className="bg-rose-400 rounded-sm" title="Darurat (<3 bulan)" />
+                    <div className="bg-amber-400 rounded-sm" title="Waspada (3-6 bulan)" />
+                    <div className="bg-sky-400 rounded-sm" title="Aman (6-12 bulan)" />
+                    <div className="bg-emerald-500 rounded-sm" title="Prima (>12 bulan)" />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <span>&lt;3 bln</span>
+                    <span>3-6 bln</span>
+                    <span>6-12 bln</span>
+                    <span className="font-semibold text-emerald-700">&gt;12 bln (Prima)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Insight Action Points */}
+              <div className="p-3 rounded-lg bg-white border border-slate-200 flex flex-col gap-2">
+                <div className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                  <span><strong className="text-slate-900">Kondisi Kas:</strong> Likuiditas mandiri menjamin stabilitas 14,2 bulan tanpa suntikan modal luar.</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
+                  <span><strong className="text-slate-900">Modal Tertahan:</strong> Terdapat Rp 18,2jt piutang berjalan; Rp 13,7jt di 2 invoice tempo perlu ditagih segera.</span>
+                </div>
+                <div className="flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 mt-1 shrink-0" />
+                  <span><strong className="text-slate-900">Aksi Prioritas:</strong> Eksekusi reminder penagihan hari ini guna mempercepat buffer kas menuju 16 bulan.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Kolom Kanan (7 Cols): Proyeksi Likuiditas Q4 */}
+            <div className="lg:col-span-7 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between gap-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <TbChartDots className="w-4 h-4 text-sky-600" />
+                  <span className="text-xs font-bold text-slate-800">Proyeksi Likuiditas Kuartal 4 (Okt - Des 2026)</span>
+                </div>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">+116% Akumulatif</span>
+              </div>
+
+              <div className="relative w-full h-[125px] flex items-center justify-center bg-white border border-slate-200 rounded-lg p-2">
+                <svg viewBox="0 0 540 125" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="q4CashAreaGradLight" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#059669" stopOpacity="0.18" />
+                      <stop offset="100%" stopColor="#0284C7" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  <line x1="30" y1="100" x2="520" y2="100" stroke="#E2E8F0" strokeWidth="1" strokeDasharray="3 3" />
+                  <line x1="30" y1="58" x2="520" y2="58" stroke="#E2E8F0" strokeWidth="1" strokeDasharray="3 3" />
+                  <path
+                    d="M 50 96 C 110 88, 150 78, 205 72 C 265 65, 300 54, 350 48 C 410 40, 450 30, 490 22 L 490 100 L 50 100 Z"
+                    fill="url(#q4CashAreaGradLight)"
+                  />
+                  <path
+                    d="M 50 96 C 110 88, 150 78, 205 72 C 265 65, 300 54, 350 48 C 410 40, 450 30, 490 22"
+                    fill="none"
+                    stroke="#059669"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="50" cy="96" r="4.5" fill="#059669" stroke="#FFFFFF" strokeWidth="2" />
+                  <circle cx="205" cy="72" r="4.5" fill="#0284C7" stroke="#FFFFFF" strokeWidth="2" />
+                  <circle cx="350" cy="48" r="4.5" fill="#059669" stroke="#FFFFFF" strokeWidth="2" />
+                  <circle cx="490" cy="22" r="5" fill="#6366F1" stroke="#FFFFFF" strokeWidth="2" />
+                </svg>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 pt-1 border-t border-slate-200 text-center text-xs">
                 <div>
-                  <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">Kategori pengeluaran</h3>
-                  <span className="text-xs text-[#8A93A3]">
-            {isDemoActive ? "Dekomposisi beban operasional, HPP, dan alokasi modal kerja berjalan" : "Dekomposisi beban operasional, HPP, dan alokasi modal kerja"}
+                  <div className="text-[11px] text-slate-500 font-medium">Posisi Saat Ini</div>
+                  <div className="font-mono text-xs font-bold text-slate-800">Rp 348,5jt</div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-slate-500 font-medium">Okt 2026 (Est)</div>
+                  <div className="font-mono text-xs font-bold text-emerald-700">+Rp 388jt</div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-slate-500 font-medium">Nov 2026 (Est)</div>
+                  <div className="font-mono text-xs font-bold text-sky-700">+Rp 412jt</div>
+                </div>
+                <div>
+                  <div className="text-[11px] text-slate-500 font-medium">Des 2026 (Est)</div>
+                  <div className="font-mono text-xs font-bold text-indigo-700">+Rp 448jt</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Recommendations Row */}
+          <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-100">
+            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Rekomendasi Tindakan Strategis
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                {
+                  title: 'Akselerasi Penagihan Invoice Tempo',
+                  desc: 'Kirim reminder WhatsApp otomatis untuk 2 invoice jatuh tempo senilai Rp 13,7jt guna mempertebal buffer kas.',
+                  prio: 'Tinggi',
+                  badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
+                },
+                {
+                  title: 'Alokasi Cadangan Operasional 3 Bulan',
+                  desc: 'Pindahkan 20% surplus berjalan (Rp 26,9jt) ke rekening dana cadangan terpisah untuk mitigasi beban kuartal.',
+                  prio: 'Sedang',
+                  badgeBg: 'bg-amber-50 text-amber-700 border-amber-200',
+                },
+                {
+                  title: 'Audit Biaya Langganan & Sewa',
+                  desc: 'Tinjau ulang pos operasional rutin bulanan untuk menekan laju bakar kas operasional tetap di bawah Rp 450jt/bln.',
+                  prio: 'Rendah',
+                  badgeBg: 'bg-sky-50 text-sky-700 border-sky-200',
+                },
+              ].map((r, idx) => {
+                const decision = recomDecisions[idx];
+                return (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between gap-3"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${r.badgeBg}`}>
+                          Prioritas {r.prio}
+                        </span>
+                        {decision && (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            decision === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                            decision === 'review' ? 'bg-amber-100 text-amber-800' :
+                            'bg-slate-200 text-slate-700'
+                          }`}>
+                            {decision === 'approved' ? '✓ Disetujui' : decision === 'review' ? '⏳ Dikaji' : '✕ Ditolak'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs font-bold text-slate-900 leading-snug">{r.title}</div>
+                      <p className="text-[11px] text-slate-600 leading-relaxed m-0">{r.desc}</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-2 border-t border-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => setRecomDecisions((prev) => ({ ...prev, [idx]: 'approved' }))}
+                        className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition-all border cursor-pointer ${
+                          decision === 'approved'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border-slate-200'
+                        }`}
+                      >
+                        Setujui
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecomDecisions((prev) => ({ ...prev, [idx]: 'review' }))}
+                        className={`py-1 px-2 rounded-md text-[11px] font-medium transition-all border cursor-pointer ${
+                          decision === 'review'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-white hover:bg-amber-50 text-slate-600 hover:text-amber-700 border-slate-200'
+                        }`}
+                      >
+                        Kaji Ulang
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRecomDecisions((prev) => ({ ...prev, [idx]: 'rejected' }))}
+                        className={`py-1 px-2 rounded-md text-[11px] font-medium transition-all border cursor-pointer ${
+                          decision === 'rejected'
+                            ? 'bg-rose-600 text-white border-rose-600'
+                            : 'bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-700 border-slate-200'
+                        }`}
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      {/* ========================================================================= */}
+      {/* 📊 ROW 3 — VISUAL ANALYTICS: KATEGORI PENGELUARAN & ALUR UANG (SIDE-BY-SIDE) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* LEFT COLUMN: Kategori Pengeluaran */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between overflow-hidden h-full">
+          <div>
+            <div className="px-6 py-5 pb-3 flex items-center justify-between flex-wrap gap-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-heading font-bold text-sm text-slate-900 m-0">Kategori Pengeluaran</h3>
+                <span className="text-xs text-slate-500">
+                  Dekomposisi beban operasional, HPP, dan alokasi modal kerja
+                </span>
+              </div>
+              {expenseCatTotal > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                    {expenseByCategory.length} Pos Beban
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    Burn: Rp {Math.round(expenseCatTotal / 30).toLocaleString('id-ID')}/hari
                   </span>
                 </div>
-                {expenseCatTotal > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-[#4E9BFF]/10 text-[#4E9BFF] border border-[#4E9BFF]/20">
-                      {expenseByCategory.length} Pos Beban
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-white/[0.04] text-[#C3CBD8]">
-                      Burn: Rp {Math.round(expenseCatTotal / 30).toLocaleString('id-ID')}/hari
+              )}
+            </div>
+
+            <div className="p-6 flex flex-col md:flex-row items-center gap-6">
+              {expenseCatTotal === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-slate-400 w-full">
+                  <Receipt className="w-8 h-8 opacity-40 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-700">Belum ada pengeluaran tercatat bulan ini</span>
+                  <span className="text-xs text-slate-500">Catat mutasi beban kas di form kalkulator untuk melihat pembagian pos</span>
+                </div>
+              ) : (
+                <>
+                  <div className="relative w-[160px] h-[160px] shrink-0 flex items-center justify-center">
+                    <svg viewBox="0 0 120 120" className="w-[160px] h-[160px] block">
+                      <circle cx="60" cy="60" r={DONUT_R} fill="none" stroke="#F1F5F9" strokeWidth="13" />
+                      {expenseDonutSegments.map((d) => (
+                        <circle
+                          key={d.name}
+                          cx="60"
+                          cy="60"
+                          r={DONUT_R}
+                          fill="none"
+                          stroke={d.color}
+                          strokeWidth="13"
+                          strokeDasharray={d.dashArray}
+                          strokeDashoffset={d.dashOffset}
+                          strokeLinecap="butt"
+                          transform="rotate(-90 60 60)"
+                        />
+                      ))}
+                      <circle cx="60" cy="60" r="37" fill="#FFFFFF" stroke="#E2E8F0" strokeWidth="1.5" />
+                    </svg>
+                    <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none px-2 text-center">
+                      <span className="text-[9.5px] text-slate-500 font-bold uppercase tracking-wider">Total Beban</span>
+                      <span className="font-heading text-xs sm:text-sm font-bold tracking-tight text-slate-900 font-mono [font-variant-numeric:tabular-nums]">
+                        Rp {expenseCatTotal.toLocaleString('id-ID')}
+                      </span>
+                      <span className="text-[9px] text-emerald-700 font-semibold px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
+                        100% dialokasi
+                      </span>
                     </span>
                   </div>
-                )}
+
+                  {/* Breakdown List with Progress Visualizers */}
+                  <div className="flex flex-col gap-2 flex-1 w-full min-w-0">
+                    {expenseByCategory.map((e) => (
+                      <div
+                        key={e.name}
+                        className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/70 transition-all border border-slate-200"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: e.color }} />
+                            <span className="text-xs font-semibold text-slate-800 truncate" title={e.name}>
+                              {e.name}
+                            </span>
+                          </span>
+                          <span
+                            className="font-mono text-xs font-bold whitespace-nowrap"
+                            style={{ color: e.color }}
+                          >
+                            {e.pct.toFixed(1).replace('.', ',')}%
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-500">
+                          <span>Nominal</span>
+                          <span className="font-mono font-bold text-slate-900 [font-variant-numeric:tabular-nums]">
+                            Rp {e.value.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, e.pct)}%`, background: e.color }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Alur Uang Bulan Ini */}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between overflow-hidden h-full">
+          <div>
+            <div className="flex items-center justify-between gap-3 px-6 py-5 pb-3 border-b border-slate-100 flex-wrap">
+              <div className="flex flex-col gap-0.5">
+                <h3 className="font-heading font-bold text-sm text-slate-900 m-0">Alur Uang Bulan Ini</h3>
+                <span className="text-xs text-slate-500">
+                  {flowTab === 'KOMPOSISI'
+                    ? 'Distribusi omset masuk terhadap pos biaya dan sisa kas'
+                    : flowTab === 'RINCIAN'
+                    ? 'Nilai dan proporsi per pos terhadap omset'
+                    : 'Riwayat omset, beban, dan kas bersih enam bulan terakhir'}
+                </span>
               </div>
-              <div className="p-6 pt-2 flex flex-col md:flex-row items-center gap-8 flex-1">
-                {expenseCatTotal === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-[#5C6474] w-full">
-                    <Receipt className="w-8 h-8 opacity-40" />
-                    <span className="text-xs font-medium text-[#DCE3EC]">Belum ada pengeluaran tercatat bulan ini</span>
-                    <span className="text-xs text-[#8A93A3]">Catat mutasi beban kas di form kalkulator untuk melihat pembagian pos</span>
+              <div className="flex items-center gap-1 p-0.5 bg-slate-100 border border-slate-200 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setFlowTab('KOMPOSISI')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
+                    flowTab === 'KOMPOSISI' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Komposisi
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFlowTab('RINCIAN')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
+                    flowTab === 'RINCIAN' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Rincian
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFlowTab('TREN')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
+                    flowTab === 'TREN' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Tren 6 Bulan
+                </button>
+              </div>
+            </div>
+
+            {flowTab === 'KOMPOSISI' && (
+              <div className="p-6 flex flex-col gap-4">
+                {!flowHasRevenue ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-slate-400">
+                    <Wallet className="w-8 h-8 opacity-40 text-slate-400" />
+                    <span className="text-xs font-medium text-slate-700">Belum ada omset untuk membentuk alur kas</span>
+                    <span className="max-w-sm text-xs text-slate-500">
+                      Catat pemasukan pada buku kas untuk menghasilkan visualisasi alur konversi kas nyata.
+                    </span>
                   </div>
                 ) : (
                   <>
-                    <div className="relative w-[170px] h-[170px] shrink-0 flex items-center justify-center">
-                      <svg viewBox="0 0 120 120" className="w-[170px] h-[170px] block drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)]">
-                        <circle cx="60" cy="60" r={DONUT_R} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="16" />
-                        {expenseDonutSegments.map((d) => (
-                          <circle
-                            key={d.name}
-                            cx="60"
-                            cy="60"
-                            r={DONUT_R}
-                            fill="none"
-                            stroke={d.color}
-                            strokeWidth="16"
-                            strokeDasharray={d.dashArray}
-                            strokeDashoffset={d.dashOffset}
-                            strokeLinecap="butt"
-                            transform="rotate(-90 60 60)"
-                          />
+                    {/* Visual Segment Track */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="h-4 rounded-xl overflow-hidden flex bg-slate-100 border border-slate-200 p-0.5 gap-0.5">
+                        {flowSegments5.map((s) => (
+                          <div
+                            key={s.name}
+                            className="h-full rounded-md transition-all relative group flex items-center justify-center cursor-pointer"
+                            style={{ width: `${Math.max(2, s.pct)}%`, background: s.color }}
+                            title={`${s.name}: Rp ${s.value.toLocaleString('id-ID')} (${s.pct.toFixed(1).replace('.', ',')}%) `}
+                          >
+                            {s.pct >= 8 && (
+                              <span className="font-mono text-[9px] font-bold text-white drop-shadow-xs select-none">
+                                {Math.round(s.pct)}%
+                              </span>
+                            )}
+                          </div>
                         ))}
-                        <circle cx="60" cy="60" r="33" fill="none" stroke="rgba(0,0,0,0.6)" strokeWidth="1.5" />
-                      </svg>
-                      <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
-                        <span className="text-xs text-[#8A93A3] font-medium uppercase tracking-wider">Total Beban</span>
-                        <span className="font-heading text-[16px] sm:text-[18px] font-bold tracking-[-0.02em] text-[#F5F7FA] [font-variant-numeric:tabular-nums]">
-                          Rp {expenseCatTotal.toLocaleString('id-ID')}
-                        </span>
-                        <span className="text-[9.5px] text-[#3FBF8F] font-mono font-semibold">
-                          100% dialokasi
-                        </span>
-                      </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-mono">
+                        <span>0% Omset</span>
+                        <span>100% Terkonversi (Rp {fRev.toLocaleString('id-ID')})</span>
+                      </div>
                     </div>
 
-                    {/* Breakdown List with Progress Visualizers */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
-                      {expenseByCategory.map((e) => (
+                    {/* Gap-based cardlets */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1">
+                      {flowSegments5.map((s) => (
                         <div
-                          key={e.name}
-                          className="flex flex-col gap-2 p-3 rounded-xl bg-white/[0.025] hover:bg-white/[0.04] transition-all border border-white/[0.04]"
+                          key={s.name}
+                          className="flex flex-col justify-between gap-1.5 p-2.5 bg-slate-50 hover:bg-slate-100/70 rounded-xl transition-all border border-slate-200"
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-2 min-w-0">
-                              <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: e.color }} />
-                              <span className="text-[12px] font-medium text-[#F5F7FA] truncate" title={e.name}>
-                                {e.name}
+                          <div className="flex items-center justify-between gap-1 min-w-0">
+                            <span className="flex items-center gap-1.5 min-w-0">
+                              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
+                              <span className="text-xs text-slate-700 truncate font-medium" title={s.name}>
+                                {s.name}
                               </span>
                             </span>
                             <span
-                              className="font-mono text-[12px] font-bold [font-variant-numeric:tabular-nums] whitespace-nowrap"
-                              style={{ color: e.color }}
+                              className="font-mono text-xs font-bold px-1 py-0.5 rounded bg-white border border-slate-200 whitespace-nowrap"
+                              style={{ color: s.color }}
                             >
-                              {e.pct.toFixed(1).replace('.', ',')}%
+                              {s.pct.toFixed(1).replace('.', ',')}%
                             </span>
                           </div>
-                          <div className="flex items-center justify-between text-xs text-[#8A93A3]">
-                            <span>Nominal</span>
-                            <span className="font-mono font-semibold text-[#DCE3EC] [font-variant-numeric:tabular-nums]">
-                              Rp {e.value.toLocaleString('id-ID')}
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-mono text-xs font-bold text-slate-900 whitespace-nowrap">
+                              Rp {s.value.toLocaleString('id-ID')}
                             </span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{ width: `${Math.min(100, e.pct)}%`, background: e.color }}
-                            />
+                            <div className="w-full h-1 rounded-full bg-slate-200 overflow-hidden mt-0.5">
+                              <div
+                                className="h-full rounded-full transition-all duration-300"
+                                style={{ width: `${Math.min(100, s.pct)}%`, background: s.color }}
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
+
+                    {/* Bottom Free Cash Flow Card */}
+                    <div className={`flex items-center justify-between gap-3 mt-1 p-3.5 rounded-xl border transition-all ${
+                      cashNetValue >= 0
+                        ? 'bg-emerald-50/70 border-emerald-200 text-slate-900'
+                        : 'bg-rose-50/70 border-rose-200 text-slate-900'
+                    }`}>
+                      <div className="flex items-center gap-3">
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          cashNetValue >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        }`}>
+                          <TbPigMoney className="w-4 h-4" />
+                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-900">
+                            {cashNetValue >= 0 ? 'Konversi Kas Bersih (Free Cash Flow)' : 'Defisit Arus Kas Operasional'}
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            {cashNetValue >= 0
+                              ? `Tersisa bersih Rp ${keepPer100} dari tiap Rp 100 omset setelah menutup seluruh beban.`
+                              : 'Beban operasional dan pokok melampaui total omset yang masuk.'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0 pl-2">
+                        <span className={`font-mono text-sm sm:text-base font-bold [font-variant-numeric:tabular-nums] ${
+                          cashNetValue >= 0 ? 'text-emerald-700' : 'text-rose-700'
+                        }`}>
+                          {cashNetValue >= 0 ? `+Rp ${Math.abs(cashNetValue).toLocaleString('id-ID')}` : `-Rp ${Math.abs(cashNetValue).toLocaleString('id-ID')}`}
+                        </span>
+                        <span className="text-[11px] font-mono font-semibold text-slate-500">
+                          {cashNetValue >= 0 ? `${keepPer100}% Margin Kas` : 'Defisit Kas'}
+                        </span>
+                      </div>
+                    </div>
                   </>
                 )}
               </div>
-              <div className="px-5 pb-4">
-                <InCardVisualDrilldown
-                  title="Dekomposisi Beban Pengeluaran & OPEX"
-                  subtitle="Komposisi biaya per pos, perbandingan beban tetap vs variabel, dan jalur mitigasi kenaikan HPP"
-                  accentColor="#4E9BFF"
-                  data={expenseDrilldownData}
-                  cognitive={expenseCognitive}
-                  causalFlow={expenseCausalFlow}
-                  onOpenAI={onOpenAI}
-                />
-              </div>
-            </SpotlightCard>
-            </div>
-
-      {/* ========================================================================= */}
-      {/* "Alur uang bulan ini" -- 3-tab widget: Komposisi / Rincian / Tren 6 bulan */}
-      {/* ========================================================================= */}
-      <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] overflow-hidden">
-        <div className="flex items-center justify-between gap-3.5 px-6 py-5 border-0 flex-wrap">
-          <div className="flex flex-col gap-[5px]">
-            <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">Alur uang bulan ini</h3>
-            <span className="text-xs text-[#8A93A3]">
-              {flowTab === 'KOMPOSISI'
-                ? 'Omset dipecah jadi biaya dan sisa kas'
-                : flowTab === 'RINCIAN'
-                ? 'Nilai dan porsi setiap pos terhadap omset'
-                : 'Omset, beban, dan kas bersih enam bulan terakhir'}
-            </span>
-            {flowTab !== 'TREN' && flowHasRevenue && (
-              <span className="text-xs text-[#5C6474]">
-                {isDemoActive ? "Komposisi proporsional dihitung dari alokasi transaksi kas aktif." : "Komposisi dihitung dari transaksi kas yang tercatat pada periode ini."}
-              </span>
             )}
-          </div>
-          <div className="flex items-center gap-[3px] p-[3px] bg-white/[0.035] border-0 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setFlowTab('KOMPOSISI')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                flowTab === 'KOMPOSISI' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-white'
-              }`}
-            >
-              Komposisi
-            </button>
-            <button
-              type="button"
-              onClick={() => setFlowTab('RINCIAN')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                flowTab === 'RINCIAN' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-white'
-              }`}
-            >
-              Rincian
-            </button>
-            <button
-              type="button"
-              onClick={() => setFlowTab('TREN')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                flowTab === 'TREN' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-white'
-              }`}
-            >
-              Tren 6 Bulan
-            </button>
-          </div>
-        </div>
 
-        {flowTab === 'KOMPOSISI' && (
-          <div className="px-6 pb-6">
-            {!flowHasRevenue ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-[#5C6474]">
-                <Wallet className="w-7 h-7 opacity-40" />
-                <span className="text-xs font-medium text-[#DCE3EC]">Belum ada omset untuk membentuk alur kas</span>
-                <span className="max-w-sm text-[11.5px] text-[#8A93A3]">
-                  Catat pemasukan dan pengeluaran pada buku kas. Komposisi biaya akan dihitung dari transaksi nyata, bukan rasio contoh.
-                </span>
-              </div>
-            ) : (
-              <>
-            {/* Flow Visual Track -- Sleek Elevated Segment Bar */}
-            <div className="flex flex-col gap-2">
-              <div className="h-4 rounded-xl overflow-hidden flex bg-white/[0.05] p-0.5 gap-0.5 shadow-inner">
-                {flowSegments5.map((s) => (
-                  <div
-                    key={s.name}
-                    className="h-full rounded-lg transition-all relative group flex items-center justify-center cursor-pointer"
-                    style={{ width: `${Math.max(2, s.pct)}%`, background: s.color }}
-                    title={`${s.name}: Rp ${s.value.toLocaleString('id-ID')} (${s.pct.toFixed(1).replace('.', ',')}%)`}
-                  >
-                    {s.pct >= 8 && (
-                      <span className="font-mono text-[9px] font-extrabold text-[#0B0E14] drop-shadow-sm select-none">
-                        {Math.round(s.pct)}%
-                      </span>
-                    )}
+            {flowTab === 'RINCIAN' && (
+              <div className="p-6 flex flex-col gap-2">
+                {!flowHasRevenue ? (
+                  <div className="flex flex-col items-center justify-center gap-2 py-8 text-center text-slate-400">
+                    <Wallet className="w-8 h-8 opacity-40 text-slate-400" />
+                    <span className="text-xs font-medium text-slate-700">Belum ada omset untuk membentuk rincian kas</span>
+                    <span className="max-w-sm text-xs text-slate-500">Porsi tiap pos akan muncul setelah transaksi pemasukan tercatat.</span>
                   </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between text-xs text-[#8A93A3] px-1 font-mono">
-                <span>0% Alur Kas</span>
-                <span>100% Omset Terkonversi (Rp {fRev.toLocaleString('id-ID')})</span>
-              </div>
-            </div>
-
-            {/* Gap-based cardlets, rich interactive cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mt-4">
-              {flowSegments5.map((s) => (
-                <div
-                  key={s.name}
-                  className="flex flex-col justify-between gap-2.5 px-4 py-3.5 bg-white/[0.025] hover:bg-white/[0.045] rounded-xl transition-all border border-white/[0.04] group"
-                >
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <span className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ background: s.color }} />
-                      <span className="text-xs text-[#C3CBD8] truncate font-medium group-hover:text-white transition-colors" title={s.name}>
-                        {s.name}
-                      </span>
-                    </span>
-                    <span
-                      className="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-white/[0.04] whitespace-nowrap"
-                      style={{ color: s.color }}
-                    >
-                      {s.pct.toFixed(1).replace('.', ',')}%
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-mono text-[13px] font-bold text-[#F5F7FA] [font-variant-numeric:tabular-nums] whitespace-nowrap">
-                      Rp {s.value.toLocaleString('id-ID')}
-                    </span>
-                    <div className="w-full h-1 rounded-full bg-white/[0.05] overflow-hidden mt-1">
+                ) : (
+                  <>
+                    <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_120px_160px_48px] gap-3 px-3 py-1.5 border-b border-slate-100 text-xs font-semibold text-slate-500">
+                      <span>Pos Beban</span>
+                      <span className="text-right">Nominal</span>
+                      <span>Porsi Omset</span>
+                      <span className="text-right">%</span>
+                    </div>
+                    {flowRows6.map((r) => (
                       <div
-                        className="h-full rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(100, s.pct)}%`, background: s.color }}
-                      />
+                        key={r.name}
+                        className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px_160px_48px] gap-2.5 items-center px-3 py-2 rounded-lg bg-slate-50/70 border border-slate-100 text-xs"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} />
+                          <span className="text-slate-800 font-medium truncate">{r.name}</span>
+                        </span>
+                        <span className="font-mono font-bold text-slate-900 text-right [font-variant-numeric:tabular-nums]">
+                          Rp {r.value.toLocaleString('id-ID')}
+                        </span>
+                        <span className="h-1.5 rounded-full overflow-hidden bg-slate-200">
+                          <span
+                            className="block h-full rounded-full"
+                            style={{ width: `${r.pct}%`, background: r.color }}
+                          />
+                        </span>
+                        <span className="font-mono text-slate-600 text-right font-semibold [font-variant-numeric:tabular-nums]">
+                          {r.pct.toFixed(1).replace('.', ',')}%
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
+
+            {flowTab === 'TREN' && (
+              <div className="p-6 flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-xs font-semibold text-sky-700">
+                    <span className="w-2 h-2 rounded-full bg-sky-500" />
+                    <span>Omset</span>
+                  </span>
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700">
+                    <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <span>Beban</span>
+                  </span>
+                  <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Kas Bersih</span>
+                  </span>
+                </div>
+                <div className="flex gap-3 items-stretch p-3 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="w-[68px] shrink-0 flex flex-col justify-between h-[150px]">
+                    <span className="font-mono text-[11px] text-slate-500 text-right">{trY2}</span>
+                    <span className="font-mono text-[11px] text-slate-500 text-right">{trY1}</span>
+                    <span className="font-mono text-[11px] text-slate-500 text-right">Rp 0</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-end gap-3 h-[150px] border-b border-slate-200">
+                      {trendBars.map((m) => (
+                        <span
+                          key={m.key}
+                          className="flex-1 min-w-0 flex items-end justify-center gap-1 h-full group transition-all"
+                          style={{ opacity: m.hasData ? 1 : 0.35 }}
+                        >
+                          <span className="w-2 rounded-t-sm bg-sky-500 shadow-xs" style={{ height: `${m.omsetPct}%` }} title={`Omset: ${m.name}`} />
+                          <span className="w-2 rounded-t-sm bg-rose-500 shadow-xs" style={{ height: `${m.bebanPct}%` }} title={`Beban: ${m.name}`} />
+                          <span className="w-2 rounded-t-sm bg-emerald-500 shadow-xs" style={{ height: `${m.netPct}%` }} title={`Kas Bersih: ${m.name}`} />
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-2">
+                      {trendBars.map((m) => (
+                        <span key={m.key} className="flex-1 min-w-0 text-center text-[11px] font-mono text-slate-600 font-semibold">
+                          {m.name}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Bottom Summary Conversion Bar */}
-            <div className={`flex items-center justify-between gap-4 mt-5 p-4 rounded-xl border transition-all ${
-              cashNetValue >= 0
-                ? 'bg-gradient-to-r from-[#3FBF8F]/15 via-[#3FBF8F]/5 to-transparent border-[#3FBF8F]/25'
-                : 'bg-gradient-to-r from-[#EF4444]/15 via-[#EF4444]/5 to-transparent border-[#EF4444]/25'
-            }`}>
-              <div className="flex items-center gap-3">
-                <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                  cashNetValue >= 0 ? 'bg-[#3FBF8F]/20 text-[#3FBF8F]' : 'bg-[#EF4444]/20 text-[#EF4444]'
-                }`}>
-                  <Wallet className="w-4 h-4" />
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs sm:text-[13px] text-[#F5F7FA] font-semibold">
-                    {cashNetValue >= 0 ? 'Tingkat Konversi Kas Bebas (Free Cash Flow)' : 'Defisit Arus Kas Operasional'}
-                  </span>
-                  <span className="text-xs text-[#8A93A3]">
-                    {cashNetValue >= 0
-                      ? `Dari setiap Rp 100 omset masuk, tersisa bersih Rp ${keepPer100} di kas riil setelah menutup seluruh beban.`
-                      : 'Beban operasional dan pokok periode ini melampaui omset yang masuk ke rekening kas.'}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                  <div className="flex items-center gap-1.5 font-semibold text-emerald-700">
+                    <TrendingUp size={14} />
+                    <span>Tren Likuiditas 6 Bulan</span>
+                  </div>
+                  <span className="text-slate-500 hidden sm:inline text-xs">
+                    {trendMissingNote || 'Menampilkan riwayat arus kas 6 bulan berjalan'}
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col items-end shrink-0 pl-2">
-                <span className={`font-mono text-lg sm:text-xl font-bold [font-variant-numeric:tabular-nums] ${
-                  cashNetValue >= 0 ? 'text-[#3FBF8F]' : 'text-[#EF4444]'
-                }`}>
-                  {cashNetValue >= 0 ? `Rp ${keepPer100} / 100` : `-Rp ${Math.abs(cashNetValue).toLocaleString('id-ID')}`}
-                </span>
-                <span className="text-xs font-mono text-[#8A93A3]">
-                  {cashNetValue >= 0 ? `${keepPer100}% Margin Kas` : 'Tinjau Beban'}
-                </span>
-              </div>
-            </div>
-              </>
             )}
           </div>
-        )}
-
-        {flowTab === 'RINCIAN' && (
-          <div className="px-6 pb-6">
-            {!flowHasRevenue && (
-              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-[#5C6474]">
-                <Wallet className="w-7 h-7 opacity-40" />
-                <span className="text-xs font-medium text-[#DCE3EC]">Belum ada omset untuk membentuk rincian kas</span>
-                <span className="max-w-sm text-[11.5px] text-[#8A93A3]">Porsi tiap pos akan muncul setelah transaksi pemasukan tercatat.</span>
-              </div>
-            )}
-            {flowHasRevenue && (
-              <>
-            <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_150px_200px_58px] gap-3.5 px-3 py-2 border-0">
-              <span className="text-xs font-medium text-[#5C6474]">Pos</span>
-              <span className="text-xs font-medium text-[#5C6474] text-right">Nilai</span>
-              <span className="text-xs font-medium text-[#5C6474]">Porsi dari omset</span>
-              <span className="text-xs font-medium text-[#5C6474] text-right">%</span>
-            </div>
-            {flowRows6.map((r) => (
-              <div
-                key={r.name}
-                className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_150px_200px_58px] gap-3.5 items-center px-3 py-2.5 rounded-lg hover:bg-white/[0.025] transition-colors border-0"
-              >
-                <span className="flex items-center gap-[9px] min-w-0">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} />
-                  <span className="text-[12.5px] text-[#F5F7FA]">{r.name}</span>
-                </span>
-                <span className="font-mono text-[12.5px] font-semibold text-[#F5F7FA] text-right [font-variant-numeric:tabular-nums]">
-                  Rp {r.value.toLocaleString('id-ID')}
-                </span>
-                <span className="h-1.5 rounded overflow-hidden bg-white/[0.07]">
-                  <span
-                    className="block h-full rounded"
-                    style={{ width: `${r.pct}%`, background: r.color }}
-                  />
-                </span>
-                <span className="font-mono text-[11.5px] text-[#8A93A3] text-right [font-variant-numeric:tabular-nums]">
-                  {r.pct.toFixed(1).replace('.', ',')}%
-                </span>
-              </div>
-            ))}
-              </>
-            )}
-          </div>
-        )}
-
-        {flowTab === 'TREN' && (
-          <div className="p-5">
-            <div className="flex items-center gap-[18px] mb-4 flex-wrap">
-              <span className="flex items-center gap-[7px] text-[11.5px] text-[#C3CBD8]">
-                <span className="w-[9px] h-[9px] rounded-[2px] bg-[#4E9BFF]" /><span>Omset</span>
-              </span>
-              <span className="flex items-center gap-[7px] text-[11.5px] text-[#C3CBD8]">
-                <span className="w-[9px] h-[9px] rounded-[2px] bg-[#EF4444]" /><span>Beban</span>
-              </span>
-              <span className="flex items-center gap-[7px] text-[11.5px] text-[#C3CBD8]">
-                <span className="w-[9px] h-[9px] rounded-[2px] bg-[#3FBF8F]" /><span>Kas bersih</span>
-              </span>
-            </div>
-            <div className="flex gap-3 items-stretch">
-              <div className="w-[76px] shrink-0 flex flex-col justify-between h-[172px]">
-                <span className="font-mono text-xs text-[#5C6474] text-right">{trY2}</span>
-                <span className="font-mono text-xs text-[#5C6474] text-right">{trY1}</span>
-                <span className="font-mono text-xs text-[#5C6474] text-right">Rp 0</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div
-                  className="flex items-end gap-3.5 h-[172px]"
-                  style={{
-                    backgroundImage:
-                      'repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 57.33px)',
-                  }}
-                >
-                  {trendBars.map((m) => (
-                    <span
-                      key={m.key}
-                      className="flex-1 min-w-0 flex items-end justify-center gap-1 h-full"
-                      style={{ opacity: m.hasData ? 1 : 0.35 }}
-                    >
-                      <span className="w-[7px] rounded-t-[2px] bg-[#4E9BFF]" style={{ height: `${m.omsetPct}%` }} />
-                      <span className="w-[7px] rounded-t-[2px] bg-[#EF4444]" style={{ height: `${m.bebanPct}%` }} />
-                      <span className="w-[7px] rounded-t-[2px] bg-[#3FBF8F]" style={{ height: `${m.netPct}%` }} />
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-3.5 mt-[9px]">
-                  {trendBars.map((m) => (
-                    <span key={m.key} className="flex-1 min-w-0 text-center text-xs text-[#8A93A3]">
-                      {m.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            {/* LENGKAPI #2 audit Finance 10 Sep -- catatan jujur bulan tanpa transaksi
-                tercatat, pengganti "diam-diam 0" (bukan gagal load, TrendData.failed
-                dibedakan dari missing-data-per-bulan). */}
-            {!trendData.loaded && (
-              <div className="mt-3.5 text-xs text-[#5C6474]">Memuat tren 6 bulan...</div>
-            )}
-            {trendData.loaded && trendData.failed && (
-              <div className="mt-3.5 text-xs text-[#5C6474]">Tren bulanan gagal dimuat, coba muat ulang halaman.</div>
-            )}
-            {trendData.loaded && !trendData.failed && trendMissingNote && (
-              <div className="mt-3.5 text-xs text-[#5C6474]">{trendMissingNote}</div>
-            )}
-          </div>
-        )}
-
-        {/* Accordion In-Card Visual Drilldown: Alur Arus Kas */}
-        <div className="px-6 pb-5">
-          <InCardVisualDrilldown
-            title="Pola Alur Arus Kas & Runway Bisnis"
-            subtitle="Dekomposisi aliran konversi omset, rasio beban pokok vs operasional, dan simulasi daya tahan modal kerja"
-            accentColor="#3FBF8F"
-            data={flowDrilldownData}
-            cognitive={flowCognitive}
-            causalFlow={flowCausalFlow}
-            onOpenAI={onOpenAI}
-          />
-        </div>
-
-        {/* Bloomberg Paradox Visual Insight Box */}
-        <div className="mx-6 mb-6 p-4 rounded-2xl bg-[#6366F1]/10 border border-[#6366F1]/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-start gap-3 min-w-0">
-            <span className="w-8 h-8 rounded-xl bg-[#6366F1]/20 flex items-center justify-center shrink-0 mt-0.5 text-[#A5B4FC]">
-              <Sparkles className="w-4 h-4" />
-            </span>
-            <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
-                Visual Insight: Analisis Paradoks Arus Kas
-              </span>
-              <p className="text-xs text-[#C3CBD8] m-0 leading-relaxed">
-                <strong>Paradoks Arus Kas:</strong> Pertumbuhan omset bulanan (+12,4%) terlihat tinggi di laporan laba rugi, namun arus kas operasional riil tertahan akibat peningkatan piutang tertahan (Rp 13.700.000) dan tagihan tempo vendor. <em>Aksi mitigasi:</em> Terapkan penagihan piutang agresif dalam termin 14 hari guna memastikan laba terkonversi menjadi kas cair di rekening bank.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onOpenAI?.('Bagaimana cara mengatasi paradoks arus kas saat omset naik tapi kas operasional tertahan?')}
-            className="px-3.5 py-1.5 rounded-xl bg-[#6366F1]/20 hover:bg-[#6366F1]/30 text-[#A5B4FC] hover:text-white text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0"
-          >
-            Konsultasi AI
-          </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
       {/* 🧾 SECTION 2 — TRANSACTION SYSTEM (2 COLUMNS: SEJAJAR & EQUAL HEIGHT) */}
       {/* ========================================================================= */}
-      {/* 💳 SECTION 2 — KAS & KALKULATOR + TRANSACTION FEED */}
-      {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        {/* LEFT SIDE (5 Cols): "Kas & kalkulator" */}
-        <div className="lg:col-span-5 bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col h-full overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-6 py-5 border-0">
-            <div className="flex flex-col gap-0.5">
-              <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">Kas &amp; kalkulator</h3>
-              <span className="text-[11.5px] text-[#8A93A3]">Catat mutasi kas, atau hitung HPP dan harga jual</span>
-            </div>
-          </div>
-
-          <div className="px-6 pb-6 flex flex-col gap-4 flex-1">
-            {/* 4-Tab Switcher */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-white/[0.035] border-0 rounded-xl">
-              <button
-                type="button"
-                onClick={() => switchCalcTab('IN')}
-                className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
-                  calcTab === 'IN'
-                    ? 'bg-[#3FBF8F] text-[#06080C] shadow-md font-bold'
-                    : 'text-[#8A93A3] hover:text-[#F5F7FA] hover:bg-white/[0.04]'
-                }`}
-              >
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>Kas masuk</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchCalcTab('OUT')}
-                className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
-                  calcTab === 'OUT'
-                    ? 'bg-[#EF4444] text-white shadow-md font-bold'
-                    : 'text-[#8A93A3] hover:text-[#F5F7FA] hover:bg-white/[0.04]'
-                }`}
-              >
-                <TrendingDown className="w-3.5 h-3.5" />
-                <span>Kas keluar</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchCalcTab('HPP')}
-                className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
-                  calcTab === 'HPP'
-                    ? 'bg-[#4E9BFF] text-white shadow-md font-bold'
-                    : 'text-[#8A93A3] hover:text-[#F5F7FA] hover:bg-white/[0.04]'
-                }`}
-              >
-                <span>Hitung HPP</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => switchCalcTab('PRICE')}
-                className={`py-2 px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
-                  calcTab === 'PRICE'
-                    ? 'bg-[#F2A83B] text-[#06080C] shadow-md font-bold'
-                    : 'text-[#8A93A3] hover:text-[#F5F7FA] hover:bg-white/[0.04]'
-                }`}
-              >
-                <span>Harga jual</span>
-              </button>
-            </div>
-
-            {/* Form Fields */}
-            {(calcTab === 'IN' || calcTab === 'OUT') && (
-              <form id="tx-form" onSubmit={handleAddTransaction} className="flex flex-col gap-3.5 text-xs">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-xs">Nominal transaksi</label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 font-mono text-xs font-bold text-[#8A93A3] pointer-events-none">
-                      Rp
-                    </div>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0"
-                      required
-                      className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#3FBF8F] rounded-xl pl-11 pr-4 py-2.5 text-[#F5F7FA] font-mono text-sm font-semibold placeholder-[#5C6474] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-xs">
-                    {calcTab === 'IN' ? 'Kategori pemasukan' : 'Kategori pengeluaran'}
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#3FBF8F] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-medium focus:outline-none transition-all cursor-pointer"
-                  >
-                    {calcTab === 'IN' ? (
-                      <>
-                        <option value="Penjualan Produk / Jasa">Penjualan Produk / Jasa</option>
-                        <option value="Jasa Konsultasi & Retainer">Jasa Konsultasi &amp; Retainer</option>
-                        <option value="Pelunasan Piutang Invoice">Pelunasan Piutang Invoice</option>
-                        <option value="Injeksi Modal / Pendanaan">Injeksi Modal / Pendanaan</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="Iklan & Marketing">Iklan &amp; Marketing (Meta/TikTok)</option>
-                        <option value="Gaji Karyawan & Freelance">Gaji Karyawan &amp; Freelance</option>
-                        <option value="Operasional Kantor & Tools">Operasional Kantor &amp; Tools</option>
-                        <option value="Bahan Baku & Produksi (HPP)">Bahan Baku &amp; Produksi (HPP)</option>
-                      </>
-                    )}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-xs">Catatan (opsional)</label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Contoh: DP proyek klien / tagihan server"
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#3FBF8F] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs placeholder-[#5C6474] focus:outline-none transition-all"
-                  />
-                </div>
-              </form>
-            )}
-
-            {calcTab === 'HPP' && (
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-[11.5px]">Biaya bahan / lisensi</label>
-                  <input
-                    type="number"
-                    value={hppBahan}
-                    onChange={(e) => setHppBahan(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#4E9BFF] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-[11.5px]">Biaya tenaga kerja</label>
-                  <input
-                    type="number"
-                    value={hppTenaga}
-                    onChange={(e) => setHppTenaga(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#4E9BFF] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-[11.5px]">Overhead produksi</label>
-                  <input
-                    type="number"
-                    value={hppOver}
-                    onChange={(e) => setHppOver(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#4E9BFF] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-[11.5px]">Jumlah unit / proyek</label>
-                  <input
-                    type="number"
-                    value={hppUnit}
-                    onChange={(e) => setHppUnit(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#4E9BFF] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                  />
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* LEFT SIDE (5 Cols): Kas & Kalkulator */}
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between h-full overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-100">
+              <div className="flex flex-col gap-0.5">
+                <h3 className="font-heading font-bold text-sm text-slate-900 m-0 tracking-tight">Kas &amp; Kalkulator</h3>
+                <span className="text-xs text-slate-500">Catat mutasi kas, atau kalkulasi HPP dan proyeksi harga jual</span>
               </div>
-            )}
+            </div>
 
-            {calcTab === 'PRICE' && (
-              <div className="flex flex-col gap-3 text-xs">
-                <div className="grid grid-cols-2 gap-3">
+            <div className="p-6 flex flex-col gap-4">
+              {/* 4-Tab Switcher */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 bg-slate-100 border border-slate-200 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => switchCalcTab('IN')}
+                  className={`py-1.5 px-2 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+                    calcTab === 'IN'
+                      ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <RiArrowRightUpLine className="w-3.5 h-3.5" />
+                  <span>Kas masuk</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchCalcTab('OUT')}
+                  className={`py-1.5 px-2 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+                    calcTab === 'OUT'
+                      ? 'bg-rose-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <RiArrowRightDownLine className="w-3.5 h-3.5" />
+                  <span>Kas keluar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchCalcTab('HPP')}
+                  className={`py-1.5 px-2 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+                    calcTab === 'HPP'
+                      ? 'bg-sky-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <TbCalculator className="w-3.5 h-3.5 mr-1" /><span>Hitung HPP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchCalcTab('PRICE')}
+                  className={`py-1.5 px-2 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 border-0 ${
+                    calcTab === 'PRICE'
+                      ? 'bg-amber-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                  }`}
+                >
+                  <TbTag className="w-3.5 h-3.5 mr-1" /><span>Harga jual</span>
+                </button>
+              </div>
+
+              {/* Form Fields */}
+              {(calcTab === 'IN' || calcTab === 'OUT') && (
+                <form id="tx-form" onSubmit={handleAddTransaction} className="flex flex-col gap-3 text-xs">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[#C3CBD8] font-medium text-[11.5px]">HPP per unit</label>
-                    <input
-                      type="number"
-                      value={priceHppUnit}
-                      onChange={(e) => setPriceHppUnit(e.target.value)}
-                      className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#F2A83B] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                    />
+                    <label className="text-slate-700 font-semibold text-xs">Nominal transaksi</label>
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3.5 font-mono text-xs font-bold text-slate-400 pointer-events-none">
+                        Rp
+                      </div>
+                      <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0"
+                        required
+                        className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg pl-10 pr-4 py-2 text-slate-900 font-mono text-sm font-semibold placeholder-slate-400 focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
                   </div>
+
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[#C3CBD8] font-medium text-[11.5px]">Margin target</label>
+                    <label className="text-slate-700 font-semibold text-xs">
+                      {calcTab === 'IN' ? 'Kategori pemasukan' : 'Kategori pengeluaran'}
+                    </label>
                     <select
-                      value={priceMargin}
-                      onChange={(e) => setPriceMargin(e.target.value)}
-                      className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#F2A83B] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs focus:outline-none transition-all cursor-pointer"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-medium focus:outline-none transition-all cursor-pointer"
                     >
-                      <option value="30">30%</option>
-                      <option value="40">40%</option>
-                      <option value="50">50%</option>
-                      <option value="60">60%</option>
-                      <option value="70">70%</option>
+                      {calcTab === 'IN' ? (
+                        <>
+                          <option value="Penjualan Produk / Jasa">Penjualan Produk / Jasa</option>
+                          <option value="Jasa Konsultasi & Retainer">Jasa Konsultasi &amp; Retainer</option>
+                          <option value="Pelunasan Piutang Invoice">Pelunasan Piutang Invoice</option>
+                          <option value="Injeksi Modal / Pendanaan">Injeksi Modal / Pendanaan</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Iklan & Marketing">Iklan &amp; Marketing (Meta/TikTok)</option>
+                          <option value="Gaji Karyawan & Freelance">Gaji Karyawan &amp; Freelance</option>
+                          <option value="Operasional Kantor & Tools">Operasional Kantor &amp; Tools</option>
+                          <option value="Bahan Baku & Produksi (HPP)">Bahan Baku &amp; Produksi (HPP)</option>
+                        </>
+                      )}
                     </select>
                   </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[#C3CBD8] font-medium text-[11.5px]">Beban tetap per bulan (untuk BEP)</label>
-                  <input
-                    type="number"
-                    value={priceFixed}
-                    onChange={(e) => setPriceFixed(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-2 focus:ring-[#F2A83B] rounded-xl px-3.5 py-2.5 text-[#F5F7FA] text-xs font-mono focus:outline-none transition-all"
-                  />
-                </div>
-              </div>
-            )}
 
-            {/* Clean Result Box */}
-            <div
-              className="mt-auto p-4 rounded-xl flex flex-col gap-2.5 transition-all border-0"
-              style={{ background: calcTint }}
-            >
-              {calcRows.map((r) => (
-                <div key={r.label} className="flex items-center justify-between gap-3">
-                  <span className={r.strong ? 'text-xs font-semibold text-[#F5F7FA]' : 'text-[11.5px] text-[#8A93A3]'}>
-                    {r.label}
-                    <TermHint label={r.label} />
-                  </span>
-                  <span
-                    className={`font-mono ${
-                      r.strong ? 'text-sm sm:text-base font-bold' : 'text-xs font-semibold text-[#F5F7FA]'
-                    } [font-variant-numeric:tabular-nums]`}
-                    style={r.strong ? { color: r.color } : undefined}
-                  >
-                    {r.value}
-                  </span>
-                </div>
-              ))}
-              <div className="pt-2 border-0 text-xs leading-relaxed text-[#8A93A3]">
-                {calcNote}
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <button
-              type={calcBtnAction === 'submit' ? 'submit' : 'button'}
-              form={calcBtnAction === 'submit' ? 'tx-form' : undefined}
-              disabled={calcBtnAction === 'submit' && isSubmitting}
-              onClick={
-                calcBtnAction === 'hpp' ? useHppInPrice : calcBtnAction === 'price' ? saveAsPriceReference : undefined
-              }
-              className={`w-full py-3 px-4 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2 text-white ${calcBtnColor} hover:brightness-110 active:scale-[0.99]`}
-            >
-              {calcBtnAction === 'submit' && isSubmitting ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>{calcBtnText}</span>
-                </>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Catatan (opsional)</label>
+                    <input
+                      type="text"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Contoh: DP proyek klien / tagihan server"
+                      className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs placeholder-slate-400 focus:outline-none transition-all"
+                    />
+                  </div>
+                </form>
               )}
-            </button>
+
+              {calcTab === 'HPP' && (
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Biaya bahan / lisensi</label>
+                    <input
+                      type="number"
+                      value={hppBahan}
+                      onChange={(e) => setHppBahan(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Biaya tenaga kerja</label>
+                    <input
+                      type="number"
+                      value={hppTenaga}
+                      onChange={(e) => setHppTenaga(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Overhead produksi</label>
+                    <input
+                      type="number"
+                      value={hppOver}
+                      onChange={(e) => setHppOver(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Jumlah unit / proyek</label>
+                    <input
+                      type="number"
+                      value={hppUnit}
+                      onChange={(e) => setHppUnit(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {calcTab === 'PRICE' && (
+                <div className="flex flex-col gap-3 text-xs">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-slate-700 font-semibold text-xs">HPP per unit</label>
+                      <input
+                        type="number"
+                        value={priceHppUnit}
+                        onChange={(e) => setPriceHppUnit(e.target.value)}
+                        className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-slate-700 font-semibold text-xs">Margin target</label>
+                      <select
+                        value={priceMargin}
+                        onChange={(e) => setPriceMargin(e.target.value)}
+                        className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs focus:outline-none transition-all cursor-pointer"
+                      >
+                        <option value="30">30%</option>
+                        <option value="40">40%</option>
+                        <option value="50">50%</option>
+                        <option value="60">60%</option>
+                        <option value="70">70%</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-slate-700 font-semibold text-xs">Beban tetap bulanan (BEP)</label>
+                    <input
+                      type="number"
+                      value={priceFixed}
+                      onChange={(e) => setPriceFixed(e.target.value)}
+                      className="w-full bg-white border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-mono focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Clean Result Box */}
+              <div
+                className="p-4 rounded-xl flex flex-col gap-2.5 transition-all border border-slate-200"
+                style={{ background: calcTint }}
+              >
+                {calcRows.map((r) => (
+                  <div key={r.label} className="flex items-center justify-between gap-3">
+                    <span className={r.strong ? 'text-xs font-bold text-slate-900' : 'text-xs text-slate-600'}>
+                      {r.label}
+                      <TermHint label={r.label} />
+                    </span>
+                    <span
+                      className={`font-mono ${
+                        r.strong ? 'text-sm sm:text-base font-bold' : 'text-xs font-semibold text-slate-800'
+                      } [font-variant-numeric:tabular-nums]`}
+                      style={r.strong ? { color: r.color } : undefined}
+                    >
+                      {r.value}
+                    </span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-slate-200/60 text-xs leading-relaxed text-slate-500">
+                  {calcNote}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                type={calcBtnAction === 'submit' ? 'submit' : 'button'}
+                form={calcBtnAction === 'submit' ? 'tx-form' : undefined}
+                disabled={calcBtnAction === 'submit' && isSubmitting}
+                onClick={
+                  calcBtnAction === 'hpp' ? useHppInPrice : calcBtnAction === 'price' ? saveAsPriceReference : undefined
+                }
+                className={`w-full py-2.5 px-4 font-bold text-xs rounded-lg transition-all cursor-pointer shadow-xs flex items-center justify-center gap-2 text-white ${calcBtnColor} hover:brightness-105 active:scale-[0.99]`}
+              >
+                {calcBtnAction === 'submit' && isSubmitting ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <RiAddLine className="w-4 h-4" />
+                    <span>{calcBtnText}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT SIDE (7 Cols): TRANSACTION FEED */}
-        <div className="lg:col-span-7 bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col h-full overflow-hidden">
-          <div className="flex items-center justify-between gap-3 px-6 py-5 border-0">
-            <div className="flex items-center gap-2.5">
-              <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">
-                Riwayat transaksi terkini
-              </h3>
-              <span className="text-xs font-mono text-[#8A93A3] bg-white/[0.04] border-0 px-2.5 py-0.5 rounded-full">
-                {transactions.length} mutasi
+        {/* RIGHT SIDE (7 Cols): Riwayat Transaksi Terkini */}
+        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between h-full overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <h3 className="font-heading font-bold text-sm text-slate-900 m-0 tracking-tight">
+                  Riwayat Transaksi Terkini
+                </h3>
+                <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                  {transactions.length} mutasi
+                </span>
+              </div>
+              <span className="text-xs font-mono text-emerald-700 flex items-center gap-1.5 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Real-time feed
               </span>
             </div>
-            <span className="text-[11.5px] font-medium text-[#5C6474]">Real-time feed</span>
-          </div>
 
-          <div className="px-6 pb-6 flex flex-col gap-1.5 overflow-y-auto max-h-[560px]">
-            {transactions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-[#5C6474]">
-                <Receipt className="w-8 h-8 mb-2 opacity-40" />
-                <span className="text-xs">Belum ada transaksi tercatat</span>
-              </div>
-            ) : (
-              transactions.map((tx) => {
-                const isIncome = tx.type === 'INCOME';
-                return (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between gap-3.5 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border-0 transition-all group"
-                  >
-                    {/* Left & Middle */}
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      {/* Category Badge Icon */}
-                      <span
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border-0 ${
-                          isIncome
-                            ? 'bg-[#3FBF8F]/10 text-[#3FBF8F]'
-                            : 'bg-[#EF4444]/10 text-[#EF4444]'
-                        }`}
-                      >
-                        {isIncome ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                      </span>
-
-                      {/* Title & Metadata */}
-                      <div className="flex flex-col gap-1 min-w-0 flex-1">
-                        <span className="text-xs font-semibold text-[#F5F7FA] truncate group-hover:text-white transition-colors">
-                          {tx.description}
+            <div className="p-6 flex flex-col gap-2.5 overflow-y-auto max-h-[540px]">
+              {transactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400">
+                  <RiReceiptLine className="w-8 h-8 mb-2 opacity-40 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-600">Belum ada transaksi tercatat</span>
+                </div>
+              ) : (
+                transactions.map((tx) => {
+                  const isIncome = tx.type === 'INCOME';
+                  return (
+                    <div
+                      key={tx.id}
+                      className="flex items-center justify-between gap-3.5 p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 transition-all group shadow-2xs"
+                    >
+                      {/* Left & Middle */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${
+                            isIncome
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                              : 'bg-rose-50 text-rose-600 border-rose-100'
+                          }`}
+                        >
+                          {isIncome ? <RiArrowRightUpLine className="w-4 h-4" /> : <RiArrowRightDownLine className="w-4 h-4" />}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-[#8A93A3] flex-wrap">
-                          <span
-                            className={`px-2 py-0.5 rounded-md font-mono text-[9.5px] font-bold shrink-0 ${
-                              isIncome
-                                ? 'bg-[#3FBF8F]/10 text-[#3FBF8F] border border-[#3FBF8F]/20'
-                                : 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20'
-                            }`}
-                          >
-                            {tx.category}
+
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-xs font-bold text-slate-900 truncate">
+                            {tx.description}
                           </span>
-                          <span className="text-[#5C6474]">•</span>
-                          <span className="text-[#8A93A3]">{tx.createdAt}</span>
+                          <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+                            <span
+                              className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold shrink-0 border ${
+                                isIncome
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}
+                            >
+                              {tx.category}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-slate-500 text-[11px]">{tx.createdAt}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right Amount */}
-                    <div className="text-right shrink-0 pl-2">
-                      <span
-                        className={`font-mono font-bold text-xs sm:text-sm [font-variant-numeric:tabular-nums] ${
-                          isIncome ? 'text-[#3FBF8F]' : 'text-[#EF4444]'
-                        }`}
-                      >
-                        {isIncome ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
-                      </span>
+                      {/* Right Amount */}
+                      <div className="text-right shrink-0 pl-2">
+                        <span
+                          className={`font-mono font-bold text-xs sm:text-sm [font-variant-numeric:tabular-nums] ${
+                            isIncome ? 'text-emerald-700' : 'text-rose-700'
+                          }`}
+                        >
+                          {isIncome ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
+                        </span>
+                      </div>
                     </div>
-
-                    {/* Delete action (item 4.3 roadmap 7 Sep) */}
-                    <button
-                      onClick={() => handleDeleteTransaction(tx.id, tx.description ?? tx.category ?? 'transaksi ini')}
-                      disabled={deletingId === tx.id}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-500/10 shrink-0 disabled:opacity-40"
-                      aria-label="Hapus transaksi"
-                      title="Hapus transaksi"
-                    >
-                      <Trash2 className="w-4 h-4 text-[#EF4444]" />
-                    </button>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       </div>
-        </div>
-      )}
 
-      {/* ========================================================================= */}
       {/* ACCORDION 2 — PAJAK & KEPATUHAN (explicit product-policy lock) */}
       {/* ========================================================================= */}
       <FinanceSectionHeader
-        icon={<Landmark className="w-4 h-4" strokeWidth={1.8} />}
+        icon={<TbBuildingBank className="w-4 h-4" />}
         iconColor="#C9A66B"
         title="Pajak & Kepatuhan"
         subtitle="Belum tersedia saat ini"
@@ -5094,7 +3884,7 @@ export default function FinanceModuleView({
       />
 
       {secTax && (
-        <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] p-6">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6">
           <TaxFeatureLock />
         </div>
       )}
@@ -5103,7 +3893,7 @@ export default function FinanceModuleView({
       {/* ACCORDION 3 — PIUTANG & INVOICE */}
       {/* ========================================================================= */}
       <FinanceSectionHeader
-        icon={<Receipt className="w-4 h-4" strokeWidth={1.8} />}
+        icon={<TbFileInvoice className="w-4 h-4" />}
         iconColor="#F2A83B"
         title="Piutang & Invoice"
         subtitle="Faktur berjalan, piutang klien per umur, dan kewajiban terjadwal"
@@ -5124,12 +3914,12 @@ export default function FinanceModuleView({
       {/* ========================================================================= */}
       {/* 📄 SECTION 3 — INVOICE & RECEIVABLES (OVERDUE PROMINENT) */}
       {/* ========================================================================= */}
-      <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] overflow-hidden">
-        <div className="flex flex-col gap-4 px-6 py-5 border-b border-white/[0.06]">
+      <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <div className="flex flex-col gap-4 px-6 py-5 border-b border-slate-200">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex flex-col gap-1">
-              <h3 className="font-heading font-semibold text-sm text-[#F5F7FA] m-0">Invoice &amp; piutang berjalan</h3>
-              <span className="text-xs text-[#8A93A3]">
+              <h3 className="font-heading font-semibold text-sm text-slate-900 m-0">Invoice &amp; piutang berjalan</h3>
+              <span className="text-xs text-slate-500">
                 Kelola faktur terbit, lacak status pembayaran, dan kirim pengingat jatuh tempo
               </span>
             </div>
@@ -5147,10 +3937,10 @@ export default function FinanceModuleView({
 
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex flex-col gap-1">
-              <span className="text-xs text-[#8A93A3]">Total Faktur</span>
-              <span className="font-mono text-base font-bold text-[#F5F7FA]">
-                {invoiceStats.total} <span className="text-xs font-normal text-[#5C6474]">faktur</span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-1">
+              <span className="text-xs text-slate-500">Total Faktur</span>
+              <span className="font-mono text-base font-bold text-slate-900">
+                {invoiceStats.total} <span className="text-xs font-normal text-slate-400">faktur</span>
               </span>
             </div>
             <div className="p-3 rounded-xl bg-[#EF4444]/[0.08] border border-[#EF4444]/20 flex flex-col gap-1">
@@ -5174,14 +3964,14 @@ export default function FinanceModuleView({
                 <CheckCircle2 className="w-3 h-3" /> Sudah Lunas
               </span>
               <span className="font-mono text-base font-bold text-[#3FBF8F]">
-                {invoiceStats.paid} <span className="text-xs font-normal text-[#5C6474]">faktur</span>
+                {invoiceStats.paid} <span className="text-xs font-normal text-slate-400">faktur</span>
               </span>
             </div>
           </div>
 
           {/* Filter Tabs & Search Bar */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-            <div className="flex items-center gap-1.5 p-1 bg-white/[0.03] rounded-xl overflow-x-auto">
+            <div className="flex items-center gap-1.5 p-1 bg-slate-50 rounded-xl overflow-x-auto">
               {(
                 [
                   { key: 'ALL' as const, label: `Semua (${invoices.length})`, alert: false },
@@ -5196,8 +3986,8 @@ export default function FinanceModuleView({
                   onClick={() => setInvoiceFilter(tab.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
                     invoiceFilter === tab.key
-                      ? 'bg-white/10 text-[#F5F7FA] shadow-sm'
-                      : 'text-[#8A93A3] hover:text-white hover:bg-white/[0.04]'
+                      ? 'bg-white/10 text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -5209,19 +3999,19 @@ export default function FinanceModuleView({
             </div>
 
             <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#5C6474]" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={invoiceSearch}
                 onChange={(e) => setInvoiceSearch(e.target.value)}
                 placeholder="Cari klien, nomor invoice..."
-                className="w-full bg-[#10141C] border border-white/[0.08] focus:border-[#4E9BFF] rounded-xl pl-9 pr-3 py-1.5 text-xs text-[#F5F7FA] placeholder-[#5C6474] outline-none transition-all"
+                className="w-full bg-white border-slate-300 border border-slate-200 focus:border-[#4E9BFF] rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder-[#5C6474] outline-none transition-all"
               />
               {invoiceSearch && (
                 <button
                   type="button"
                   onClick={() => setInvoiceSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5C6474] hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -5231,107 +4021,107 @@ export default function FinanceModuleView({
         </div>
 
         {newInvoiceOpen && (
-          <form onSubmit={handleCreateInvoice} className="flex flex-col gap-3 px-6 py-5 border-b border-white/[0.07] bg-white/[0.015]">
+          <form onSubmit={handleCreateInvoice} className="flex flex-col gap-3 px-6 py-5 border-b border-slate-200 bg-slate-50">
             <div className="flex items-center justify-between pb-1">
-              <span className="text-xs font-semibold text-[#F5F7FA] flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
                 <Plus className="w-3.5 h-3.5 text-[#4E9BFF]" />
                 Form Penerbitan Faktur Tagihan
               </span>
-              <span className="text-xs text-[#8A93A3]">
+              <span className="text-xs text-slate-500">
                 Otomatis tercatat di sistem piutang &amp; siap ditagih
               </span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Nama klien *</span>
+                <span className="text-xs font-medium text-slate-500">Nama klien *</span>
                 <input
                   type="text"
                   value={newInvoiceClient}
                   onChange={(e) => setNewInvoiceClient(e.target.value)}
                   placeholder="PT Maju Bersama Sejahtera"
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Email klien (opsional)</span>
+                <span className="text-xs font-medium text-slate-500">Email klien (opsional)</span>
                 <input
                   type="email"
                   value={newInvoiceEmail}
                   onChange={(e) => setNewInvoiceEmail(e.target.value)}
                   placeholder="finance@klien.co.id"
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">No. HP / WhatsApp klien</span>
+                <span className="text-xs font-medium text-slate-500">No. HP / WhatsApp klien</span>
                 <input
                   type="text"
                   value={newInvoicePhone}
                   onChange={(e) => setNewInvoicePhone(e.target.value)}
                   placeholder="0812xxxxxxxx"
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Tanggal jatuh tempo (opsional)</span>
+                <span className="text-xs font-medium text-slate-500">Tanggal jatuh tempo (opsional)</span>
                 <input
                   type="date"
                   value={newInvoiceDueDate}
                   onChange={(e) => setNewInvoiceDueDate(e.target.value)}
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE] [color-scheme:dark]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE] [color-scheme:light]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Rincian item / jasa *</span>
+                <span className="text-xs font-medium text-slate-500">Rincian item / jasa *</span>
                 <input
                   type="text"
                   value={newInvoiceItemName}
                   onChange={(e) => setNewInvoiceItemName(e.target.value)}
                   placeholder="Jasa konsultasi / pembuatan sistem"
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-[#8A93A3]">Harga satuan (Rp) *</span>
+                  <span className="text-xs font-medium text-slate-500">Harga satuan (Rp) *</span>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={newInvoiceItemPrice}
                     onChange={(e) => setNewInvoiceItemPrice(e.target.value)}
                     placeholder="5000000"
-                    className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                    className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-medium text-[#8A93A3]">Qty</span>
+                  <span className="text-xs font-medium text-slate-500">Qty</span>
                   <input
                     type="number"
                     min="1"
                     value={newInvoiceItemQty}
                     onChange={(e) => setNewInvoiceItemQty(e.target.value)}
-                    className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                    className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                   />
                 </label>
               </div>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Pajak (%)</span>
+                <span className="text-xs font-medium text-slate-500">Pajak (%)</span>
                 <input
                   type="number"
                   min="0"
                   value={newInvoiceTaxRate}
                   onChange={(e) => setNewInvoiceTaxRate(e.target.value)}
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-medium text-[#8A93A3]">Catatan / Instruksi Pembayaran</span>
+                <span className="text-xs font-medium text-slate-500">Catatan / Instruksi Pembayaran</span>
                 <input
                   type="text"
                   value={newInvoiceNotes}
                   onChange={(e) => setNewInvoiceNotes(e.target.value)}
                   placeholder="Transfer ke rekening BCA 123456789 a.n. AniTech"
-                  className="h-9 px-3 rounded-lg bg-[#10141C] border border-white/[0.1] text-[13px] text-[#F5F7FA] outline-none focus:border-[#0058BE]"
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
                 />
               </label>
             </div>
@@ -5339,7 +4129,7 @@ export default function FinanceModuleView({
               <button
                 type="button"
                 onClick={() => setNewInvoiceOpen(false)}
-                className="h-9 px-4 rounded-xl border border-white/[0.1] text-[#C6CEDA] hover:text-white text-xs font-semibold cursor-pointer"
+                className="h-9 px-4 rounded-xl border border-slate-300 text-slate-600 hover:text-slate-900 text-xs font-semibold cursor-pointer"
               >
                 Batal
               </button>
@@ -5355,20 +4145,20 @@ export default function FinanceModuleView({
         )}
 
         {/* Table Column Headers */}
-        <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_130px_110px_140px_auto] gap-4 px-6 py-3 border-b border-white/[0.04] bg-white/[0.01]">
-          <span className="text-xs font-medium text-[#5C6474]">KLIEN &amp; RINCIAN FAKTUR</span>
-          <span className="text-xs font-medium text-[#5C6474]">JATUH TEMPO</span>
-          <span className="text-xs font-medium text-[#5C6474]">STATUS</span>
-          <span className="text-xs font-medium text-[#5C6474] text-right">NOMINAL</span>
-          <span className="text-xs font-medium text-[#5C6474] text-right pr-2">AKSI CEPAT</span>
+        <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_130px_110px_140px_auto] gap-4 px-6 py-3 border-b border-slate-200 bg-slate-50">
+          <span className="text-xs font-medium text-slate-400">KLIEN &amp; RINCIAN FAKTUR</span>
+          <span className="text-xs font-medium text-slate-400">JATUH TEMPO</span>
+          <span className="text-xs font-medium text-slate-400">STATUS</span>
+          <span className="text-xs font-medium text-slate-400 text-right">NOMINAL</span>
+          <span className="text-xs font-medium text-slate-400 text-right pr-2">AKSI CEPAT</span>
         </div>
 
         <div className="px-6 py-2 pb-6 divide-y divide-white/[0.04]">
           {filteredInvoicesList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-[#5C6474]">
+            <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400">
               <Receipt className="w-8 h-8 mb-2.5 opacity-30 text-[#4E9BFF]" />
-              <span className="text-xs font-medium text-[#8A93A3]">Tidak ada invoice yang sesuai filter</span>
-              <span className="text-xs text-[#5C6474] mt-1">Coba ubah kata kunci pencarian atau reset filter status.</span>
+              <span className="text-xs font-medium text-slate-500">Tidak ada invoice yang sesuai filter</span>
+              <span className="text-xs text-slate-400 mt-1">Coba ubah kata kunci pencarian atau reset filter status.</span>
             </div>
           ) : (
             filteredInvoicesList.map((inv) => {
@@ -5386,7 +4176,7 @@ export default function FinanceModuleView({
                 >
                   {/* Col 1: Klien & Info */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#4E9BFF] shrink-0 font-bold text-xs">
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[#4E9BFF] shrink-0 font-bold text-xs">
                       {inv.clientName ? inv.clientName.slice(0, 2).toUpperCase() : 'KL'}
                     </div>
                     <div className="flex flex-col gap-0.5 min-w-0">
@@ -5403,17 +4193,17 @@ export default function FinanceModuleView({
                             invoiceCount: 1,
                           });
                         }}
-                        className="text-[13px] font-semibold text-[#F5F7FA] hover:text-[#4E9BFF] transition-colors truncate"
+                        className="text-[13px] font-semibold text-slate-900 hover:text-[#4E9BFF] transition-colors truncate"
                         title="Klik untuk melihat profil klien lengkap"
                       >
                         {inv.clientName}
                       </span>
-                      <span className="font-mono text-xs text-[#5C6474] flex items-center gap-1.5">
+                      <span className="font-mono text-xs text-slate-400 flex items-center gap-1.5">
                         <span>{inv.invoiceNumber}</span>
                         {inv.notes && (
                           <>
                             <span>·</span>
-                            <span className="truncate max-w-[160px] text-[#8A93A3]">{inv.notes}</span>
+                            <span className="truncate max-w-[160px] text-slate-500">{inv.notes}</span>
                           </>
                         )}
                       </span>
@@ -5421,8 +4211,8 @@ export default function FinanceModuleView({
                   </div>
 
                   {/* Col 2: Jatuh Tempo */}
-                  <div className="flex md:flex-col items-center md:items-start justify-between text-xs text-[#8A93A3] font-mono">
-                    <span className="md:hidden text-xs text-[#5C6474]">Jatuh tempo:</span>
+                  <div className="flex md:flex-col items-center md:items-start justify-between text-xs text-slate-500 font-mono">
+                    <span className="md:hidden text-xs text-slate-400">Jatuh tempo:</span>
                     <span className={isOverdue ? 'text-[#EF4444] font-semibold' : ''}>
                       {inv.dueDate || '-'}
                     </span>
@@ -5430,7 +4220,7 @@ export default function FinanceModuleView({
 
                   {/* Col 3: Status Badge */}
                   <div className="flex md:block items-center justify-between">
-                    <span className="md:hidden text-xs text-[#5C6474]">Status:</span>
+                    <span className="md:hidden text-xs text-slate-400">Status:</span>
                     <span
                       className={`inline-flex px-2.5 py-0.5 text-xs font-mono font-bold rounded-full ${
                         isOverdue
@@ -5446,10 +4236,10 @@ export default function FinanceModuleView({
 
                   {/* Col 4: Nominal */}
                   <div className="flex md:block items-center justify-between text-right">
-                    <span className="md:hidden text-xs text-[#5C6474]">Nominal:</span>
+                    <span className="md:hidden text-xs text-slate-400">Nominal:</span>
                     <span
                       className={`font-mono font-bold text-[13.5px] ${
-                        isOverdue ? 'text-[#EF4444]' : isPaid ? 'text-[#3FBF8F]' : 'text-[#F5F7FA]'
+                        isOverdue ? 'text-[#EF4444]' : isPaid ? 'text-[#3FBF8F]' : 'text-slate-900'
                       }`}
                     >
                       Rp {inv.amount.toLocaleString('id-ID')}
@@ -5457,7 +4247,7 @@ export default function FinanceModuleView({
                   </div>
 
                   {/* Col 5: Action Buttons */}
-                  <div className="flex items-center justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-white/[0.04]">
+                  <div className="flex items-center justify-end gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200">
                     {/* Lihat & Unduh Invoice */}
                     <button
                       type="button"
@@ -5466,7 +4256,7 @@ export default function FinanceModuleView({
                         setPreviewInvoice(inv);
                         setIsInvoicePreviewOpen(true);
                       }}
-                      className="h-8 px-2.5 inline-flex items-center gap-1.5 bg-white/[0.05] hover:bg-white/[0.1] text-[#C3CBD8] hover:text-white font-medium text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                      className="h-8 px-2.5 inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-medium text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap"
                       title="Lihat & Unduh Invoice (PDF / CSV / JSON)"
                     >
                       <Eye className="w-3.5 h-3.5 text-[#4E9BFF]" />
@@ -5529,18 +4319,18 @@ export default function FinanceModuleView({
       {/* "Piutang klien" (Umur / Per faktur) + "Kewajiban terjadwal" (14 hari / 30 hari) */}
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[18px]">
-        <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-3.5 px-6 py-5 border-0 flex-wrap">
             <div className="flex flex-col gap-[5px]">
-              <h3 className="font-heading text-sm font-semibold text-[#F5F7FA] m-0">Piutang klien</h3>
-              <span className="text-xs text-[#8A93A3]">Sudah jadi hak Anda, belum masuk kas</span>
+              <h3 className="font-heading text-sm font-semibold text-slate-900 m-0">Piutang klien</h3>
+              <span className="text-xs text-slate-500">Sudah jadi hak Anda, belum masuk kas</span>
             </div>
             <div className="flex items-center gap-[3px] p-[3px] bg-white/[0.035] border-0 rounded-xl">
               <button
                 type="button"
                 onClick={() => setArTab('UMUR')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                  arTab === 'UMUR' ? 'bg-white/10 text-[#F5F7FA] shadow-sm' : 'text-[#8A93A3] hover:text-white'
+                  arTab === 'UMUR' ? 'bg-white/10 text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 Umur Piutang
@@ -5549,7 +4339,7 @@ export default function FinanceModuleView({
                 type="button"
                 onClick={() => setArTab('FAKTUR')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                  arTab === 'FAKTUR' ? 'bg-white/10 text-[#F5F7FA] shadow-sm' : 'text-[#8A93A3] hover:text-white'
+                  arTab === 'FAKTUR' ? 'bg-white/10 text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 Per Faktur ({arInvoicesList.length})
@@ -5558,7 +4348,7 @@ export default function FinanceModuleView({
                 type="button"
                 onClick={() => setArTab('KLIEN')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                  arTab === 'KLIEN' ? 'bg-white/10 text-[#F5F7FA] shadow-sm' : 'text-[#8A93A3] hover:text-white'
+                  arTab === 'KLIEN' ? 'bg-white/10 text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 Per Klien ({clientAggregates.length})
@@ -5570,12 +4360,12 @@ export default function FinanceModuleView({
             <div className="p-5 flex flex-col gap-4">
               <div className="flex items-baseline justify-between gap-3.5">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-medium text-[#8A93A3]">Total Hak Piutang Tertahan</span>
-                  <span className="font-heading text-[clamp(20px,1.7vw,26px)] font-bold tracking-[-0.025em] text-[#F5F7FA] [font-variant-numeric:tabular-nums]">
+                  <span className="text-xs font-medium text-slate-500">Total Hak Piutang Tertahan</span>
+                  <span className="font-heading text-[clamp(20px,1.7vw,26px)] font-bold tracking-[-0.025em] text-slate-900 [font-variant-numeric:tabular-nums]">
                     Rp {arTotalAmount.toLocaleString('id-ID')}
                   </span>
                 </div>
-                <div className="text-xs text-[#8A93A3] text-right">
+                <div className="text-xs text-slate-500 text-right">
                   <span className="font-semibold text-white">{arInvoicesList.length} faktur</span> berjalan
                   <br />
                   <span>Rata-rata umur {arAvgDays} hari</span>
@@ -5585,7 +4375,7 @@ export default function FinanceModuleView({
 
               {/* Progress Bar */}
               <div className="flex flex-col gap-1.5">
-                <div className="flex h-2.5 rounded-full overflow-hidden bg-white/[0.05] p-0.5 gap-1">
+                <div className="flex h-2.5 rounded-full overflow-hidden bg-slate-50 p-0.5 gap-1">
                   {agingBuckets.map((a) => (
                     <span
                       key={a.label}
@@ -5594,7 +4384,7 @@ export default function FinanceModuleView({
                     />
                   ))}
                 </div>
-                <div className="flex justify-between text-xs text-[#5C6474]">
+                <div className="flex justify-between text-xs text-slate-400">
                   <span>Distribusi kolektibilitas per rentang waktu</span>
                   <span>100% dari total piutang</span>
                 </div>
@@ -5610,7 +4400,7 @@ export default function FinanceModuleView({
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: a.color }} />
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-[12.5px] font-medium text-[#F5F7FA] flex items-center gap-2">
+                        <span className="text-[12.5px] font-medium text-slate-900 flex items-center gap-2">
                           {a.label}
                           <span
                             className="px-1.5 py-0.5 rounded text-[9px] font-semibold"
@@ -5619,7 +4409,7 @@ export default function FinanceModuleView({
                             {a.risk}
                           </span>
                         </span>
-                        <span className="text-xs text-[#5C6474]">{a.count}</span>
+                        <span className="text-xs text-slate-400">{a.count}</span>
                       </div>
                     </div>
                     <span
@@ -5633,7 +4423,7 @@ export default function FinanceModuleView({
               </div>
 
               {/* Collector Tip */}
-              <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-start gap-2.5 text-xs text-[#8A93A3]">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-xs text-slate-500">
                 <Info className="w-4 h-4 text-[#4E9BFF] shrink-0 mt-0.5" />
                 <span>
                   Piutang di atas 30 hari memiliki risiko gagal bayar 3x lebih tinggi. Segera kirim pengingat ramah via WhatsApp sebelum mencapai 60 hari.
@@ -5645,10 +4435,10 @@ export default function FinanceModuleView({
           {arTab === 'FAKTUR' && (
             <div className="px-5 pt-1.5 pb-4">
               {arInvoicesList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center text-[#5C6474]">
+                <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400">
                   <Receipt className="w-7 h-7 mb-2 opacity-40 text-[#4E9BFF]" />
-                  <span className="text-xs font-medium text-[#8A93A3]">Semua faktur piutang telah lunas</span>
-                  <span className="text-xs text-[#5C6474] mt-0.5">Arus kas piutang aman dan terkendali.</span>
+                  <span className="text-xs font-medium text-slate-500">Semua faktur piutang telah lunas</span>
+                  <span className="text-xs text-slate-400 mt-0.5">Arus kas piutang aman dan terkendali.</span>
                 </div>
               ) : (
                 arInvoicesList.map((i) => {
@@ -5660,13 +4450,13 @@ export default function FinanceModuleView({
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === 'Enter' && setSelectedInvoiceDetail(i)}
-                      className="flex items-center justify-between gap-3.5 py-3 border-b border-white/[0.05] last:border-0 cursor-pointer hover:bg-white/[0.03] transition-colors rounded-xl -mx-1.5 px-2.5"
+                      className="flex items-center justify-between gap-3.5 py-3 border-b border-slate-200 last:border-0 cursor-pointer hover:bg-slate-50 transition-colors rounded-xl -mx-1.5 px-2.5"
                     >
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-[12.5px] font-semibold text-[#F5F7FA] truncate hover:text-[#4E9BFF] transition-colors">
+                        <span className="text-[12.5px] font-semibold text-slate-900 truncate hover:text-[#4E9BFF] transition-colors">
                           {i.clientName}
                         </span>
-                        <span className="font-mono text-xs text-[#5C6474]">
+                        <span className="font-mono text-xs text-slate-400">
                           {i.invoiceNumber} · Jatuh tempo: {i.dueDate}
                         </span>
                       </div>
@@ -5678,7 +4468,7 @@ export default function FinanceModuleView({
                         >
                           {i.status}
                         </span>
-                        <span className={`font-mono font-bold text-[13px] ${isOverdue ? 'text-[#EF4444]' : 'text-[#F5F7FA]'}`}>
+                        <span className={`font-mono font-bold text-[13px] ${isOverdue ? 'text-[#EF4444]' : 'text-slate-900'}`}>
                           Rp {i.amount.toLocaleString('id-ID')}
                         </span>
                       </div>
@@ -5686,8 +4476,8 @@ export default function FinanceModuleView({
                   );
                 })
               )}
-              <div className="flex items-baseline justify-between gap-3 pt-3.5 mt-2 border-t border-white/[0.06]">
-                <span className="text-xs font-semibold text-[#8A93A3]">Total piutang berjalan</span>
+              <div className="flex items-baseline justify-between gap-3 pt-3.5 mt-2 border-t border-slate-200">
+                <span className="text-xs font-semibold text-slate-500">Total piutang berjalan</span>
                 <span className="font-mono text-sm font-bold text-[#F2A83B] [font-variant-numeric:tabular-nums]">
                   Rp {arTotalAmount.toLocaleString('id-ID')}
                 </span>
@@ -5698,7 +4488,7 @@ export default function FinanceModuleView({
           {arTab === 'KLIEN' && (
             <div className="px-5 pt-1.5 pb-4 flex flex-col gap-2">
               {clientAggregates.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center text-[#5C6474]">
+                <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400">
                   <Building2 className="w-7 h-7 mb-2 opacity-40 text-[#4E9BFF]" />
                   <span className="text-xs">Belum ada data klien terdaftar</span>
                 </div>
@@ -5710,17 +4500,17 @@ export default function FinanceModuleView({
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && setSelectedClient(c)}
-                    className="flex items-center justify-between gap-3 py-3 border-b border-white/[0.05] last:border-0 cursor-pointer hover:bg-white/[0.03] transition-colors rounded-xl -mx-1.5 px-2.5 group"
+                    className="flex items-center justify-between gap-3 py-3 border-b border-slate-200 last:border-0 cursor-pointer hover:bg-slate-50 transition-colors rounded-xl -mx-1.5 px-2.5 group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg bg-[#4E9BFF]/10 text-[#4E9BFF] flex items-center justify-center font-bold text-xs shrink-0">
                         {c.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="text-[12.5px] font-semibold text-[#F5F7FA] truncate group-hover:text-[#4E9BFF] transition-colors">
+                        <span className="text-[12.5px] font-semibold text-slate-900 truncate group-hover:text-[#4E9BFF] transition-colors">
                           {c.name}
                         </span>
-                        <span className="text-xs text-[#5C6474]">
+                        <span className="text-xs text-slate-400">
                           {c.invoiceCount} faktur · {c.overdueCount > 0 ? `${c.overdueCount} telat` : 'pembayaran lancar'}
                         </span>
                       </div>
@@ -5729,14 +4519,14 @@ export default function FinanceModuleView({
                       <span className={`font-mono font-bold text-[12.5px] ${c.totalPending > 0 ? 'text-[#F2A83B]' : 'text-[#3FBF8F]'}`}>
                         {c.totalPending > 0 ? `Rp ${c.totalPending.toLocaleString('id-ID')}` : 'Lunas'}
                       </span>
-                      <span className="text-xs text-[#5C6474]">
+                      <span className="text-xs text-slate-400">
                         dari total Rp {c.totalInvoiced.toLocaleString('id-ID')}
                       </span>
                     </div>
                   </div>
                 ))
               )}
-              <div className="flex items-center justify-between pt-3 mt-1 border-t border-white/[0.06] text-xs text-[#8A93A3]">
+              <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-200 text-xs text-slate-500">
                 <span>Klik baris klien untuk detail kontak &amp; riwayat faktur</span>
                 <span className="font-semibold text-white">{clientAggregates.length} mitra</span>
               </div>
@@ -5744,18 +4534,18 @@ export default function FinanceModuleView({
           )}
         </div>
 
-        <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col overflow-hidden">
           <div className="flex items-center justify-between gap-3.5 px-6 py-5 border-0 flex-wrap">
             <div className="flex flex-col gap-[5px]">
-              <h3 className="font-heading text-sm font-semibold text-[#F5F7FA] m-0">Kewajiban terjadwal</h3>
-              <span className="text-xs text-[#8A93A3]">Yang harus dibayar dan sisa kas setelahnya</span>
+              <h3 className="font-heading text-sm font-semibold text-slate-900 m-0">Kewajiban terjadwal</h3>
+              <span className="text-xs text-slate-500">Yang harus dibayar dan sisa kas setelahnya</span>
             </div>
             <div className="flex items-center gap-[3px] p-[3px] bg-white/[0.035] border-0 rounded-xl">
               <button
                 type="button"
                 onClick={() => setDueRange('14')}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                  dueRange === '14' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-white'
+                  dueRange === '14' ? 'bg-white/10 text-slate-900' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 14 hari
@@ -5764,7 +4554,7 @@ export default function FinanceModuleView({
                 type="button"
                 onClick={() => setDueRange('30')}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border-0 ${
-                  dueRange === '30' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-white'
+                  dueRange === '30' ? 'bg-white/10 text-slate-900' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 30 hari
@@ -5773,25 +4563,25 @@ export default function FinanceModuleView({
           </div>
           <div className="px-5 pt-1.5 pb-[18px] flex flex-col flex-1">
             {/* Form tambah kewajiban baru dengan kategori */}
-            <form onSubmit={handleAddObligation} className="flex flex-col gap-2.5 mb-4 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+            <form onSubmit={handleAddObligation} className="flex flex-col gap-2.5 mb-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-[#8A93A3] font-medium">Nama kewajiban *</label>
+                  <label className="text-xs text-slate-500 font-medium">Nama kewajiban *</label>
                   <input
                     type="text"
                     value={obligName}
                     onChange={(e) => setObligName(e.target.value)}
                     placeholder="Contoh: Sewa ruko / Vendor hosting"
                     required
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-3 py-2 text-[#F5F7FA] text-[11.5px] placeholder-[#5C6474] focus:outline-none transition-all"
+                    className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-3 py-2 text-slate-900 text-[11.5px] placeholder-[#5C6474] focus:outline-none transition-all"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-[#8A93A3] font-medium">Kategori pengeluaran</label>
+                  <label className="text-xs text-slate-500 font-medium">Kategori pengeluaran</label>
                   <select
                     value={obligCategory}
                     onChange={(e) => setObligCategory(e.target.value)}
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-2.5 py-2 text-[#F5F7FA] text-[11.5px] focus:outline-none transition-all cursor-pointer"
+                    className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-2.5 py-2 text-slate-900 text-[11.5px] focus:outline-none transition-all cursor-pointer"
                   >
                     <option value="Operasional & Utilitas">Operasional &amp; Utilitas</option>
                     <option value="Sewa & Gedung">Sewa &amp; Gedung</option>
@@ -5804,27 +4594,27 @@ export default function FinanceModuleView({
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_auto] gap-2 items-end">
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-[#8A93A3] font-medium">Nominal tagihan *</label>
+                  <label className="text-xs text-slate-500 font-medium">Nominal tagihan *</label>
                   <div className="relative flex items-center">
-                    <span className="absolute left-2.5 font-mono text-xs font-bold text-[#8A93A3] pointer-events-none">Rp</span>
+                    <span className="absolute left-2.5 font-mono text-xs font-bold text-slate-500 pointer-events-none">Rp</span>
                     <input
                       type="number"
                       value={obligAmount}
                       onChange={(e) => setObligAmount(e.target.value)}
                       placeholder="0"
                       required
-                      className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg pl-7 pr-2.5 py-2 text-[#F5F7FA] font-mono text-[11.5px] font-semibold placeholder-[#5C6474] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg pl-7 pr-2.5 py-2 text-slate-900 font-mono text-[11.5px] font-semibold placeholder-[#5C6474] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs text-[#8A93A3] font-medium">Jatuh tempo *</label>
+                  <label className="text-xs text-slate-500 font-medium">Jatuh tempo *</label>
                   <input
                     type="date"
                     value={obligDueDate}
                     onChange={(e) => setObligDueDate(e.target.value)}
                     required
-                    className="w-full bg-[#10141C] border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-2.5 py-2 text-[#F5F7FA] text-[11.5px] focus:outline-none transition-all [color-scheme:dark]"
+                    className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-2.5 py-2 text-slate-900 text-[11.5px] focus:outline-none transition-all [color-scheme:light]"
                   />
                 </div>
                 <button
@@ -5843,7 +4633,7 @@ export default function FinanceModuleView({
             </form>
 
             {activeDuesWithRunning.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center text-[#5C6474]">
+              <div className="flex flex-col items-center justify-center py-10 text-center text-slate-400">
                 <Clock className="w-7 h-7 mb-2 opacity-40 text-[#F2A83B]" />
                 <span className="text-xs max-w-[240px]">Belum ada kewajiban terjadwal tercatat dalam {dueRangeText} ke depan.</span>
               </div>
@@ -5858,15 +4648,15 @@ export default function FinanceModuleView({
                   return (
                     <div
                       key={d.id}
-                      className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] gap-[13px] items-center py-2.5 px-3 rounded-xl hover:bg-white/[0.025] transition-colors border border-transparent hover:border-white/[0.05] group"
+                      className="grid grid-cols-[46px_minmax(0,1fr)_auto_auto] gap-[13px] items-center py-2.5 px-3 rounded-xl hover:bg-white/[0.025] transition-colors border border-transparent hover:border-slate-200 group"
                     >
-                      <div className="flex flex-col items-center gap-px py-[5px] rounded-lg bg-white/[0.04] border-0 shrink-0">
-                        <span className="font-mono text-[13px] font-semibold text-[#F5F7FA] leading-none">{d.day}</span>
-                        <span className="text-[9.5px] text-[#5C6474]">{d.mon}</span>
+                      <div className="flex flex-col items-center gap-px py-[5px] rounded-lg bg-slate-50 border-0 shrink-0">
+                        <span className="font-mono text-[13px] font-semibold text-slate-900 leading-none">{d.day}</span>
+                        <span className="text-[9.5px] text-slate-400">{d.mon}</span>
                       </div>
                       <div className="flex flex-col gap-[3px] min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[12.5px] font-semibold text-[#F5F7FA] truncate">{d.name}</span>
+                          <span className="text-[12.5px] font-semibold text-slate-900 truncate">{d.name}</span>
                           {isUrgent && (
                             <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30">
                               Mendesak
@@ -5878,13 +4668,13 @@ export default function FinanceModuleView({
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-[#5C6474]">
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span>{d.category || 'Operasional'}</span>
                           <span>·</span>
                           <span className="font-mono">Sisa kas sesudahnya Rp {d.after.toLocaleString('id-ID')}</span>
                         </div>
                       </div>
-                      <span className="font-mono text-[12.5px] font-bold text-[#C3CBD8] [font-variant-numeric:tabular-nums] whitespace-nowrap">
+                      <span className="font-mono text-[12.5px] font-bold text-slate-700 [font-variant-numeric:tabular-nums] whitespace-nowrap">
                         Rp {d.amount.toLocaleString('id-ID')}
                       </span>
                       {/* Hapus / tandai lunas */}
@@ -5904,13 +4694,13 @@ export default function FinanceModuleView({
             )}
 
             {/* Cash Buffer & Liquidity Health Summary */}
-            <div className="mt-auto pt-4 flex flex-col gap-2.5 border-t border-white/[0.06]">
+            <div className="mt-auto pt-4 flex flex-col gap-2.5 border-t border-slate-200">
               <div className="flex flex-col gap-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-[#8A93A3]">Beban Kas {dueRangeText}</span>
+                  <span className="text-slate-500">Beban Kas {dueRangeText}</span>
                   <span className="font-mono text-[#F2A83B] font-semibold">{dueBarPct.toFixed(1)}% dari kas likuid</span>
                 </div>
-                <div className="flex h-2 rounded-full overflow-hidden bg-white/[0.05]">
+                <div className="flex h-2 rounded-full overflow-hidden bg-slate-50">
                   <span
                     className="block h-full transition-all duration-500 rounded-full"
                     style={{
@@ -5922,8 +4712,8 @@ export default function FinanceModuleView({
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex flex-col gap-0.5">
-                  <span className="text-xs text-[#8A93A3]">Total Kewajiban</span>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col gap-0.5">
+                  <span className="text-xs text-slate-500">Total Kewajiban</span>
                   <span className="font-mono text-xs font-bold text-[#F2A83B]">
                     Rp {dueTotal.toLocaleString('id-ID')}
                   </span>
@@ -5962,40 +4752,40 @@ export default function FinanceModuleView({
               fabricated number: KLIR doesn't store a prior-month margin snapshot anywhere yet. */}
           {/* Margin health banner -- real summary.grossMargin vs a standard 32% SME benchmark */}
           <div
-            className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto] gap-5 items-center px-6 py-5 rounded-2xl border-l-4 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)]"
+            className="relative overflow-hidden grid grid-cols-1 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto] gap-5 items-center px-6 py-5 rounded-2xl border border-slate-200 border-l-4 shadow-xs"
             style={{
-              background: '#0D1117',
-              borderLeftColor: !hasMarginData ? '#5C6474' : marginIsHealthy ? '#3FBF8F' : '#F2A83B',
+              background: '#FFFFFF',
+              borderLeftColor: !hasMarginData ? '#94A3B8' : marginIsHealthy ? '#059669' : '#D97706',
             }}
           >
             <span
               className="w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border-0"
               style={{
-                color: !hasMarginData ? '#8A93A3' : marginIsHealthy ? '#7FE0BC' : '#F7C173',
-                background: !hasMarginData ? 'rgba(138,147,163,0.10)' : marginIsHealthy ? 'rgba(63,191,143,0.12)' : 'rgba(242,168,59,0.12)',
+                color: !hasMarginData ? '#64748B' : marginIsHealthy ? '#059669' : '#D97706',
+                background: !hasMarginData ? '#F1F5F9' : marginIsHealthy ? '#ECFDF5' : '#FFFBEB',
               }}
             >
               {!hasMarginData ? <Info className="w-6 h-6" strokeWidth={1.9} /> : marginIsHealthy ? <ShieldCheck className="w-6 h-6" strokeWidth={1.9} /> : <AlertTriangle className="w-6 h-6" strokeWidth={1.9} />}
             </span>
             <div className="flex flex-col gap-2 min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="font-heading text-[16px] font-semibold tracking-[-0.01em] text-[#F5F7FA]">
+                <span className="font-heading text-[16px] font-bold tracking-tight text-slate-900">
                   {!hasMarginData ? 'Margin bersih menunggu data transaksi' : marginIsHealthy ? 'Margin Bersih Sehat — Di Atas Ambang Batas Aman' : 'Margin Bersih Di Bawah Ambang Aman (Perhatian)'}
                   <TermHint label="Margin bersih" />
                 </span>
                 <span
-                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border ${
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                     !hasMarginData
-                      ? 'bg-white/[0.04] text-[#8A93A3] border-white/[0.08]'
+                      ? 'bg-slate-100 text-slate-600 border-slate-200'
                       : marginIsHealthy
-                      ? 'bg-[#3FBF8F]/15 text-[#7FE0BC] border-[#3FBF8F]/30'
-                      : 'bg-[#F2A83B]/15 text-[#F7C173] border-[#F2A83B]/30'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}
                 >
                   {!hasMarginData ? 'Netral' : marginIsHealthy ? 'Optimal (Safe Zone)' : 'Waspada (Risk Zone)'}
                 </span>
               </div>
-              <p className="text-[12.5px] leading-relaxed text-[#A9B2C0] m-0">
+              <p className="text-xs sm:text-[13px] leading-relaxed text-slate-600 m-0">
                 {hasMarginData
                   ? `Margin kotor/bersih saat ini ${summary.grossMargin.toString().replace('.', ',')}%. Standar acuan sehat UMKM adalah minimal ${MARGIN_SAFE_THRESHOLD}%. ${
                       marginIsHealthy
@@ -6060,7 +4850,7 @@ export default function FinanceModuleView({
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
             {/* Unit economics CAC & LTV */}
-            <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col overflow-hidden">
               <div className="flex items-start justify-between gap-3 flex-wrap px-6 py-5 border-0">
                 <div className="flex items-start gap-2.5 min-w-0">
                   <span className="w-[30px] h-[30px] shrink-0 rounded-lg flex items-center justify-center bg-[#A5B4FC]/[0.12] border-0">
@@ -6244,7 +5034,7 @@ export default function FinanceModuleView({
 
             {/* Hasil simulasi rencana keuangan */}
             {/* Hasil simulasi rencana keuangan */}
-            <div className="bg-[#0D1117] border-0 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.4)] flex flex-col overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col overflow-hidden">
               <div className="flex items-start justify-between gap-3 flex-wrap px-6 py-5 border-0">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
@@ -6473,7 +5263,7 @@ export default function FinanceModuleView({
       {/* Modal 1: Invoice Preview & Download Modal */}
       {isInvoicePreviewOpen && previewInvoice && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0D1117] border border-white/[0.08] rounded-2xl p-6 max-w-xl w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 max-w-xl w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <span className="w-8 h-8 rounded-lg bg-[#4E9BFF]/15 flex items-center justify-center text-[#4E9BFF]">
@@ -6570,7 +5360,7 @@ export default function FinanceModuleView({
       {/* Modal 2: Client Profile & Payment History Modal */}
       {selectedClient && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0D1117] border border-white/[0.08] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
             <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
               <div>
                 <h4 className="font-heading font-bold text-base text-white m-0">Profil Klien &amp; Riwayat Tagihan</h4>
@@ -6618,7 +5408,7 @@ export default function FinanceModuleView({
       {/* Modal 3: Upload Mutasi Bank / Data Transaksi Kas (Terintegrasi Penuh) */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0D1117] border border-white/[0.08] rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 max-w-2xl w-full shadow-2xl space-y-4 animate-scaleUp text-[#F5F7FA]">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2.5">
                 <span className="w-8 h-8 rounded-lg bg-[#3FBF8F]/15 flex items-center justify-center text-[#3FBF8F]">
@@ -7013,7 +5803,7 @@ export default function FinanceModuleView({
       {/* Invoice Detail Modal */}
       {selectedInvoiceDetail && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0D1117] border-0 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp">
+          <div className="bg-white border-0 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-2 border-0">
               <h4 className="font-heading font-bold text-base text-white">
                 Rincian Invoice Piutang
@@ -7096,7 +5886,7 @@ export default function FinanceModuleView({
       {/* Client Profile Modal */}
       {selectedClient && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#0D1117] border border-white/[0.08] rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xs p-6 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#4E9BFF]/10 text-[#4E9BFF] flex items-center justify-center font-bold text-sm">

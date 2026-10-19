@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import { TbChevronDown as ChevronDown } from 'react-icons/tb';
 
 export interface SnapshotKpiCardProps {
   id: string;
@@ -40,22 +40,20 @@ export default function SnapshotKpiCard({
       id={`snapshot-card-${id}`}
       onClick={onClick}
       disabled={disabled}
-      className="group relative flex flex-col justify-between text-left transition-all duration-200 select-none w-full"
+      className="group relative flex flex-col justify-between text-left transition-all duration-300 select-none w-full hover:-translate-y-0.5"
       style={{
-        background: isActive
-          ? 'linear-gradient(180deg, #131A26 0%, #0D121C 100%)'
-          : 'linear-gradient(180deg, #0F141E 0%, #0A0E15 100%)',
+        background: isActive ? '#FFFFFF' : '#FFFFFF',
         border: isActive
-          ? `1.5px solid ${accentColor}`
-          : '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '6px',
-        padding: '12px 14px 10px 14px',
+          ? `2px solid ${accentColor}`
+          : '1px solid #E2E8F0',
+        borderRadius: '16px',
+        padding: '16px 18px 14px 18px',
         boxShadow: isActive
-          ? `0 0 20px -3px ${accentColor}30, 0 6px 16px rgba(0,0,0,0.5)`
-          : '0 2px 8px rgba(0,0,0,0.3)',
+          ? `0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 12px ${accentColor}25`
+          : '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02)',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
-        minHeight: '112px',
+        minHeight: '116px',
       }}
       aria-expanded={isActive}
     >
@@ -64,27 +62,27 @@ export default function SnapshotKpiCard({
         <div
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 z-20 pointer-events-none"
           style={{
-            borderLeft: '7px solid transparent',
-            borderRight: '7px solid transparent',
-            borderTop: `7px solid ${accentColor}`,
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: `6px solid ${accentColor}`,
           }}
         />
       )}
 
       {/* Row 1: Uppercase Title & Status Pill Badge */}
-      <div className="flex items-center justify-between gap-1.5 w-full">
+      <div className="flex items-center justify-between gap-2 w-full">
         <span
-          className="text-[10px] sm:text-[10.5px] font-bold font-mono tracking-wider truncate"
-          style={{ color: isActive ? '#F5F7FA' : '#8A93A3' }}
+          className="text-[10px] sm:text-[11px] font-bold font-mono tracking-wider uppercase truncate"
+          style={{ color: isActive ? '#0F172A' : '#64748B' }}
         >
           {title}
         </span>
         <span
-          className="text-[9.5px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-[4px] flex items-center gap-1 shrink-0 whitespace-nowrap"
+          className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 whitespace-nowrap shadow-xs"
           style={{
             color: badgeColor,
             background: computedBadgeBg,
-            border: `1px solid ${badgeColor}30`,
+            border: `1px solid ${badgeColor}35`,
           }}
         >
           {badgeText}
@@ -92,37 +90,37 @@ export default function SnapshotKpiCard({
       </div>
 
       {/* Row 2: Large Hero Value */}
-      <div className="mt-1 mb-0.5">
+      <div className="mt-2 mb-1">
         <div
-          className="font-heading text-lg sm:text-xl lg:text-[22px] font-bold text-[#F5F7FA] tracking-tight tabular-nums truncate"
+          className="font-heading text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight tabular-nums truncate group-hover:text-black transition-colors"
         >
           {value}
         </div>
       </div>
 
       {/* Row 3: Subtitle Context & Small Indicator Icon */}
-      <div className="flex items-center justify-between gap-1 text-[10.5px] sm:text-[11px] text-[#8A93A3] mb-2 truncate">
-        <span className="truncate" title={subtitle}>
+      <div className="flex items-center justify-between gap-1.5 text-[11px] text-slate-500 mb-2.5 truncate">
+        <span className="truncate group-hover:text-slate-700 transition-colors" title={subtitle}>
           {subtitle}
         </span>
         <ChevronDown
           size={12}
           className="shrink-0 transition-transform duration-200"
           style={{
-            color: isActive ? accentColor : '#5C6474',
+            color: isActive ? accentColor : '#94A3B8',
             transform: isActive ? 'rotate(180deg)' : 'none',
           }}
         />
       </div>
 
       {/* Row 4: Progress / Accent Line at card bottom */}
-      <div className="w-full h-1 rounded-[2px] bg-white/[0.06] overflow-hidden">
+      <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div
-          className="h-full rounded-[2px] transition-all duration-300"
+          className="h-full rounded-full transition-all duration-300"
           style={{
             width: `${Math.min(100, Math.max(8, progressPercent))}%`,
             background: accentColor,
-            boxShadow: isActive ? `0 0 8px ${accentColor}80` : 'none',
+            boxShadow: isActive ? `0 0 10px ${accentColor}80` : 'none',
           }}
         />
       </div>

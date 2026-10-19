@@ -2381,7 +2381,7 @@ export default function FinanceAIAssistantView({
   ];
 
   return (
-    <div style={{ height: '100%', background: '#06080C', padding: '14px', fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", color: '#F5F7FA', WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box' }}>
+    <div style={{ height: '100%', background: '#F8FAFC', padding: '14px', fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", color: '#0F172A', WebkitFontSmoothing: 'antialiased', boxSizing: 'border-box' }}>
       {/* Keyframes dipakai cardArt() (galeri "Mulai dari tugas nyata") + animasi lain di
           file ini (mis. klirFlow line 2176-an). Disalin dari ExecutiveAIAssistantView.tsx
           -- sebelum ini file ini TIDAK punya blok <style> sendiri sama sekali, jadi
@@ -2426,25 +2426,25 @@ export default function FinanceAIAssistantView({
             void processFileList(Array.from(e.dataTransfer.files));
           }
         }}
-        style={{ display: 'flex', height: '100%', background: '#080A0F', border: 0, borderRadius: '20px', overflow: 'hidden', position: 'relative', boxShadow: '0 4px 24px -2px rgba(0,0,0,0.5)' }}
+        style={{ display: 'flex', height: '100%', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '20px', overflow: 'hidden', position: 'relative', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.05)' }}
       >
         <DragDropFileOverlay isDragging={isDraggingFile} />
         {/* ========================================================================= */}
         {/* 1. SIDEBAR */}
         {/* ========================================================================= */}
         {sidebarOpen && (
-          <aside style={{ width: '274px', flexShrink: 0, background: '#06080C', borderRight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '14px 12px', overflow: 'hidden' }}>
+          <aside style={{ width: '274px', flexShrink: 0, background: '#F8FAFC', borderRight: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '14px 12px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', minHeight: 0, paddingRight: '2px' }}>
               {/* Workspace Badge Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '2px 4px 12px', borderBottom: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '2px 4px 12px', borderBottom: '1px solid #E2E8F0' }}>
                 <span style={{ display: 'flex', width: '31px', height: '31px', alignItems: 'center', justifyContent: 'center', borderRadius: '9px', background: '#0058BE', fontFamily: "'Outfit', sans-serif", fontSize: '13px', fontWeight: 700, color: '#FFFFFF', flexShrink: 0 }}>
                   {workspaceName.trim().charAt(0).toUpperCase() || 'K'}
                 </span>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, textAlign: 'left' }}>
-                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: '12.5px', fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {workspaceName}
                   </span>
-                  <span style={{ fontSize: '10.5px', color: '#5C6474', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '10.5px', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {userTitle}
                   </span>
                 </span>

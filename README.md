@@ -1,6 +1,7 @@
-# 🧠 KLIR OS — The AI Operating System for Teams and Agents
+# system-managemen-bisnis-dan-finance
 
-KLIR OS adalah platform operasi kecerdasan buatan (*AI Operating System*) terpadu yang dirancang khusus untuk strategi finansial perusahaan, inteligensi operasional tim, dan otomatisasi alur kerja (*workflows*).
+> **KLIR OS — Sistem Manajemen Bisnis & Finance Monitoring**
+Inteligensi finansial perusahaan, monitoring likuiditas & arus kas, operasional tim, dan otomatisasi alur kerja (workflows).
 
 ![KLIR OS Architecture](https://img.shields.io/badge/Stack-Next.js%2016%20%7C%20Neon%20Postgres%20%7C%20Prisma%206.3.1%20%7C%20Gemini%20AI-5e6ad2?style=for-the-badge)
 

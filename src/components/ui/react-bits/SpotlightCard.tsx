@@ -54,7 +54,7 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       style={style}
-      className={`relative rounded-xl border-0 bg-[#0E131B] overflow-hidden transition-all duration-300 ${className}`}
+      className={`relative rounded-xl border border-slate-200 bg-white overflow-hidden transition-all duration-300 shadow-xs ${className}`}
     >
       {/* Desktop dynamic spotlight */}
       {!isTouchDevice && (

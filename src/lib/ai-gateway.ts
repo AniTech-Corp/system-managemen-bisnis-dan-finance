@@ -135,14 +135,40 @@ function normalizeMaxTokens(maxOutputTokens?: number): number | undefined {
     : undefined;
 }
 
-/** Parse output JSON model: strip pagar ```json lalu JSON.parse, null kalau gagal. */
+/** Parse output JSON model: ekstraksi boundary JSON `{...}` atau `[...]` atau strip ```json lalu JSON.parse, null kalau gagal. */
 function parseJsonOutput(textOutput: string): any {
+  if (!textOutput || typeof textOutput !== 'string') return null;
+  const trimmed = textOutput.trim();
+
+  // 1. Coba parse langsung
   try {
-    const cleaned = textOutput.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
-    return JSON.parse(cleaned);
-  } catch {
-    return null;
-  }
+    return JSON.parse(trimmed);
+  } catch {}
+
+  // 2. Coba bersihkan markdown fence ```json ... ```
+  try {
+    const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch && fenceMatch[1]) {
+      return JSON.parse(fenceMatch[1].trim());
+    }
+  } catch {}
+
+  // 3. Coba ekstraksi boundary substring antara { dan } atau [ dan ]
+  try {
+    const firstBrace = trimmed.indexOf('{');
+    const lastBrace = trimmed.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      return JSON.parse(trimmed.substring(firstBrace, lastBrace + 1));
+    }
+
+    const firstBracket = trimmed.indexOf('[');
+    const lastBracket = trimmed.lastIndexOf(']');
+    if (firstBracket !== -1 && lastBracket > firstBracket) {
+      return JSON.parse(trimmed.substring(firstBracket, lastBracket + 1));
+    }
+  } catch {}
+
+  return null;
 }
 
 /**

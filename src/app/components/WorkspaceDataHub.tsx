@@ -1,7 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, FileText, Trash2, Upload, Wallet, X, Megaphone, Utensils, Package, Users } from 'lucide-react';
+import {
+  TbAlertTriangle as AlertTriangle,
+  TbCircleCheck as CheckCircle2,
+  TbFileText as FileText,
+  TbTrash as Trash2,
+  TbCloudUpload as Upload,
+  TbWallet as Wallet,
+  TbX as X,
+  TbSpeakerphone as Megaphone,
+  TbToolsKitchen2 as Utensils,
+  TbPackage as Package,
+  TbUsers as Users,
+} from 'react-icons/tb';
 // V4c, 8 Sep 2026 (badge + panel kualitas data di Pusat Data): SSOT ekstraksi
 // teks blok "[PEMERIKSAAN DATA]" -- JANGAN tulis regex sendiri di sini, ambil
 // dari modul yang sama dipakai CompanyDataDashboard.tsx.

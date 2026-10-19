@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import {
-  Sparkles,
-  ChevronDown,
-  Info,
-  Bot,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react';
+  TbSparkles as Sparkles,
+  TbChevronDown as ChevronDown,
+  TbInfoCircle as Info,
+  TbRobot as Bot,
+  TbArrowRight as ArrowRight,
+  TbShieldCheck as ShieldCheck,
+} from 'react-icons/tb';
 
 export interface DrilldownDatum {
   label: string;
@@ -67,7 +67,7 @@ export default function InCardVisualDrilldown({
       style={{
         width: '100%',
         marginTop: hideTrigger ? '0' : '12px',
-        borderTop: hideTrigger ? 'none' : '1px solid rgba(255,255,255,0.06)',
+        borderTop: hideTrigger ? 'none' : '1px solid #E2E8F0',
         paddingTop: hideTrigger ? '0' : '10px',
       }}
     >
@@ -81,21 +81,21 @@ export default function InCardVisualDrilldown({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              background: isOpen ? `${accentColor}14` : 'rgba(255,255,255,0.025)',
-              border: `1px solid ${isOpen ? `${accentColor}35` : 'rgba(255,255,255,0.07)'}`,
-              borderRadius: '4px',
-              padding: '5px 11px',
-              color: isOpen ? '#F5F7FA' : '#8A93A3',
-              fontSize: '11px',
+              background: isOpen ? `${accentColor}14` : '#F8FAFC',
+              border: `1px solid ${isOpen ? `${accentColor}35` : '#E2E8F0'}`,
+              borderRadius: '6px',
+              padding: '6px 12px',
+              color: isOpen ? '#0F172A' : '#475569',
+              fontSize: '11.5px',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 150ms ease',
             }}
           >
-            <Sparkles size={12} color={isOpen ? accentColor : '#8A93A3'} />
+            <Sparkles size={13} color={isOpen ? accentColor : '#64748B'} />
             <span>{isOpen ? 'Tutup Diagnosa & Solusi' : 'Buka Diagnosa & Solusi Eksekutif'}</span>
             <ChevronDown
-              size={12}
+              size={13}
               style={{
                 transform: isOpen ? 'rotate(180deg)' : 'none',
                 transition: 'transform 180ms ease',
@@ -104,7 +104,7 @@ export default function InCardVisualDrilldown({
           </button>
 
           {isOpen && (
-            <span style={{ fontSize: '10.5px', color: '#687487' }}>Diagnosa Cepat CEO</span>
+            <span style={{ fontSize: '11px', color: '#64748B' }}>Diagnosa Cepat CEO</span>
           )}
         </div>
       )}
@@ -114,11 +114,11 @@ export default function InCardVisualDrilldown({
         <div
           style={{
             marginTop: hideTrigger ? '0' : '10px',
-            background: '#0B0E14',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '6px',
-            padding: '14px 16px',
-            boxShadow: '0 6px 20px -4px rgba(0,0,0,0.45)',
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '12px',
+            padding: '16px 18px',
+            boxShadow: '0 4px 16px -2px rgba(0,0,0,0.06)',
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
@@ -126,17 +126,17 @@ export default function InCardVisualDrilldown({
           }}
         >
           {/* 1. Header Singkat: Judul & Konteks */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderBottom: '1px solid #E2E8F0', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#F5F7FA', letterSpacing: '-0.01em' }}>
+              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
                 {title}
               </h4>
-              <span style={{ fontSize: '10px', color: '#8A93A3', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ fontSize: '11px', color: '#64748B', fontFamily: "'JetBrains Mono', monospace" }}>
                 {data.length} Indikator Kunci
               </span>
             </div>
             {subtitle && (
-              <p style={{ margin: 0, fontSize: '11px', color: '#8A93A3', lineHeight: 1.4 }}>
+              <p style={{ margin: 0, fontSize: '11px', color: '#64748B', lineHeight: 1.4 }}>
                 {subtitle}
               </p>
             )}
@@ -155,17 +155,17 @@ export default function InCardVisualDrilldown({
                 const itemCol = item.color || accentColor;
                 const isWarn = item.status === 'warning';
                 const isCrit = item.status === 'critical';
-                const statusBadgeBg = isCrit ? '#EF444415' : isWarn ? '#F59E0B15' : '#3FBF8F15';
-                const statusBadgeCol = isCrit ? '#EF4444' : isWarn ? '#F59E0B' : '#3FBF8F';
+                const statusBadgeBg = isCrit ? '#FEE2E2' : isWarn ? '#FEF3C7' : '#DCFCE7';
+                const statusBadgeCol = isCrit ? '#B91C1C' : isWarn ? '#B45309' : '#15803D';
                 const statusText = isCrit ? 'Kritis' : isWarn ? 'Waspada' : 'Aman';
 
                 return (
                   <div
                     key={item.label}
                     style={{
-                      background: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.05)',
-                      borderRadius: '4px',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
                       padding: '8px 10px',
                       display: 'flex',
                       flexDirection: 'column',
@@ -174,17 +174,17 @@ export default function InCardVisualDrilldown({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                      <span style={{ fontSize: '10px', color: '#8A93A3', fontWeight: 500, lineHeight: 1.2 }}>
+                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500, lineHeight: 1.2 }}>
                         {item.label}
                       </span>
                       <span
                         style={{
-                          fontSize: '8.5px',
+                          fontSize: '9.5px',
                           fontWeight: 700,
                           color: statusBadgeCol,
                           background: statusBadgeBg,
-                          padding: '1px 5px',
-                          borderRadius: '3px',
+                          padding: '1px 6px',
+                          borderRadius: '4px',
                           flexShrink: 0,
                         }}
                       >
@@ -197,7 +197,7 @@ export default function InCardVisualDrilldown({
                     </div>
 
                     {item.subtext && (
-                      <span style={{ fontSize: '9.5px', color: '#687487', lineHeight: 1.25 }}>
+                      <span style={{ fontSize: '10px', color: '#64748B', lineHeight: 1.25 }}>
                         {item.subtext}
                       </span>
                     )}
@@ -210,7 +210,7 @@ export default function InCardVisualDrilldown({
           {/* 6 Pilar Penjelasan Kognitif & Rekomendasi AI */}
           <div
             style={{
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid #E2E8F0',
               paddingTop: '10px',
               display: 'flex',
               flexDirection: 'column',
@@ -228,25 +228,24 @@ export default function InCardVisualDrilldown({
               {/* HERO HIGHLIGHT: REKOMENDASI AI & ACTION PLAN */}
               <div
                 style={{
-                  borderRadius: '4px',
-                  background: 'linear-gradient(135deg, rgba(63, 191, 143, 0.09), rgba(78, 155, 255, 0.05))',
-                  border: '1px solid rgba(63, 191, 143, 0.25)',
-                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  background: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  padding: '14px 16px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
-                  boxShadow: '0 3px 14px -2px rgba(0,0,0,0.3)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ width: '22px', height: '22px', borderRadius: '3px', background: `${accentColor}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Bot size={13} color={accentColor} />
+                    <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: `${accentColor}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Bot size={14} color={accentColor} />
                     </span>
-                    <span style={{ fontSize: '11.5px', color: '#F5F7FA', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    <span style={{ fontSize: '12px', color: '#0F172A', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                       Rekomendasi AI &amp; Action Plan
                     </span>
-                    <span style={{ fontSize: '9px', color: accentColor, background: `${accentColor}18`, padding: '1px 6px', borderRadius: '3px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '10px', color: '#15803D', background: '#DCFCE7', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                       PRIORITAS
                     </span>
                   </div>
@@ -255,28 +254,28 @@ export default function InCardVisualDrilldown({
                       type="button"
                       onClick={() => onOpenAI(`Tolong berikan detail eksekusi dan panduan langkah demi langkah untuk rekomendasi berikut: "${cognitive.rekomendasi}" pada metrik ${title}`)}
                       style={{
-                        background: `${accentColor}1C`,
-                        border: `1px solid ${accentColor}38`,
-                        borderRadius: '4px',
-                        color: '#F5F7FA',
-                        fontSize: '10.5px',
+                        background: '#FFFFFF',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '6px',
+                        color: '#0F172A',
+                        fontSize: '11px',
                         fontWeight: 600,
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        padding: '4px 9px',
+                        padding: '4px 10px',
                         transition: 'all 150ms ease',
                       }}
                     >
                       <span>Tanya AI Asisten</span>
-                      <ArrowRight size={11} color={accentColor} />
+                      <ArrowRight size={12} color={accentColor} />
                     </button>
                   )}
                 </div>
 
                 {/* Rekomendasi Utama Singkat Padat */}
-                <p style={{ margin: 0, fontSize: '12.5px', color: '#F5F7FA', fontWeight: 600, lineHeight: 1.45 }}>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#0F172A', fontWeight: 600, lineHeight: 1.45 }}>
                   {cognitive.rekomendasi}
                 </p>
 
@@ -294,20 +293,20 @@ export default function InCardVisualDrilldown({
                             display: 'flex',
                             alignItems: 'flex-start',
                             gap: '8px',
-                            background: 'rgba(0,0,0,0.25)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            borderRadius: '4px',
-                            padding: '7px 10px',
+                            background: '#FFFFFF',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '6px',
+                            padding: '8px 10px',
                           }}
                         >
                           <span
                             style={{
-                              fontSize: '9.5px',
+                              fontSize: '10px',
                               fontWeight: 800,
                               fontFamily: "'JetBrains Mono', monospace",
                               color: accentColor,
                               background: `${accentColor}18`,
-                              borderRadius: '3px',
+                              borderRadius: '4px',
                               padding: '2px 5px',
                               flexShrink: 0,
                               marginTop: '1px',
@@ -315,9 +314,9 @@ export default function InCardVisualDrilldown({
                           >
                             P{idx + 1}
                           </span>
-                          <p style={{ margin: 0, fontSize: '11.5px', color: '#F5F7FA', lineHeight: 1.4, flex: 1 }}>
-                            {titlePart && <strong style={{ color: '#F5F7FA', marginRight: '4px' }}>{titlePart}:</strong>}
-                            <span style={{ color: '#DCE3EC' }}>{descPart}</span>
+                          <p style={{ margin: 0, fontSize: '11.5px', color: '#1E293B', lineHeight: 1.4, flex: 1 }}>
+                            {titlePart && <strong style={{ color: '#0F172A', marginRight: '4px' }}>{titlePart}:</strong>}
+                            <span style={{ color: '#475569' }}>{descPart}</span>
                           </p>
                         </div>
                       );
@@ -331,10 +330,10 @@ export default function InCardVisualDrilldown({
                 {/* Kolom Kiri: Diagnosa Situasi & Dampak Finansial */}
                 <div
                   style={{
-                    padding: '11px 13px',
-                    borderRadius: '4px',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '5px',
@@ -342,16 +341,16 @@ export default function InCardVisualDrilldown({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Info size={13} color="#4E9BFF" />
-                      <span style={{ fontSize: '10px', color: '#8A93A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                      <Info size={13} color="#2563EB" />
+                      <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                         Diagnosa Situasi &amp; Dampak Kas
                       </span>
                     </div>
-                    <span style={{ fontSize: '9px', color: '#687487' }}>
+                    <span style={{ fontSize: '10px', color: '#64748B' }}>
                       {cognitive.sumberData}
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '11.5px', color: '#DCE3EC', lineHeight: 1.45 }}>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#334155', lineHeight: 1.45 }}>
                     {cognitive.artinya} {cognitive.dampakPraktis ? `Dampaknya: ${cognitive.dampakPraktis}` : ''}
                   </p>
                 </div>
@@ -359,10 +358,10 @@ export default function InCardVisualDrilldown({
                 {/* Kolom Kanan: Ambang Batas & Aturan Main */}
                 <div
                   style={{
-                    padding: '11px 13px',
-                    borderRadius: '4px',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '5px',
@@ -370,17 +369,17 @@ export default function InCardVisualDrilldown({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <Sparkles size={13} color="#F2A83B" />
-                      <span style={{ fontSize: '10px', color: '#8A93A3', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                      <Sparkles size={13} color="#D97706" />
+                      <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                         Aturan Main &amp; Ambang Batas
                       </span>
                     </div>
-                    <span style={{ fontSize: '9px', color: '#F2A83B', background: '#F2A83B18', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '10px', color: '#B45309', background: '#FEF3C7', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
                       Evaluasi
                     </span>
                   </div>
-                  <p style={{ margin: 0, fontSize: '11.5px', color: '#DCE3EC', lineHeight: 1.45 }}>
-                    <strong style={{ color: '#F5F7FA' }}>{cognitive.caraMembaca}:</strong> {cognitive.mengapaPenting}
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#334155', lineHeight: 1.45 }}>
+                    <strong style={{ color: '#0F172A' }}>{cognitive.caraMembaca}:</strong> {cognitive.mengapaPenting}
                   </p>
                 </div>
               </div>

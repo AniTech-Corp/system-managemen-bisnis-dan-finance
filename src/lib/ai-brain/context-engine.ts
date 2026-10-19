@@ -37,6 +37,8 @@ async function buildContextCompanyKnowledge(workspaceId: string): Promise<string
 
 // In-Memory Cache Store for Business Context Snapshots
 const contextSnapshotCache = new Map<string, { snapshot: BusinessContextSnapshot; expiresAt: number }>();
+// In-Flight Promise Deduplication Map (Prevents Cache Stampede / Thundering Herd)
+const inFlightContextPromises = new Map<string, Promise<BusinessContextSnapshot>>();
 const CACHE_TTL_MS = 60 * 1000; // 60 Seconds
 
 /**
@@ -74,16 +76,44 @@ export async function getOrBuildBusinessContext(
   const now = Date.now();
   const includeCompanyKnowledge = options?.includeCompanyKnowledge === true;
   const includeMarketingMetrics = options?.includeMarketingMetrics === true;
-  // Varian "dengan company knowledge" dikasih namespace cache TERPISAH (suffix "_ck") dari
-  // varian biasa -- TTL_MS dan mekanisme expiresAt-nya TIDAK diubah sama sekali, cuma
-  // dicegah supaya snapshot tanpa companyKnowledgeSummary (di-cache pemanggil lama) tidak
-  // pernah salah kepakai balik oleh pemanggil baru yang minta field itu, atau sebaliknya.
   const cacheKey = `${targetMonth ? `${workspaceId}_${targetMonth}` : workspaceId}${includeCompanyKnowledge ? '_ck' : ''}${includeMarketingMetrics ? '_mkt' : ''}`;
   const cached = contextSnapshotCache.get(cacheKey);
 
   if (!forceFresh && cached && cached.expiresAt > now) {
     return cached.snapshot;
   }
+
+  if (!forceFresh) {
+    const existingPromise = inFlightContextPromises.get(cacheKey);
+    if (existingPromise) {
+      return existingPromise;
+    }
+  }
+
+  const buildPromise = executeBuildBusinessContext(workspaceId, targetMonth, options);
+  if (!forceFresh) {
+    inFlightContextPromises.set(cacheKey, buildPromise);
+  }
+
+  try {
+    const snapshot = await buildPromise;
+    contextSnapshotCache.set(cacheKey, {
+      snapshot,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    });
+    return snapshot;
+  } finally {
+    inFlightContextPromises.delete(cacheKey);
+  }
+}
+
+async function executeBuildBusinessContext(
+  workspaceId: string,
+  targetMonth?: string | null,
+  options?: BusinessContextOptions
+): Promise<BusinessContextSnapshot> {
+  const includeCompanyKnowledge = options?.includeCompanyKnowledge === true;
+  const includeMarketingMetrics = options?.includeMarketingMetrics === true;
 
   // 1. Fetch Workspace & Basic Data + Dynamic Profile Memory
   // TAMBAHAN (KELOMPOK 3): companyKnowledgeSummary HANYA di-query kalau diminta eksplisit
@@ -411,12 +441,6 @@ export async function getOrBuildBusinessContext(
     companyKnowledgeSummary: companyKnowledgeSummary || undefined,
   };
 
-  // Save to Cache
-  contextSnapshotCache.set(cacheKey, {
-    snapshot,
-    expiresAt: now + CACHE_TTL_MS,
-  });
-
   return snapshot;
 }
 
@@ -548,8 +572,14 @@ export function invalidateContextCache(workspaceId?: string) {
         contextSnapshotCache.delete(key);
       }
     }
+    for (const key of Array.from(inFlightContextPromises.keys())) {
+      if (key === workspaceId || key.startsWith(`${workspaceId}_`)) {
+        inFlightContextPromises.delete(key);
+      }
+    }
   } else {
     contextSnapshotCache.clear();
+    inFlightContextPromises.clear();
   }
 }
 

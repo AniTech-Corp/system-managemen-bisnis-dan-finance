@@ -191,6 +191,154 @@ const ACCENT_TOKENS: Record<RichMessageAccent, AccentTokens> = {
   },
 };
 
+// 🌞 Light Enterprise SaaS Accent Tokens for Pristine Readability
+const LIGHT_ACCENT_TOKENS: Record<RichMessageAccent, AccentTokens> = {
+  marketing: {
+    bold: '#0F172A',
+    italic: '#1E40AF',
+    codeBg: '#EFF6FF',
+    codeFg: '#2563EB',
+    codeRadius: '5px',
+    bulletColor: '#2563EB',
+    bulletGap: '8px',
+    bulletDotMarginTop: '7px',
+    numberedGap: '8px',
+    numberedColor: '#2563EB',
+    blockquoteBg: '#EFF6FF',
+    blockquoteBorder: '#3B82F6',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 8px 8px 0',
+    blockquotePadding: '8px 12px',
+    headingSize: '14px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '10px',
+    tableCellPadding: '8px 10px',
+    tableLineHeight: 1.5,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.55,
+  },
+  finance: {
+    bold: '#0F172A',
+    italic: '#065F46',
+    codeBg: '#F0FDF4',
+    codeFg: '#059669',
+    codeRadius: '5px',
+    bulletColor: '#059669',
+    bulletGap: '8px',
+    bulletDotMarginTop: '7px',
+    numberedGap: '8px',
+    numberedColor: '#059669',
+    blockquoteBg: '#F0FDF4',
+    blockquoteBorder: '#10B981',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 8px 8px 0',
+    blockquotePadding: '9px 13px',
+    headingSize: '14px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '10px',
+    tableCellPadding: '8px 11px',
+    tableLineHeight: 1.5,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.55,
+  },
+  executive: {
+    bold: '#0F172A',
+    italic: '#1E3A8A',
+    codeBg: '#F1F5F9',
+    codeFg: '#1D4ED8',
+    codeRadius: '5px',
+    bulletColor: '#2563EB',
+    bulletGap: '9px',
+    bulletDotMarginTop: '8px',
+    numberedGap: '9px',
+    numberedColor: '#2563EB',
+    blockquoteBg: '#EFF6FF',
+    blockquoteBorder: '#2563EB',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 10px 10px 0',
+    blockquotePadding: '9px 12px',
+    headingSize: '13.5px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '12px',
+    tableCellPadding: '9px 11px',
+    tableLineHeight: 1.55,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.65,
+  },
+  sekretaris: {
+    bold: '#0F172A',
+    italic: '#1E40AF',
+    codeBg: '#EFF6FF',
+    codeFg: '#2563EB',
+    codeRadius: '4px',
+    bulletColor: '#2563EB',
+    bulletGap: '8px',
+    bulletDotMarginTop: '7px',
+    numberedGap: '8px',
+    numberedColor: '#2563EB',
+    blockquoteBg: '#EFF6FF',
+    blockquoteBorder: '#3B82F6',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 8px 8px 0',
+    blockquotePadding: '8px 12px',
+    headingSize: '14px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '10px',
+    tableCellPadding: '8px 10px',
+    tableLineHeight: 1.5,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.55,
+  },
+  manager: {
+    bold: '#0F172A',
+    italic: '#854D0E',
+    codeBg: '#FEFCE8',
+    codeFg: '#CA8A04',
+    codeRadius: '4px',
+    bulletColor: '#CA8A04',
+    bulletGap: '8px',
+    bulletDotMarginTop: '7px',
+    numberedGap: '8px',
+    numberedColor: '#CA8A04',
+    blockquoteBg: '#FEFCE8',
+    blockquoteBorder: '#EAB308',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 8px 8px 0',
+    blockquotePadding: '8px 12px',
+    headingSize: '14px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '10px',
+    tableCellPadding: '8px 10px',
+    tableLineHeight: 1.5,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.55,
+  },
+  'manager-ops': {
+    bold: '#0F172A',
+    italic: '#065F46',
+    codeBg: '#F0FDF4',
+    codeFg: '#059669',
+    codeRadius: '4px',
+    bulletColor: '#059669',
+    bulletGap: '8px',
+    bulletDotMarginTop: '7px',
+    numberedGap: '8px',
+    numberedColor: '#059669',
+    blockquoteBg: '#F0FDF4',
+    blockquoteBorder: '#10B981',
+    blockquoteBorderWidth: '3px',
+    blockquoteRadius: '0 8px 8px 0',
+    blockquotePadding: '8px 12px',
+    headingSize: '14px',
+    tableBorder: '#E2E8F0',
+    tableRadius: '10px',
+    tableCellPadding: '8px 10px',
+    tableLineHeight: 1.5,
+    hrStyle: { height: '8px', margin: '4px 0', borderTop: '1px solid #E2E8F0' },
+    paragraphLineHeight: 1.55,
+  },
+};
+
 // Dipakai HANYA untuk badge [[src:xxx]] -- fitur khusus Executive (SOURCE_REGISTRY asli
 // di ExecutiveAIAssistantView.tsx, disalin verbatim di sini murni untuk kebutuhan render;
 // tidak diekspor/dipakai balik oleh view manapun supaya tidak menambah coupling baru).
@@ -199,12 +347,6 @@ const EXEC_SOURCE_REGISTRY: Record<string, { label: string; tone: string }> = {
   marketing: { label: 'Metrik Pemasaran', tone: '#4E9BFF' },
   team: { label: 'Beban Tim & SDM', tone: '#C9A66B' },
   ar: { label: 'Piutang Klien', tone: '#C9A66B' },
-  // FIX (audit workflow, sesi ini): LLM ternyata menulis kategori lebih luas dari 4 di
-  // atas (dicek live: 'operasional'/'strategi'/'identitas' muncul di respons SWOT) --
-  // tidak ada system-prompt yang membatasi vocabulary LLM ke 4 key lama, jadi kategori
-  // di luar itu jatuh ke fallback teks mentah "[[src:xxx]]" yang kelihatan seperti bug
-  // programmer. Ditambah 3 kategori yang sudah kebukti kepakai; fallback generik di
-  // bawah (bukan cuma daftar ini) tetap dipertahankan untuk kategori baru yang muncul.
   operasional: { label: 'Operasional', tone: '#8CBEFF' },
   strategi: { label: 'Strategi Bisnis', tone: '#C7D0FF' },
   identitas: { label: 'Profil Perusahaan', tone: '#8A93A3' },
@@ -298,16 +440,17 @@ function Inline({ text, tokens, accent, keyPrefix }: { text: string; tokens: Acc
 export interface RichMessageProps {
   content: string;
   accent: RichMessageAccent;
+  isLight?: boolean;
 }
 
 /** Render kaya untuk gelembung chat AI: markdown subset + tabel + blok kode ASCII/mind-map. */
-export default function RichMessage({ content, accent }: RichMessageProps) {
+export default function RichMessage({ content, accent, isLight = false }: RichMessageProps) {
   if (!content) return null;
-  const tokens = ACCENT_TOKENS[accent];
+  const tokens = isLight ? (LIGHT_ACCENT_TOKENS[accent] || ACCENT_TOKENS[accent]) : ACCENT_TOKENS[accent];
   const blocks = parseMarkdownBlocks(content);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
       {blocks.map((block, bi) => {
         const key = `b-${bi}`;
         switch (block.type) {
@@ -326,8 +469,8 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
                   whiteSpace: 'pre',
                   border: `1px solid ${tokens.tableBorder}`,
                   borderRadius: tokens.tableRadius,
-                  background: 'rgba(255,255,255,0.03)',
-                  color: '#C6CEDA',
+                  background: isLight ? '#F8FAFC' : 'rgba(255,255,255,0.03)',
+                  color: isLight ? '#0F172A' : '#C6CEDA',
                   fontFamily: "'JetBrains Mono', monospace",
                   fontSize: '11px',
                   lineHeight: 1.5,
@@ -341,14 +484,14 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
               <div key={key} style={{ margin: '10px 0', overflowX: 'auto', border: `1px solid ${tokens.tableBorder}`, borderRadius: tokens.tableRadius }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
+                    <tr style={{ background: isLight ? '#F8FAFC' : 'rgba(255,255,255,0.04)' }}>
                       {block.headers.map((c, ci) => (
                         <th
                           key={ci}
                           style={{
                             padding: tokens.tableCellPadding,
-                            color: '#F5F7FA',
-                            fontWeight: 600,
+                            color: isLight ? '#0F172A' : '#F5F7FA',
+                            fontWeight: 700,
                             borderBottom: `1px solid ${tokens.tableBorder}`,
                             textAlign: block.numericCols[ci] ? 'right' : 'left',
                             fontFamily: block.numericCols[ci] ? "'JetBrains Mono', monospace" : 'inherit',
@@ -361,13 +504,13 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
                   </thead>
                   <tbody>
                     {block.rows.map((row, ri) => (
-                      <tr key={ri} style={{ borderTop: ri ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                      <tr key={ri} style={{ borderTop: ri ? (isLight ? '1px solid #E2E8F0' : '1px solid rgba(255,255,255,0.06)') : 'none', background: isLight && ri % 2 === 1 ? '#FAFAFA' : 'transparent' }}>
                         {row.map((c, ci) => (
                           <td
                             key={ci}
                             style={{
                               padding: tokens.tableCellPadding,
-                              color: '#C6CEDA',
+                              color: isLight ? '#334155' : '#C6CEDA',
                               verticalAlign: 'top',
                               lineHeight: tokens.tableLineHeight,
                               textAlign: block.numericCols[ci] ? 'right' : 'left',
@@ -385,7 +528,7 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
             );
           case 'heading':
             return (
-              <div key={key} style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: '#F5F7FA', fontSize: tokens.headingSize, paddingTop: '6px', paddingBottom: '2px' }}>
+              <div key={key} style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: isLight ? '#0F172A' : '#F5F7FA', fontSize: tokens.headingSize, paddingTop: '8px', paddingBottom: '3px' }}>
                 <Inline text={block.text} tokens={tokens} accent={accent} keyPrefix={key} />
               </div>
             );
@@ -395,11 +538,11 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
                 key={key}
                 style={{
                   padding: tokens.blockquotePadding,
-                  margin: '6px 0',
+                  margin: '8px 0',
                   background: tokens.blockquoteBg,
                   borderLeft: `${tokens.blockquoteBorderWidth} solid ${tokens.blockquoteBorder}`,
                   borderRadius: tokens.blockquoteRadius,
-                  color: '#C6CEDA',
+                  color: isLight ? '#334155' : '#C6CEDA',
                   fontSize: '12.5px',
                   fontStyle: 'italic',
                 }}
@@ -411,7 +554,7 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
             return (
               <div key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: tokens.bulletGap, padding: '2px 0' }}>
                 <span style={{ width: '5px', height: '5px', borderRadius: '99px', background: tokens.bulletColor, marginTop: tokens.bulletDotMarginTop, flexShrink: 0 }} />
-                <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ flex: 1, textAlign: 'left', color: isLight ? '#334155' : 'inherit' }}>
                   <Inline text={block.text} tokens={tokens} accent={accent} keyPrefix={key} />
                 </div>
               </div>
@@ -422,7 +565,7 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 700, color: tokens.numberedColor, minWidth: '15px', marginTop: '2px' }}>
                   {block.num}.
                 </span>
-                <div style={{ flex: 1, textAlign: 'left' }}>
+                <div style={{ flex: 1, textAlign: 'left', color: isLight ? '#334155' : 'inherit' }}>
                   <Inline text={block.text} tokens={tokens} accent={accent} keyPrefix={key} />
                 </div>
               </div>
@@ -430,7 +573,7 @@ export default function RichMessage({ content, accent }: RichMessageProps) {
           case 'paragraph':
           default:
             return (
-              <div key={key} style={{ lineHeight: tokens.paragraphLineHeight, textAlign: 'left' }}>
+              <div key={key} style={{ lineHeight: tokens.paragraphLineHeight, textAlign: 'left', color: isLight ? '#334155' : 'inherit' }}>
                 <Inline text={block.text} tokens={tokens} accent={accent} keyPrefix={key} />
               </div>
             );

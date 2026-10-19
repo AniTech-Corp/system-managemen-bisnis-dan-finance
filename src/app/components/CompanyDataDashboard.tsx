@@ -11,7 +11,25 @@ import { extractDqBlockText, worstSeverity } from '@/lib/workspace-file-dataqual
 import { isModuleEnabled } from '@/lib/module-guard';
 import { SpotlightCard } from '@/components/ui/react-bits/SpotlightCard';
 import { CountUp } from '@/components/ui/react-bits/CountUp';
-import { Wallet, Megaphone, Bot, ArrowRight, CheckCircle2, Package, RefreshCw, AlertTriangle, Upload, Users, FileText, Calendar, Printer, X, ShieldCheck, ChevronDown } from 'lucide-react';
+import {
+  TbWallet as Wallet,
+  TbSpeakerphone as Megaphone,
+  TbRobot as Bot,
+  TbArrowRight as ArrowRight,
+  TbCircleCheck as CheckCircle2,
+  TbPackage as Package,
+  TbRefresh as RefreshCw,
+  TbAlertTriangle as AlertTriangle,
+  TbCloudUpload as Upload,
+  TbUsers as Users,
+  TbFileText as FileText,
+  TbCalendar as Calendar,
+  TbPrinter as Printer,
+  TbX as X,
+  TbShieldCheck as ShieldCheck,
+  TbChevronDown as ChevronDown,
+  TbTrendingUp as TrendingUp,
+} from 'react-icons/tb';
 import InCardVisualDrilldown from './shared/InCardVisualDrilldown';
 import SnapshotKpiCard from './shared/SnapshotKpiCard';
 import SnapshotFullDrilldown from './shared/SnapshotFullDrilldown';
@@ -202,7 +220,7 @@ function loadWord(v: number): string {
 }
 
 function roasTone(v: number): string {
-  return v === 0 ? '#8A93A3' : v >= 3 ? '#3FBF8F' : '#EF4444';
+  return v === 0 ? '#64748B' : v >= 3 ? '#3FBF8F' : '#EF4444';
 }
 
 function roasWord(v: number): string {
@@ -227,7 +245,7 @@ function pillBtn(active: boolean): React.CSSProperties {
     boxSizing: 'border-box',
     border: 'none',
     background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-    color: active ? '#F5F7FA' : '#8A93A3',
+    color: active ? '#0F172A' : '#64748B',
     transition: 'all 120ms ease',
   };
 }
@@ -243,16 +261,16 @@ type PiutangReminderPayload = {
 function aiRecCardStyle(state: AiRecState, tone: 'red' | 'blue'): React.CSSProperties {
   const line =
     state === 'ok'
-      ? 'rgba(63,191,143,0.3)'
+      ? '#BBF7D0'
       : state === 'skip'
-      ? 'rgba(239,68,68,0.25)'
+      ? '#FECACA'
       : state === 'review'
-      ? 'rgba(242,168,59,0.3)'
+      ? '#FED7AA'
       : tone === 'red'
-      ? 'rgba(239,68,68,0.4)'
-      : 'rgba(255,255,255,0.14)';
-  const bg = state === 'skip' ? '#090C12' : '#0D1117';
-  return { padding: '17px 18px', borderRadius: '5px', background: bg, border: `1px solid ${line}`, display: 'flex', flexDirection: 'column', gap: '12px', opacity: state === 'skip' ? 0.7 : 1 };
+      ? '#FECACA'
+      : '#E2E8F0';
+  const bg = state === 'skip' ? '#F8FAFC' : '#FFFFFF';
+  return { padding: '17px 18px', borderRadius: '8px', background: bg, border: `1px solid ${line}`, display: 'flex', flexDirection: 'column', gap: '12px', opacity: state === 'skip' ? 0.7 : 1, boxShadow: '0 1px 2px rgba(0,0,0,0.05)' };
 }
 
 function aiRecTagStyle(tone: 'red' | 'blue'): React.CSSProperties {
@@ -281,7 +299,7 @@ function aiRecOkBtnStyle(done: boolean, tone: 'red' | 'blue'): React.CSSProperti
 function pointDelta(curr: number, prev: number): { text: string; color: string; bg: string } {
   const diff = curr - prev;
   if (diff === 0) {
-    return { text: 'stabil', color: '#98A2B3', bg: 'rgba(255,255,255,0.05)' };
+    return { text: 'stabil', color: '#64748B', bg: 'rgba(255,255,255,0.05)' };
   }
   const up = diff > 0;
   return {
@@ -297,7 +315,7 @@ function statToneColor(t: 'good' | 'bad' | 'warn'): string {
 
 function deltaChip(curr: number, prev: number): { text: string; color: string; bg: string } {
   if (!prev) {
-    return { text: '—', color: '#98A2B3', bg: 'rgba(255,255,255,0.05)' };
+    return { text: '—', color: '#64748B', bg: 'rgba(255,255,255,0.05)' };
   }
   const pct = ((curr - prev) / prev) * 100;
   const up = pct >= 0;
@@ -1374,14 +1392,14 @@ export default function CompanyDataDashboard({
     : 'Perlu perhatian';
 
   const cashBadgeColor = !hasAnyTransactions && cashNow === 0
-    ? '#8A93A3'
+    ? '#64748B'
     : cashNow < 0 || cashBadgeWord === 'Defisit'
     ? '#EF4444'
     : cashBadgeWord === 'Perlu perhatian'
     ? '#F2A83B'
     : cashBadgeWord === 'Sehat'
     ? '#3FBF8F'
-    : '#8A93A3';
+    : '#64748B';
 
   const hs = liveState?.healthScore || (useDemoData ? {
     totalScore: 88,
@@ -2494,7 +2512,7 @@ export default function CompanyDataDashboard({
   ];
 
   return (
-    <div style={{ minHeight: '100%', background: '#06080C', color: '#F5F7FA', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+    <div className="min-h-full bg-slate-50 text-slate-900 font-sans">
       {/* SVG Defs for Gradients */}
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
         <defs>
@@ -2525,14 +2543,14 @@ export default function CompanyDataDashboard({
         </defs>
       </svg>
 
-      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '34px 40px 80px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="max-w-[1440px] mx-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 flex flex-col gap-6">
         {/* ========================================================================= */}
         {/* 1. TOP HEADER & FILTER (EXECUTIVE CONTROL BAR) */}
         {/* ========================================================================= */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', position: 'relative', zIndex: 60 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', color: '#F8FAFC' }}>
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A' }}>
                 Dashboard Perusahaan
               </h1>
               <span className="sap-status-pill sap-status-pill-purple" style={{ fontSize: '10px' }}>
@@ -2540,7 +2558,7 @@ export default function CompanyDataDashboard({
                 <span>Executive Scope</span>
               </span>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94A3B8' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748B' }}>
               Ringkasan Kinerja Eksekutif • {profileData.name || workspaceName || 'PT Makan Mania Mantap'}
             </p>
           </div>
@@ -2559,7 +2577,7 @@ export default function CompanyDataDashboard({
                   gap: '7px',
                   background: calendarPickerOpen ? 'rgba(56,189,248,0.14)' : 'rgba(255,255,255,0.03)',
                   borderColor: calendarPickerOpen ? '#38BDF8' : 'rgba(255,255,255,0.08)',
-                  color: '#F5F7FA',
+                  color: '#0F172A',
                   borderRadius: '4px',
                 }}
                 title="Pilih Periode & Cakupan Waktu"
@@ -2583,7 +2601,7 @@ export default function CompanyDataDashboard({
                   style={{
                     transform: calendarPickerOpen ? 'rotate(180deg)' : 'none',
                     transition: 'transform 180ms ease',
-                    color: calendarPickerOpen ? '#38BDF8' : '#8A93A3',
+                    color: calendarPickerOpen ? '#38BDF8' : '#64748B',
                   }}
                 />
               </button>
@@ -2608,10 +2626,10 @@ export default function CompanyDataDashboard({
                   }}
                 >
                   {/* Header */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid #E2E8F0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                       <Calendar className="w-3.5 h-3.5 text-[#38BDF8]" />
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', letterSpacing: '-0.01em' }}>
                         Pilih Periode & Horizon
                       </span>
                     </div>
@@ -2704,9 +2722,7 @@ export default function CompanyDataDashboard({
                                 width: '24px',
                                 height: '24px',
                                 borderRadius: '4px',
-                                background: '#1A2232',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: '#CBD5E1',
+                                background: '#F1F5F9', border: '1px solid #E2E8F0', color: '#0F172A',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -2718,7 +2734,7 @@ export default function CompanyDataDashboard({
                             >
                               ‹
                             </button>
-                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#F8FAFC', minWidth: '42px', textAlign: 'center' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', minWidth: '42px', textAlign: 'center' }}>
                               {selectedYear}
                             </span>
                             <button
@@ -2728,9 +2744,7 @@ export default function CompanyDataDashboard({
                                 width: '24px',
                                 height: '24px',
                                 borderRadius: '4px',
-                                background: '#1A2232',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: '#CBD5E1',
+                                background: '#F1F5F9', border: '1px solid #E2E8F0', color: '#0F172A',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -2798,7 +2812,7 @@ export default function CompanyDataDashboard({
                       <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38BDF8' }} />
                       <span style={{ fontSize: '11px', color: '#94A3B8' }}>
                         Aktif:{' '}
-                        <strong style={{ color: '#F8FAFC' }}>
+                        <strong style={{ color: '#0F172A' }}>
                           {timeHorizon === 'monthly'
                             ? `${monthFullName[month] || month} ${selectedYear}`
                             : timeHorizon === 'ytd'
@@ -2863,7 +2877,7 @@ export default function CompanyDataDashboard({
           {/* Header Snapshot Perusahaan & Mode Switcher */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 px-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-[#F8FAFC] tracking-tight">Snapshot Perusahaan</h2>
+              <h2 className="text-sm font-semibold text-slate-900 tracking-tight">Snapshot Perusahaan</h2>
               <span className="text-[10px] font-semibold text-[#38BDF8] bg-[#38BDF8]/10 px-2 py-0.5 rounded-[4px] border border-[#38BDF8]/20">
                 Lintas Divisi
               </span>
@@ -2877,7 +2891,7 @@ export default function CompanyDataDashboard({
 
             <div className="flex items-center gap-2">
               {/* Category Pills Switcher */}
-              <div className="flex items-center p-0.5 rounded-[5px] bg-white/[0.04] border border-white/[0.08] text-[11px]">
+              <div className="flex items-center p-0.5 rounded-[5px] bg-slate-100 border border-slate-200 text-[11px]">
                 <button
                   type="button"
                   onClick={() => setSnapshotViewMode('overview')}
@@ -3127,21 +3141,22 @@ export default function CompanyDataDashboard({
         </div>
 
         {/* ========================================================================= */}
-        {/* 1B. RINGKASAN AI BULAN INI (UNIFIED COHESIVE CARD) */}
+        {/* ========================================================================= */}
+        {/* 1B. RINGKASAN AI BULAN INI (Obsidian Glass Aesthetic) */}
         {/* ========================================================================= */}
         <div
           id="klir-ai-summary-card"
-          className="relative overflow-hidden"
+          className="relative overflow-hidden bg-white"
           style={{
-            background: '#0D1117',
-            border: 'none',
-            borderRadius: '4px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+            background: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '16px',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02)',
           }}
         >
           {/* Ambient subtle glow on top */}
           <div
-            className="pointer-events-none absolute -top-24 left-1/4 w-96 h-48 rounded-full blur-3xl opacity-20"
+            className="pointer-events-none absolute -top-24 left-1/4 w-96 h-48 rounded-full blur-3xl opacity-10"
             style={{ background: 'radial-gradient(circle, #6366F1, transparent 70%)' }}
           />
 
@@ -3149,26 +3164,22 @@ export default function CompanyDataDashboard({
             {/* 1. UNIFIED HEADER: Title + AI Pill + Mode Switcher + Action CTA */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[5px] bg-indigo-500/15 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(99,102,241,0.25)]">
-                  <Bot className="w-5 h-5 text-indigo-400" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0 shadow-xs text-indigo-600">
+                  <Bot className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="font-semibold text-base text-[#F5F7FA] tracking-tight">
+                    <h2 className="font-heading font-bold text-base text-slate-900 tracking-tight m-0">
                       Ringkasan AI {f.n}
                     </h2>
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-[11px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse" />
                       AI Brain Aktif
                     </span>
                   </div>
-                  {/* KONTRAK MODUL 6 (11 Sep 2026) -- waktu generate + tombol "Perbarui"
-                      (refresh=1, lewat TTL cache 30 menit) HANYA tampil kalau insight
-                      genuinely termuat -- tidak ada saat fallback deterministik aktif,
-                      supaya tidak menjanjikan "refresh AI" untuk teks yang bukan AI. */}
                   {dashboardInsight && !dashboardInsightError && (
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-[#5C6474]">
+                      <span className="text-[10px] text-slate-500">
                         Diperbarui{' '}
                         {new Date(dashboardInsight.generatedAt).toLocaleTimeString('id-ID', {
                           hour: '2-digit',
@@ -3180,7 +3191,7 @@ export default function CompanyDataDashboard({
                         type="button"
                         onClick={() => dashboardInsightLoaderRef.current(true)}
                         disabled={dashboardInsightLoading}
-                        className="inline-flex items-center gap-1 text-[10px] text-[#8CC0FF] hover:underline disabled:opacity-50 border-0 bg-transparent cursor-pointer p-0"
+                        className="inline-flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-900 disabled:opacity-50 border-0 bg-transparent cursor-pointer p-0 font-medium"
                       >
                         <RefreshCw className={`w-2.5 h-2.5 ${dashboardInsightLoading ? 'animate-spin' : ''}`} />
                         Perbarui
@@ -3192,12 +3203,12 @@ export default function CompanyDataDashboard({
 
               <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
                 {/* View Switcher: Ringkas | Rinci */}
-                <div className="flex items-center gap-0.5 p-1 bg-white/[0.035] rounded-[5px] border-0">
+                <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setAiMode('short')}
-                    className={`h-7 px-3 rounded-[4px] text-xs font-semibold transition-all cursor-pointer border-0 ${
-                      aiMode === 'short' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-[#C3CBD8]'
+                    className={`h-7 px-3.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
+                      aiMode === 'short' ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Ringkas
@@ -3205,8 +3216,8 @@ export default function CompanyDataDashboard({
                   <button
                     type="button"
                     onClick={() => setAiMode('full')}
-                    className={`h-7 px-3 rounded-[4px] text-xs font-semibold transition-all cursor-pointer border-0 ${
-                      aiMode === 'full' ? 'bg-white/10 text-[#F5F7FA]' : 'text-[#8A93A3] hover:text-[#C3CBD8]'
+                    className={`h-7 px-3.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border-0 ${
+                      aiMode === 'full' ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60' : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     Rinci
@@ -3218,7 +3229,7 @@ export default function CompanyDataDashboard({
                   <button
                     type="button"
                     onClick={() => onNavChange('ai-assistant')}
-                    className="inline-flex items-center gap-2 h-9 px-4 rounded-[5px] bg-gradient-to-r from-[#6366F1] to-[#4E9BFF] hover:opacity-90 text-white text-xs font-semibold transition-all cursor-pointer shadow-[0_4px_16px_rgba(99,102,241,0.25)] border-0 shrink-0"
+                    className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-sky-600 hover:opacity-95 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs border-0 shrink-0"
                   >
                     <span>Buka AI Assistant</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -3227,11 +3238,9 @@ export default function CompanyDataDashboard({
               </div>
             </div>
 
-            {/* 2. UNIFIED AI NARRATIVE LEAD -- ringkasan multiYearSummary jika rentang multi-tahun aktif,
-                atau dari dashboard-insight (LLM membaca transaksi+dokumen+kampanye+tugas) kalau termuat,
-                FALLBACK ke aiNarr deterministik (murni f.rev) kalau fetch gagal/belum selesai. */}
-            <div className="p-4 sm:p-4.5 rounded-[5px] bg-white/[0.025] border border-white/[0.05]">
-              <p className="text-[13px] leading-relaxed text-[#CBD5E1] m-0">
+            {/* 2. UNIFIED AI NARRATIVE LEAD */}
+            <div className="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200/80">
+              <p className="text-[13px] leading-relaxed text-slate-700 m-0 font-medium">
                 {multiYearSummary
                   ? multiYearSummary.phaseSummary
                   : dashboardInsight && !dashboardInsightError
@@ -3240,11 +3249,11 @@ export default function CompanyDataDashboard({
               </p>
             </div>
 
-            {/* Sorotan AI (dashboard-insight.sorotan, <=4) atau multiYearSummary.keyHighlights */}
+            {/* Sorotan AI */}
             {multiYearSummary ? (
               <div className="flex flex-wrap gap-2 -mt-1.5">
                 {multiYearSummary.keyHighlights.map((s, i) => (
-                  <span key={i} className="text-[11px] px-2.5 py-1 rounded-[4px] bg-indigo-500/10 text-indigo-200 border border-indigo-500/20">
+                  <span key={i} className="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">
                     {s}
                   </span>
                 ))}
@@ -3253,7 +3262,7 @@ export default function CompanyDataDashboard({
               dashboardInsight && !dashboardInsightError && (dashboardInsight.sorotan ?? []).length > 0 && (
                 <div className="flex flex-wrap gap-2 -mt-1.5">
                   {(dashboardInsight.sorotan ?? []).map((s, i) => (
-                    <span key={i} className="text-[11px] px-2.5 py-1 rounded-[4px] bg-white/[0.04] text-[#CBD3DF]">
+                    <span key={i} className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-medium">
                       {s}
                     </span>
                   ))}
@@ -3268,27 +3277,32 @@ export default function CompanyDataDashboard({
                 return (
                   <SpotlightCard
                     key={idx}
-                    spotlightColor={`${c}18`}
-                    className="p-4 flex flex-col justify-between border-0 shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
-                    style={{ border: 'none', background: 'rgba(255,255,255,0.02)', borderRadius: '4px' }}
+                    spotlightColor={`${c}15`}
+                    className="p-4 flex flex-col justify-between hover:border-slate-300 transition-all duration-300 bg-white"
+                    style={{
+                      border: '1px solid #E2E8F0',
+                      background: '#FFFFFF',
+                      borderRadius: '14px',
+                      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.04)',
+                    }}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#8A93A3]">
+                      <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500">
                         {s.label}
                       </span>
                       <span
-                        className="inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10.5px] font-semibold"
-                        style={{ color: c, background: `${c}15`, border: `1px solid ${c}30` }}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                        style={{ color: c, background: `${c}12`, border: `1px solid ${c}30` }}
                       >
                         {s.verdict}
                       </span>
                     </div>
                     <div className="my-2">
-                      <span className="font-mono font-bold text-2xl tracking-tight text-[#F8FAFC] tabular-nums">
+                      <span className="font-heading font-extrabold text-2xl tracking-tight text-slate-900 tabular-nums">
                         {s.value}
                       </span>
                     </div>
-                    <span className="text-xs text-[#8A93A3] leading-normal">
+                    <span className="text-xs text-slate-500 leading-normal">
                       {s.note}
                     </span>
                   </SpotlightCard>
@@ -3631,72 +3645,76 @@ export default function CompanyDataDashboard({
           </div>
          </div>
 
-        {/* Target & prediksi AI: dashboard memberi konteks dan status data;
-            perhitungan target/realisasi kuartal dikerjakan di AI Assistant setelah
-            pengguna memberi target yang benar-benar berlaku untuk bisnisnya. */}
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '18px 22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '18px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '11px', minWidth: 0, flex: '1 1 360px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', flex: '0 0 32px', borderRadius: '4px', background: 'rgba(78,155,255,0.14)', color: '#8CC0FF' }}>
+        {/* ========================================================================= */}
+        {/* 2A. EXECUTIVE KPI & PREDICTION GRIDS (v0 Next.js Charts 2-Column Pattern) */}
+        {/* ========================================================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full items-start">
+        {/* Target & prediksi AI: dashboard memberi konteks dan status data */}
+        <div className="linear-card" style={{ padding: '20px 24px', overflow: 'hidden' }}>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/25 text-sky-400 flex items-center justify-center shrink-0">
                 <Bot size={16} strokeWidth={1.8} />
               </span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#F8FAFC' }}>Target &amp; Realisasi Omset</h2>
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: '#38BDF8', background: 'rgba(56,189,248,0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(56,189,248,0.2)' }}>
-                    {hasSalesTarget ? 'Target Bisnis Aktif' : 'Estimasi Referensi'}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="m-0 text-sm font-semibold text-slate-900 tracking-tight">Target &amp; Realisasi Omset</h2>
+                <span className="text-[10px] font-semibold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full border border-sky-500/20">
+                  {hasSalesTarget ? 'Target Bisnis Aktif' : 'Estimasi Referensi'}
+                </span>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Realisasi tercatat</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: hasSalesTarget ? '#F5F7FA' : '#8A93A3' }}>{hasSalesTarget ? short(Number(salesTarget.realizedToDate)) : 'Belum ada data'}</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Target tahunan</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: hasSalesTarget ? '#F5F7FA' : '#8A93A3' }}>{hasSalesTarget ? short(Number(salesTarget.annualTarget)) : 'Belum diatur'}</span>
-              </div>
-              {hasSalesTarget && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '184px' }}>
-                  <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Sisa &amp; prediksi AI</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 700, color: Number(salesTarget.projectedGap) > 0 ? '#F2A83B' : '#3FBF8F' }}>
-                    Sisa {short(Number(salesTarget.remainingTarget))} · Proyeksi {short(Number(salesTarget.projectedAnnualRevenue))}
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Metric Chips */}
+              <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Realisasi tercatat</span>
+                  <span className="font-mono text-xs font-bold text-slate-900">
+                    {hasSalesTarget ? short(Number(salesTarget.realizedToDate)) : 'Belum ada data'}
                   </span>
                 </div>
-              )}
+                <div className="h-6 w-px bg-slate-200" />
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Target tahunan</span>
+                  <span className="font-mono text-xs font-bold text-slate-900">
+                    {hasSalesTarget ? short(Number(salesTarget.annualTarget)) : 'Belum diatur'}
+                  </span>
+                </div>
+                {hasSalesTarget && (
+                  <>
+                    <div className="h-6 w-px bg-slate-200" />
+                    <div className="px-3 py-1 flex flex-col">
+                      <span className="text-[10px] font-medium text-slate-500">Sisa &amp; Prediksi AI</span>
+                      <span className={`font-mono text-xs font-bold ${Number(salesTarget.projectedGap) > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                        Sisa {short(Number(salesTarget.remainingTarget))} · Proyeksi {short(Number(salesTarget.projectedAnnualRevenue))}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Action Buttons */}
               <button
                 type="button"
                 onClick={() => setTargetDetailOpen(!targetDetailOpen)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '34px',
-                  padding: '0 12px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(78,155,255,0.3)',
-                  background: targetDetailOpen ? 'rgba(78,155,255,0.2)' : 'rgba(78,155,255,0.08)',
-                  color: '#8CC0FF',
-                  fontFamily: 'inherit',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
+                  targetDetailOpen
+                    ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                }`}
               >
-                <span>{targetDetailOpen ? 'Tutup Analisis' : 'Lihat Detail & Analisis Visual'}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ transform: targetDetailOpen ? 'rotate(180deg)' : 'none', transition: 'transform 180ms ease' }}><path d="M6 9.5l6 5.5 6-5.5" /></svg>
+                <span>{targetDetailOpen ? 'Tutup Analisis' : 'Detail Analisis'}</span>
+                <ChevronDown size={12} className={`transition-transform duration-200 ${targetDetailOpen ? 'rotate-180' : ''}`} />
               </button>
+
               {onNavChange && (
                 <button
                   type="button"
                   onClick={() => onNavChange('ai-assistant')}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 13px', borderRadius: '4px', border: 'none', background: 'linear-gradient(180deg,#0F6FE0,#0058BE)', color: '#FFFFFF', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs transition-all cursor-pointer shadow-sm shadow-sky-500/20"
                 >
-                  Hitung di AI
-                  <ArrowRight size={13} strokeWidth={1.9} />
+                  <span>Hitung di AI</span>
+                  <ArrowRight size={12} strokeWidth={2.2} />
                 </button>
               )}
             </div>
@@ -3707,10 +3725,10 @@ export default function CompanyDataDashboard({
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', animation: 'klirUp 240ms ease-out', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
                 {/* Visual Progress Meter */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#8CC0FF' }}>Progres Capaian Tahunan</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 700, color: '#F5F7FA' }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
                       {hasSalesTarget && Number(salesTarget.annualTarget) > 0
                         ? `${Math.round((Number(salesTarget.realizedToDate) / Number(salesTarget.annualTarget)) * 100)}% tercapai`
                         : hasAnyTransactions && f.rev > 0
@@ -3732,27 +3750,27 @@ export default function CompanyDataDashboard({
                       }}
                     />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#8A93A3' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10.5px', color: '#64748B' }}>
                     <span>Rp 0</span>
                     <span>Target: {hasSalesTarget ? short(Number(salesTarget.annualTarget)) : 'Rp 3,60 M'}</span>
                   </div>
                 </div>
 
                 {/* Dekomposisi Kuartal */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#CBD3DF' }}>Capaian Target Lintas Kuartal 2026</span>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569' }}>Capaian Target Lintas Kuartal 2026</span>
                   {[
                     { q: 'Q1 (Jan–Mar)', target: 'Rp 650 Jt', real: 'Rp 680 Jt', status: 'Surplus +4,6%', tone: '#3FBF8F', pct: 100 },
                     { q: 'Q2 (Apr–Jun)', target: 'Rp 750 Jt', real: 'Rp 735 Jt', status: 'Gap -2,0%', tone: '#F2A83B', pct: 98 },
                     { q: 'Q3 (Jul–Sep)', target: 'Rp 900 Jt', real: hasSalesTarget ? short(Number(salesTarget.realizedToDate)) : 'Rp 890 Jt', status: 'Berjalan', tone: '#4E9BFF', pct: 92 },
-                    { q: 'Q4 (Okt–Des)', target: 'Rp 1,1 M', real: 'Proyeksi AI', status: 'Target penutup', tone: '#8A93A3', pct: 0 },
+                    { q: 'Q4 (Okt–Des)', target: 'Rp 1,1 M', real: 'Proyeksi AI', status: 'Target penutup', tone: '#64748B', pct: 0 },
                   ].map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', fontSize: '11px' }}>
-                      <span style={{ color: '#8A93A3', minWidth: '85px' }}>{item.q}</span>
+                      <span style={{ color: '#64748B', minWidth: '85px' }}>{item.q}</span>
                       <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                         <div style={{ width: `${item.pct}%`, height: '100%', background: item.tone, borderRadius: '2px' }} />
                       </div>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#F5F7FA', minWidth: '70px', textAlign: 'right' }}>{item.real}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", color: '#0F172A', minWidth: '70px', textAlign: 'right' }}>{item.real}</span>
                       <span style={{ color: item.tone, fontWeight: 600, minWidth: '80px', textAlign: 'right' }}>{item.status}</span>
                     </div>
                   ))}
@@ -3762,7 +3780,7 @@ export default function CompanyDataDashboard({
               {/* Executive Bloomberg Verdict (Rule #268: 1 paragraph, into-the-point, zero decorative emojis) */}
               <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(78,155,255,0.06)', border: '1px solid rgba(78,155,255,0.18)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <Bot size={15} className="text-[#8CC0FF] shrink-0 mt-0.5" />
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#DCE3EC' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#1E293B' }}>
                   {hasSalesTarget
                     ? `Realisasi tercatat saat ini Rp ${short(Number(salesTarget.realizedToDate))} dari target tahunan Rp ${short(Number(salesTarget.annualTarget))}. Gap yang tersisa senilai Rp ${short(Number(salesTarget.remainingTarget))} menuntut rata-rata omset bulanan terjaga stabil hingga akhir kuartal empat. Prioritaskan peningkatan repeat order pelanggan korporat dan akselerasi kanal distribusi langsung.`
                     : 'Target penjualan tahunan berjalan pada estimasi kuartal Q3 Rp 890 Jt dengan sisa gap penutupan tahun di Q4. Konfigurasikan target resmi lewat AI Assistant untuk memonitor deviasi kanal penjualan secara akurat.'}
@@ -3788,56 +3806,50 @@ export default function CompanyDataDashboard({
             prediction-engine.ts) SEKALIGUS dengan daftar `recommendations`
             FINANCE/STRATEGY yang juga dibutuhkan kartu ini -- jadi 1 fetch
             GET sudah cukup, tidak perlu tambah panggilan POST kedua. */}
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '18px 22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '18px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '11px', minWidth: 0, flex: '1 1 360px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', flex: '0 0 32px', borderRadius: '4px', background: 'rgba(63,191,143,0.14)', color: '#3FBF8F' }}>
+        <div className="linear-card" style={{ padding: '20px 24px', overflow: 'hidden' }}>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 flex items-center justify-center shrink-0">
                 <Bot size={16} strokeWidth={1.8} />
               </span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#F8FAFC' }}>Proyeksi Likuiditas Kas</h2>
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: '#3FBF8F', background: 'rgba(63,191,143,0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(63,191,143,0.2)' }}>
-                    {hasForecastBase && forecastCard ? 'Data Riil Kas' : 'Proyeksi Aktif'}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="m-0 text-sm font-semibold text-slate-900 tracking-tight">Proyeksi Likuiditas Kas</h2>
+                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  {hasForecastBase && forecastCard ? 'Data Riil Kas' : 'Proyeksi Aktif'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Metric Chips */}
+              <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Runway proyeksi</span>
+                  <span className={`font-mono text-xs font-bold ${(forecastCard?.runwayMonths || runwayMonths) < 3 ? 'text-amber-400' : 'text-slate-100'}`}>
+                    {forecastCard?.runwayMonths ? (forecastCard.runwayMonths >= 90 ? '90+ bulan' : `${forecastCard.runwayMonths} bulan`) : runwayDisplay}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-slate-200" />
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Estimasi kas habis</span>
+                  <span className={`font-mono text-xs font-bold ${forecastCard?.cashOutDate ? 'text-rose-400' : 'text-slate-300'}`}>
+                    {forecastCard?.cashOutDate || 'Aman (Tidak diproyeksikan)'}
                   </span>
                 </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Runway proyeksi</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: (forecastCard?.runwayMonths || runwayMonths) < 3 ? '#F2A83B' : '#F5F7FA' }}>
-                  {forecastCard?.runwayMonths ? (forecastCard.runwayMonths >= 90 ? '90+ bulan' : `${forecastCard.runwayMonths} bulan`) : runwayDisplay}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Estimasi kas habis</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: forecastCard?.cashOutDate ? '#EF4444' : '#8A93A3' }}>
-                  {forecastCard?.cashOutDate || 'Tidak diproyeksikan (aman)'}
-                </span>
-              </div>
+
+              {/* Action Button */}
               <button
                 type="button"
                 onClick={() => setForecastDetailOpen(!forecastDetailOpen)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '34px',
-                  padding: '0 12px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(63,191,143,0.3)',
-                  background: forecastDetailOpen ? 'rgba(63,191,143,0.2)' : 'rgba(63,191,143,0.08)',
-                  color: '#3FBF8F',
-                  fontFamily: 'inherit',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
+                  forecastDetailOpen
+                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                }`}
               >
-                <span>{forecastDetailOpen ? 'Tutup Analisis' : 'Lihat Detail & Analisis Visual'}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ transform: forecastDetailOpen ? 'rotate(180deg)' : 'none', transition: 'transform 180ms ease' }}><path d="M6 9.5l6 5.5 6-5.5" /></svg>
+                <span>{forecastDetailOpen ? 'Tutup Analisis' : 'Detail Analisis'}</span>
+                <ChevronDown size={12} className={`transition-transform duration-200 ${forecastDetailOpen ? 'rotate-180' : ''}`} />
               </button>
             </div>
           </div>
@@ -3847,16 +3859,16 @@ export default function CompanyDataDashboard({
               {forecastCard.anomalies.map((a) => (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '2px', background: a.severity === 'CRITICAL' ? '#EF4444' : a.severity === 'WARNING' ? '#F2A83B' : '#8CC0FF', flexShrink: 0, marginTop: '6px' }} />
-                  <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#CBD3DF' }}>
-                    <strong style={{ color: '#F5F7FA' }}>{a.title}.</strong> {a.message}
+                  <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#475569' }}>
+                    <strong style={{ color: '#0F172A' }}>{a.title}.</strong> {a.message}
                   </span>
                 </div>
               ))}
               {forecastCard.topRecommendation && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '2px', background: '#3FBF8F', flexShrink: 0, marginTop: '6px' }} />
-                  <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#CBD3DF' }}>
-                    <strong style={{ color: '#F5F7FA' }}>{forecastCard.topRecommendation.title}.</strong> {forecastCard.topRecommendation.prescription}
+                  <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#475569' }}>
+                    <strong style={{ color: '#0F172A' }}>{forecastCard.topRecommendation.title}.</strong> {forecastCard.topRecommendation.prescription}
                   </span>
                 </div>
               )}
@@ -3868,7 +3880,7 @@ export default function CompanyDataDashboard({
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', animation: 'klirUp 240ms ease-out', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                 {/* 3 Skenario Kas */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#3FBF8F' }}>Dekomposisi 3 Skenario Kas</span>
                   {[
                     { name: 'Konservatif (Omset -15%)', runway: forecastCard ? `${Math.max(1, forecastCard.runwayMonths - 2)} bln` : '5,2 bln', cash: short(Math.max(0, cashNow > 0 ? cashNow * 0.85 : 20800000)), tone: '#F2A83B' },
@@ -3876,9 +3888,9 @@ export default function CompanyDataDashboard({
                     { name: 'Optimis (Omset +20%)', runway: forecastCard ? `${forecastCard.runwayMonths + 3} bln` : '10,5 bln', cash: short(cashNow > 0 ? cashNow * 1.2 : 29400000), tone: '#4E9BFF' },
                   ].map((s, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: idx < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <span style={{ fontSize: '11px', color: '#CBD3DF' }}>{s.name}</span>
+                      <span style={{ fontSize: '11px', color: '#475569' }}>{s.name}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#8A93A3' }}>{s.cash}</span>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#64748B' }}>{s.cash}</span>
                         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', fontWeight: 700, color: s.tone, background: `${s.tone}1A`, padding: '2px 6px', borderRadius: '4px' }}>{s.runway}</span>
                       </div>
                     </div>
@@ -3886,19 +3898,19 @@ export default function CompanyDataDashboard({
                 </div>
 
                 {/* Indikator Laju Bakar Kas & Saldo Operasional */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#CBD3DF' }}>Laju Bakar Kas vs Arus Kas Masuk</span>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569' }}>Laju Bakar Kas vs Arus Kas Masuk</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                      <span style={{ color: '#8A93A3' }}>Rata-rata Kas Masuk Bulanan</span>
+                      <span style={{ color: '#64748B' }}>Rata-rata Kas Masuk Bulanan</span>
                       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#3FBF8F' }}>{short(f.rev > 0 ? f.rev : 24500000)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                      <span style={{ color: '#8A93A3' }}>Rata-rata Pengeluaran (Burn Rate)</span>
+                      <span style={{ color: '#64748B' }}>Rata-rata Pengeluaran (Burn Rate)</span>
                       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#EF4444' }}>{short(f.exp > 0 ? f.exp : 16300000)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', paddingTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
-                      <span style={{ color: '#F5F7FA', fontWeight: 600 }}>Net Arus Kas Operasional</span>
+                      <span style={{ color: '#0F172A', fontWeight: 600 }}>Net Arus Kas Operasional</span>
                       <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: (f.rev - f.exp) >= 0 ? '#3FBF8F' : '#EF4444' }}>
                         {(f.rev - f.exp) >= 0 ? '+' : ''}{short(f.rev - f.exp !== 0 ? f.rev - f.exp : 8200000)}
                       </span>
@@ -3910,78 +3922,81 @@ export default function CompanyDataDashboard({
               {/* Executive Bloomberg Verdict (Rule #268) */}
               <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(63,191,143,0.06)', border: '1px solid rgba(63,191,143,0.2)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <Bot size={15} className="text-[#3FBF8F] shrink-0 mt-0.5" />
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#DCE3EC' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#1E293B' }}>
                   {`Ketahanan kas bisnis berada pada horizon ${forecastCard?.runwayMonths || (runwayMonths > 0 && runwayMonths < 90 ? runwayMonths : 7)} bulan dengan laju bakar bersih terkontrol. Cadangan likuiditas mencukupi untuk memenuhi kewajiban operasional tanpa kebutuhan pinjaman eksternal mendesak.`}
                 </p>
               </div>
             </div>
           )}
         </div>
+        </div>
 
-        {/* Stok & Pembelian: dashboard cuma tampilkan ringkasan pasif (angka
-            hasil hitung backend inventory); kerja tambah produk/lihat riwayat/
-            pesanan pembelian/skor pemasok ada di KlirInventoryView, dibuka
-            lewat AI Assistant -- pola sama dengan kartu "Target & prediksi AI"
-            di atas. (KONTRAK WIRING agent wiring-page-ceo-finance, 10 Sep) */}
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '18px 22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '18px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '11px', minWidth: 0, flex: '1 1 360px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', flex: '0 0 32px', borderRadius: '4px', background: 'rgba(63,191,143,0.14)', color: '#3FBF8F' }}>
+        {/* Stok & Pembelian: dashboard cuma tampilkan ringkasan pasif */}
+        <div className="linear-card" style={{ padding: '20px 24px', overflow: 'hidden' }}>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 text-amber-400 flex items-center justify-center shrink-0">
                 <Package size={16} strokeWidth={1.8} />
               </span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h2 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#F8FAFC' }}>Status Stok &amp; Persediaan</h2>
-                  <span style={{ fontSize: '10px', fontWeight: 600, color: inventorySummary && inventorySummary.lowStockCount > 0 ? '#F2A83B' : '#3FBF8F', background: inventorySummary && inventorySummary.lowStockCount > 0 ? 'rgba(242,168,59,0.12)' : 'rgba(63,191,143,0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    {inventorySummary && inventorySummary.lowStockCount > 0 ? `${inventorySummary.lowStockCount} SKU Buffer Alert` : 'Stok Terkendali'}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h2 className="m-0 text-sm font-semibold text-slate-900 tracking-tight">Status Stok &amp; Persediaan</h2>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                  inventorySummary && inventorySummary.lowStockCount > 0
+                    ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                    : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                }`}>
+                  {inventorySummary && inventorySummary.lowStockCount > 0 ? `${inventorySummary.lowStockCount} SKU Buffer Alert` : 'Stok Terkendali'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {/* Metric Chips */}
+              <div className="flex items-center gap-2 p-1 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Jumlah produk</span>
+                  <span className="font-mono text-xs font-bold text-slate-900">
+                    {inventorySummary ? inventorySummary.productCount : 'Memuat...'}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-slate-200" />
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Nilai stok</span>
+                  <span className="font-mono text-xs font-bold text-slate-900">
+                    {inventorySummary ? short(inventorySummary.stockValue) : 'Memuat...'}
+                  </span>
+                </div>
+                <div className="h-6 w-px bg-slate-200" />
+                <div className="px-3 py-1 flex flex-col">
+                  <span className="text-[10px] font-medium text-slate-500">Di bawah minimum</span>
+                  <span className={`font-mono text-xs font-bold ${inventorySummary && inventorySummary.lowStockCount > 0 ? 'text-amber-400' : 'text-slate-100'}`}>
+                    {inventorySummary ? inventorySummary.lowStockCount : 'Memuat...'}
                   </span>
                 </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Jumlah produk</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: inventorySummary ? '#F5F7FA' : '#8A93A3' }}>{inventorySummary ? inventorySummary.productCount : 'Memuat...'}</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Nilai stok</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: inventorySummary ? '#F5F7FA' : '#8A93A3' }}>{inventorySummary ? short(inventorySummary.stockValue) : 'Memuat...'}</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '132px' }}>
-                <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Di bawah minimum</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: inventorySummary && inventorySummary.lowStockCount > 0 ? '#F2A83B' : (inventorySummary ? '#F5F7FA' : '#8A93A3') }}>{inventorySummary ? inventorySummary.lowStockCount : 'Memuat...'}</span>
-              </div>
+
+              {/* Action Buttons */}
               <button
                 type="button"
                 onClick={() => setStockDetailOpen(!stockDetailOpen)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  height: '34px',
-                  padding: '0 12px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(242,168,59,0.3)',
-                  background: stockDetailOpen ? 'rgba(242,168,59,0.2)' : 'rgba(242,168,59,0.08)',
-                  color: '#F2A83B',
-                  fontFamily: 'inherit',
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
+                className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-all border ${
+                  stockDetailOpen
+                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                    : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                }`}
               >
-                <span>{stockDetailOpen ? 'Tutup Analisis' : 'Lihat Detail & Analisis Visual'}</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ transform: stockDetailOpen ? 'rotate(180deg)' : 'none', transition: 'transform 180ms ease' }}><path d="M6 9.5l6 5.5 6-5.5" /></svg>
+                <span>{stockDetailOpen ? 'Tutup Analisis' : 'Detail Analisis'}</span>
+                <ChevronDown size={12} className={`transition-transform duration-200 ${stockDetailOpen ? 'rotate-180' : ''}`} />
               </button>
+
               {onNavChange && (
                 <button
                   type="button"
                   onClick={() => onNavChange('ai-assistant')}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 13px', borderRadius: '4px', border: 'none', background: 'linear-gradient(180deg,#0F6FE0,#0058BE)', color: '#FFFFFF', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs transition-all cursor-pointer shadow-sm shadow-amber-500/20"
                 >
-                  Buka di AI
-                  <ArrowRight size={13} strokeWidth={1.9} />
+                  <span>Buka di AI</span>
+                  <ArrowRight size={12} strokeWidth={2.2} />
                 </button>
               )}
             </div>
@@ -3992,14 +4007,14 @@ export default function CompanyDataDashboard({
             <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', animation: 'klirUp 240ms ease-out', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
                 {/* Status Distribusi Inventori */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#F2A83B' }}>Status Distribusi Persediaan Gudang</span>
                   <div style={{ display: 'flex', height: '10px', borderRadius: '2px', overflow: 'hidden', gap: '2px' }}>
                     <div title="Stok Aman (72%)" style={{ width: '72%', background: '#3FBF8F' }} />
                     <div title="Menipis (20%)" style={{ width: '20%', background: '#F2A83B' }} />
                     <div title="Kritis (8%)" style={{ width: '8%', background: '#EF4444' }} />
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#8A93A3' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <span style={{ width: '6px', height: '6px', borderRadius: '2px', background: '#3FBF8F' }} />
                       Aman (72%)
@@ -4016,17 +4031,17 @@ export default function CompanyDataDashboard({
                 </div>
 
                 {/* SKU Prioritas Restock */}
-                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#090C12', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#CBD3DF' }}>SKU Prioritas Pemesanan Ulang Segera</span>
+                <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569' }}>SKU Prioritas Pemesanan Ulang Segera</span>
                   {[
                     { sku: 'Ayam Broiler Grade A', sisa: '45 kg', min: '120 kg', habis: '2 hari', tone: '#EF4444' },
                     { sku: 'Minyak Goreng Sawit 18L', sisa: '8 jrg', min: '20 jrg', habis: '4 hari', tone: '#F2A83B' },
                     { sku: 'Beras Ramos Super 50kg', sisa: '6 krg', min: '15 krg', habis: '5 hari', tone: '#F2A83B' },
                   ].map((row, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '11px', padding: '4px 0', borderBottom: idx < 2 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                      <span style={{ color: '#F5F7FA', fontWeight: 500 }}>{row.sku}</span>
+                      <span style={{ color: '#0F172A', fontWeight: 500 }}>{row.sku}</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ color: '#8A93A3', fontFamily: "'JetBrains Mono', monospace" }}>{row.sisa} / min {row.min}</span>
+                        <span style={{ color: '#64748B', fontFamily: "'JetBrains Mono', monospace" }}>{row.sisa} / min {row.min}</span>
                         <span style={{ color: row.tone, fontWeight: 600, background: `${row.tone}1A`, padding: '1px 6px', borderRadius: '4px' }}>Habis {row.habis}</span>
                       </div>
                     </div>
@@ -4037,7 +4052,7 @@ export default function CompanyDataDashboard({
               {/* Executive Bloomberg Verdict (Rule #268) */}
               <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(242,168,59,0.06)', border: '1px solid rgba(242,168,59,0.2)', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <Package size={15} className="text-[#F2A83B] shrink-0 mt-0.5" />
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#DCE3EC' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#1E293B' }}>
                   {`Sebanyak ${inventorySummary?.lowStockCount || 3} SKU bahan baku inti berada di bawah batas minimum persediaan dengan risiko kehabisan stok dalam tempo 48 hingga 120 jam. Pengajuan purchase order gabungan disarankan guna meminimalkan biaya logistik per unit dan menjaga kontinuitas layanan.`}
                 </p>
               </div>
@@ -4047,10 +4062,10 @@ export default function CompanyDataDashboard({
         {/* ========================================================================= */}
         {/* 2. ALERT "PERLU TINDAKAN" SECTION */}
         {/* ========================================================================= */}
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '18px 22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ padding: '20px 24px', overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', marginBottom: alerts.length === 0 ? '12px' : '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, letterSpacing: '-0.015em', color: '#F5F7FA' }}>
+              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: 600, letterSpacing: '-0.015em', color: '#0F172A' }}>
                 Perlu Tindakan
               </h2>
               {alerts.length > 0 && (
@@ -4067,9 +4082,9 @@ export default function CompanyDataDashboard({
             {alerts.length === 0 ? (
               <div
                 onClick={() => setHistOpen(!histOpen)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#8A93A3', userSelect: 'none' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#64748B', userSelect: 'none' }}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#CBD3DF' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: '#475569' }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                   <span>{resolvedHistory.length > 0 ? `${resolvedHistory.length} peringatan diselesaikan` : 'Belum ada riwayat peringatan'}</span>
                 </span>
@@ -4077,7 +4092,7 @@ export default function CompanyDataDashboard({
                 <span style={{ color: '#4E9BFF', fontWeight: 500 }}>{histOpen ? 'Tutup riwayat' : 'Lihat riwayat'}</span>
               </div>
             ) : (
-              <span style={{ fontSize: '11.5px', color: '#8A93A3' }}>Klik baris untuk melihat rincian &amp; tindakan</span>
+              <span style={{ fontSize: '11.5px', color: '#64748B' }}>Klik baris untuk melihat rincian &amp; tindakan</span>
             )}
           </div>
 
@@ -4089,10 +4104,10 @@ export default function CompanyDataDashboard({
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </span>
-                <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#0F172A' }}>
                   {f.rev > 0 ? 'Semua Operasional & Keuangan Normal' : 'Belum Ada Isu Yang Membutuhkan Tindakan'}
                 </span>
-                <span style={{ fontSize: '11.5px', color: '#8A93A3', marginLeft: 'auto' }}>
+                <span style={{ fontSize: '11.5px', color: '#64748B', marginLeft: 'auto' }}>
                   {f.rev > 0 ? '0 peringatan kritis aktif' : 'Menunggu pencatatan transaksi'}
                 </span>
               </div>
@@ -4101,7 +4116,7 @@ export default function CompanyDataDashboard({
               const c = a.sev === 'd' ? '#EF4444' : '#F2A83B';
               const isOpen = openAlert === a.id;
               return (
-                <div key={a.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '5px', border: 'none', marginBottom: '8px', overflow: 'hidden' }}>
+                <div key={a.id} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px', marginBottom: '8px', overflow: 'hidden' }}>
                   <div
                     onClick={() => {
                       setOpenAlert(isOpen ? null : a.id);
@@ -4114,15 +4129,15 @@ export default function CompanyDataDashboard({
                   >
                     <span style={{ width: '7px', height: '7px', borderRadius: '2px', background: c, boxShadow: `0 0 0 3px ${a.sev === 'd' ? 'rgba(239,68,68,0.18)' : 'rgba(242,168,59,0.18)'}` }} />
                     <span style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0, textAlign: 'left' }}>
-                      <span style={{ fontSize: '13.5px', fontWeight: 600, lineHeight: 1.4, color: '#F5F7FA' }}>{a.title}</span>
-                      <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#A9B4C7' }}>{a.detail}</span>
+                      <span style={{ fontSize: '13.5px', fontWeight: 600, lineHeight: 1.4, color: '#0F172A' }}>{a.title}</span>
+                      <span style={{ fontSize: '12px', lineHeight: 1.5, color: '#334155' }}>{a.detail}</span>
                     </span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '17px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: c }}>
                       {a.value}
                     </span>
                     <span style={{ justifySelf: 'end', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#CBD3DF', whiteSpace: 'nowrap' }}>{a.action}</span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isOpen ? '#F5F7FA' : '#8A93A3'} strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', whiteSpace: 'nowrap' }}>{a.action}</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isOpen ? '#0F172A' : '#64748B'} strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                         <path d={isOpen ? 'M6 14.5l6-5.5 6 5.5' : 'M6 9.5l6 5.5 6-5.5'} />
                       </svg>
                     </span>
@@ -4130,10 +4145,10 @@ export default function CompanyDataDashboard({
 
                   {isOpen && a.id === 'invoice' && (
                     <div style={{ padding: '0 20px 20px', animation: 'klirUp 240ms ease-out' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 392px', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#090C12', overflow: 'hidden' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 392px', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#F8FAFC', overflow: 'hidden' }}>
                         <div style={{ padding: '16px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>Detail Faktur Penagihan</span>
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Detail Faktur Penagihan</span>
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, color: '#EF4444', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}>Jatuh tempo</span>
                           </div>
                           {[
@@ -4144,33 +4159,33 @@ export default function CompanyDataDashboard({
                             ['Nilai Tagihan', overdueInvoicesAmount > 0 ? rp(overdueInvoicesAmount) : '(belum ada data piutang)', '#F5F7FA'],
                           ].map(([label, value, color], ri) => (
                             <div key={ri} style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '14px', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
-                              <span style={{ fontSize: '12px', color: '#8A93A3' }}>{label}</span>
+                              <span style={{ fontSize: '12px', color: '#64748B' }}>{label}</span>
                               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{value}</span>
                             </div>
                           ))}
                           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '14px', paddingTop: '14px' }}>
                             <span style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                              <span style={{ fontSize: '11.5px', color: '#8A93A3' }}>Sisa tagihan belum dibayar</span>
+                              <span style={{ fontSize: '11.5px', color: '#64748B' }}>Sisa tagihan belum dibayar</span>
                               <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '22px', fontWeight: 700, letterSpacing: '-0.025em', color: '#EF4444', fontVariantNumeric: 'tabular-nums' }}>
                                 {overdueInvoicesAmount > 0 ? rp(overdueInvoicesAmount) : '(belum ada data piutang)'}
                               </span>
                             </span>
-                            <span style={{ fontSize: '11.5px', color: '#8A93A3', textAlign: 'right' }}>Status: Siap ditagih</span>
+                            <span style={{ fontSize: '11.5px', color: '#64748B', textAlign: 'right' }}>Status: Siap ditagih</span>
                           </div>
                         </div>
                         <div style={{ padding: '16px', borderLeft: '1px solid rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.015)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           {remindStage === 'idle' && (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>Pengingat yang akan dikirim</span>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Pengingat yang akan dikirim</span>
                               <div style={{ padding: '13px 14px', borderRadius: '5px', border: '1px solid rgba(63,191,143,0.22)', background: 'rgba(63,191,143,0.06)' }}>
-                                <span style={{ display: 'block', fontSize: '12.5px', lineHeight: 1.65, color: '#DCE3EC' }}>
+                                <span style={{ display: 'block', fontSize: '12.5px', lineHeight: 1.65, color: '#1E293B' }}>
                                   Draf final akan diisi dari faktur menunggak paling lama: nama klien, nomor invoice, nominal, jatuh tempo, dan nomor WhatsApp yang benar-benar tercatat pada invoice.
                                 </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '11px', fontSize: '11px', color: '#8A93A3' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '11px', fontSize: '11px', color: '#64748B' }}>
                                   <span>WhatsApp</span><span>·</span><span>nomor diverifikasi dari invoice</span>
                                 </span>
                               </div>
-                              <span style={{ fontSize: '11.5px', lineHeight: 1.6, color: '#8A93A3' }}>Pengiriman perlu konfirmasi Anda. Tidak ada pesan yang dikirim otomatis oleh KLIR.</span>
+                              <span style={{ fontSize: '11.5px', lineHeight: 1.6, color: '#64748B' }}>Pengiriman perlu konfirmasi Anda. Tidak ada pesan yang dikirim otomatis oleh KLIR.</span>
                               {reminderError && (
                                 <span role="alert" style={{ padding: '9px 10px', borderRadius: '4px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.24)', fontSize: '11.5px', lineHeight: 1.5, color: '#F5B8B8' }}>
                                   {reminderError}
@@ -4193,16 +4208,16 @@ export default function CompanyDataDashboard({
                               <span style={{ width: '34px', height: '34px', borderRadius: '4px', background: 'rgba(242,168,59,0.14)', border: '1px solid rgba(242,168,59,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F2A83B" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 8.5v5M12 17h.01" /><circle cx="12" cy="12" r="9" /></svg>
                               </span>
-                              <span style={{ fontSize: '14.5px', fontWeight: 600, lineHeight: 1.4, color: '#F5F7FA' }}>Konfirmasi pengiriman pengingat</span>
-                              <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#8A93A3' }}>Sistem akan menyiapkan draf WhatsApp untuk satu faktur menunggak paling lama dengan nomor yang tersimpan pada invoice. Pengiriman terakhir tetap di tangan Anda.</span>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 13px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', background: '#10141C' }}>
-                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#8A93A3' }}><span>Faktur</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>{overdueInvoicesCount > 0 ? `${overdueInvoicesCount} Faktur Menunggak` : 'Faktur Tertunggak'}</span></span>
-                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#8A93A3' }}><span>Nilai ditagih</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#EF4444' }}>{overdueInvoicesAmount > 0 ? rp(overdueInvoicesAmount) : '(belum ada data piutang)'}</span></span>
-                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#8A93A3' }}><span>Kanal</span><span style={{ fontWeight: 600, color: '#F5F7FA' }}>WhatsApp dari invoice</span></span>
+                              <span style={{ fontSize: '14.5px', fontWeight: 600, lineHeight: 1.4, color: '#0F172A' }}>Konfirmasi pengiriman pengingat</span>
+                              <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#64748B' }}>Sistem akan menyiapkan draf WhatsApp untuk satu faktur menunggak paling lama dengan nomor yang tersimpan pada invoice. Pengiriman terakhir tetap di tangan Anda.</span>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 13px', borderRadius: '4px', border: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#64748B' }}><span>Faktur</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>{overdueInvoicesCount > 0 ? `${overdueInvoicesCount} Faktur Menunggak` : 'Faktur Tertunggak'}</span></span>
+                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#64748B' }}><span>Nilai ditagih</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#EF4444' }}>{overdueInvoicesAmount > 0 ? rp(overdueInvoicesAmount) : '(belum ada data piutang)'}</span></span>
+                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#64748B' }}><span>Kanal</span><span style={{ fontWeight: 600, color: '#0F172A' }}>WhatsApp dari invoice</span></span>
                               </div>
                               <div style={{ display: 'flex', gap: '9px' }}>
                                 <button type="button" onClick={sendInvoiceReminder} disabled={reminderLoading} style={{ flex: 1, height: '38px', background: '#EF4444', border: 'none', borderRadius: '4px', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 600, color: '#FFFFFF', cursor: reminderLoading ? 'wait' : 'pointer', opacity: reminderLoading ? 0.7 : 1 }}>{reminderLoading ? 'Menyiapkan...' : 'Ya, buka draf WhatsApp'}</button>
-                                <button type="button" onClick={() => setRemindStage('idle')} style={{ height: '38px', padding: '0 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 600, color: '#CBD3DF', cursor: 'pointer' }}>Batal</button>
+                                <button type="button" onClick={() => setRemindStage('idle')} style={{ height: '38px', padding: '0 15px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '12.5px', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>Batal</button>
                               </div>
                             </div>
                           )}
@@ -4211,13 +4226,13 @@ export default function CompanyDataDashboard({
                               <span style={{ width: '34px', height: '34px', borderRadius: '4px', background: 'rgba(63,191,143,0.14)', border: '1px solid rgba(63,191,143,0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                               </span>
-                              <span style={{ fontSize: '14.5px', fontWeight: 600, lineHeight: 1.4, color: '#F5F7FA' }}>Draf WhatsApp dibuka</span>
-                              <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#8A93A3' }}>Draf WhatsApp untuk satu faktur menunggak sudah dibuka menggunakan nomor yang tersimpan pada invoice. Klik kirim sendiri di WhatsApp untuk menyelesaikan penagihan; KLIR tidak mengirim pesan otomatis.</span>
+                              <span style={{ fontSize: '14.5px', fontWeight: 600, lineHeight: 1.4, color: '#0F172A' }}>Draf WhatsApp dibuka</span>
+                              <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#64748B' }}>Draf WhatsApp untuk satu faktur menunggak sudah dibuka menggunakan nomor yang tersimpan pada invoice. Klik kirim sendiri di WhatsApp untuk menyelesaikan penagihan; KLIR tidak mengirim pesan otomatis.</span>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 13px', borderRadius: '4px', border: '1px solid rgba(63,191,143,0.22)', background: 'rgba(63,191,143,0.06)' }}>
-                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#8A93A3' }}><span>Dibuka pada</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>Baru saja</span></span>
-                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#8A93A3' }}><span>Status</span><span style={{ fontWeight: 600, color: '#3FBF8F' }}>Menunggu Anda kirim di WhatsApp</span></span>
+                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#64748B' }}><span>Dibuka pada</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>Baru saja</span></span>
+                                <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', fontSize: '12px', color: '#64748B' }}><span>Status</span><span style={{ fontWeight: 600, color: '#3FBF8F' }}>Menunggu Anda kirim di WhatsApp</span></span>
                               </div>
-                              <button type="button" onClick={() => setRemindStage('idle')} style={{ width: '100%', height: '36px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, color: '#CBD3DF', cursor: 'pointer' }}>Tutup</button>
+                              <button type="button" onClick={() => setRemindStage('idle')} style={{ width: '100%', height: '36px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '12px', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>Tutup</button>
                             </div>
                           )}
                         </div>
@@ -4227,22 +4242,22 @@ export default function CompanyDataDashboard({
 
                   {isOpen && a.id === 'health' && (
                     <div style={{ padding: '0 20px 20px', animation: 'klirUp 240ms ease-out' }}>
-                      <div style={{ border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#090C12', overflow: 'hidden' }}>
+                      <div style={{ border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#F8FAFC', overflow: 'hidden' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>Empat Pilar Company Health Score</span>
-                          <span style={{ fontSize: '11.5px', color: '#A9B4C7' }}>Skor total {hsScore}{hsScore > 0 ? ' — histori bulan sebelumnya belum dilacak' : ''}</span>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>Empat Pilar Company Health Score</span>
+                          <span style={{ fontSize: '11.5px', color: '#334155' }}>Skor total {hsScore}{hsScore > 0 ? ' — histori bulan sebelumnya belum dilacak' : ''}</span>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(170px,1fr) 94px 128px 198px', gap: '14px', padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3' }}>Pilar</span>
-                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3' }}>Skor</span>
-                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3' }}>vs Juli</span>
-                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3' }}>Posisi terhadap 100</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>Pilar</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>Skor</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>vs Juli</span>
+                          <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>Posisi terhadap 100</span>
                         </div>
                         {healthPillars.map((p, pi) => (
                           <div key={pi} style={{ display: 'grid', gridTemplateColumns: 'minmax(170px,1fr) 94px 128px 198px', gap: '14px', alignItems: 'center', padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,0.055)' }}>
                             <span style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA' }}>{p.name}</span>
-                              <span style={{ fontSize: '11px', color: '#8A93A3' }}>{p.detail}</span>
+                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#0F172A' }}>{p.name}</span>
+                              <span style={{ fontSize: '11px', color: '#64748B' }}>{p.detail}</span>
                             </span>
                             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: tone(p.score), fontVariantNumeric: 'tabular-nums' }}>{p.score}</span>
                             <span style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: p.deltaColor, background: p.deltaBg, whiteSpace: 'nowrap' }}>{p.delta}</span>
@@ -4257,7 +4272,7 @@ export default function CompanyDataDashboard({
                           </span>
                           <span style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
                             <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#8CC0FF' }}>Penjelasan AI</span>
-                            <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#DCE3EC', textWrap: 'pretty' as any }}>
+                            <span style={{ fontSize: '12.5px', lineHeight: 1.65, color: '#1E293B', textWrap: 'pretty' as any }}>
                               {`Skor total ${hsScore}/100 dihitung dari empat pilar di atas -- rincian per pilar ada di kolom detail. Belum ada narasi historis (histori bulan sebelumnya belum tersedia).`}
                             </span>
                           </span>
@@ -4277,19 +4292,19 @@ export default function CompanyDataDashboard({
                       ini, lihat catatan_jujur laporan build). */}
                   {isOpen && a.id === 'dataQuality' && (
                     <div style={{ padding: '0 20px 20px', animation: 'klirUp 240ms ease-out' }}>
-                      <div style={{ border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#090C12', overflow: 'hidden' }}>
+                      <div style={{ border: '1px solid rgba(255,255,255,0.09)', borderRadius: '5px', background: '#F8FAFC', overflow: 'hidden' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>File dengan temuan kualitas data</span>
-                          <span style={{ fontSize: '11.5px', color: '#A9B4C7' }}>{dataQualityFilesWithIssues.length} file</span>
+                          <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>File dengan temuan kualitas data</span>
+                          <span style={{ fontSize: '11.5px', color: '#334155' }}>{dataQualityFilesWithIssues.length} file</span>
                         </div>
                         {dataQualityFilesWithIssues.map((wf) => (
                           <div key={wf.id} style={{ padding: '13px 16px', borderBottom: '1px solid rgba(255,255,255,0.055)', display: 'flex', flexDirection: 'column', gap: '7px' }}>
                             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{wf.fileName}</span>
-                              <span style={{ flexShrink: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: wf.worst === 'critical' ? '#EF4444' : wf.worst === 'warning' ? '#D8A33C' : '#8A93A3' }}>{wf.count} temuan</span>
+                              <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{wf.fileName}</span>
+                              <span style={{ flexShrink: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: wf.worst === 'critical' ? '#EF4444' : wf.worst === 'warning' ? '#D8A33C' : '#64748B' }}>{wf.count} temuan</span>
                             </span>
                             {wf.block && (
-                              <pre style={{ margin: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', lineHeight: 1.6, color: '#A9B4C7', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>{wf.block}</pre>
+                              <pre style={{ margin: 0, fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', lineHeight: 1.6, color: '#334155', whiteSpace: 'pre-wrap', overflowX: 'auto' }}>{wf.block}</pre>
                             )}
                           </div>
                         ))}
@@ -4324,13 +4339,13 @@ export default function CompanyDataDashboard({
                 onClick={() => setHistOpen(!histOpen)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', paddingTop: '14px', cursor: 'pointer' }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#CBD3DF' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#475569' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3FBF8F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
                   <span>{resolvedHistory.length > 0 ? `${resolvedHistory.length} peringatan sudah diselesaikan bulan ini` : 'Belum ada peringatan yang diselesaikan bulan ini'}</span>
                 </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', fontSize: '12px', fontWeight: 600, color: '#8A93A3' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', fontSize: '12px', fontWeight: 600, color: '#64748B' }}>
                   <span>{histOpen ? 'Tutup riwayat' : 'Lihat riwayat'}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={histOpen ? '#F5F7FA' : '#8A93A3'} strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={histOpen ? '#0F172A' : '#64748B'} strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                     <path d={histOpen ? 'M6 14.5l6-5.5 6 5.5' : 'M6 9.5l6 5.5 6-5.5'} />
                   </svg>
                 </span>
@@ -4340,16 +4355,16 @@ export default function CompanyDataDashboard({
           {histOpen && (
             <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px', animation: 'klirUp 240ms ease-out' }}>
               {resolvedHistory.map((h, hi) => (
-                <div key={hi} style={{ display: 'grid', gridTemplateColumns: '130px 8px minmax(0,1fr) 150px', gap: '14px', alignItems: 'start', padding: '11px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px' }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{h.date}</span>
+                <div key={hi} style={{ display: 'grid', gridTemplateColumns: '130px 8px minmax(0,1fr) 150px', gap: '14px', alignItems: 'start', padding: '11px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '4px' }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{h.date}</span>
                   <span style={{ marginTop: '5px', width: '8px', height: '8px', borderRadius: '2px', background: 'rgba(63,191,143,0.2)', border: '1.5px solid #3FBF8F' }} />
                   <span style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#CBD3DF' }}>{h.title}</span>
-                    <span style={{ fontSize: '12px', lineHeight: 1.55, color: '#8A93A3', textWrap: 'pretty' as any }}>{h.detail}</span>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#475569' }}>{h.title}</span>
+                    <span style={{ fontSize: '12px', lineHeight: 1.55, color: '#64748B', textWrap: 'pretty' as any }}>{h.detail}</span>
                   </span>
                   <span style={{ justifySelf: 'end', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 8px', borderRadius: '4px', fontSize: '10.5px', fontWeight: 600, color: '#3FBF8F', background: 'rgba(63,191,143,0.1)' }}>Selesai</span>
-<span style={{ fontSize: '11px', color: '#8A93A3' }}>{h.by}</span>
+<span style={{ fontSize: '11px', color: '#64748B' }}>{h.by}</span>
                   </span>
                 </div>
               ))}
@@ -4358,13 +4373,13 @@ export default function CompanyDataDashboard({
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. TWO-COLUMN: SKOR KESEHATAN BISNIS & 6-MONTH TREND */}
+        {/* 3. TWO-COLUMN: SKOR KESEHATAN BISNIS & 6-MONTH TREND (v0 Responsive 12-Col) */}
         {/* ========================================================================= */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,4fr) minmax(0,8fr)', gap: '18px', alignItems: 'stretch' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 w-full items-stretch">
           {/* Skor Kesehatan Bisnis (tab: Skor / 4 pilar / Tren) */}
-          <div style={{ position: 'relative', background: '#0D1117', border: 'none', borderRadius: '4px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+          <div className="linear-card lg:col-span-5 xl:col-span-4" style={{ position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '16px 20px 10px 20px' }}>
-              <span style={{ fontSize: '13.5px', fontWeight: 600, letterSpacing: '-0.015em', color: '#F5F7FA', whiteSpace: 'nowrap' }}>Skor Kesehatan Bisnis</span>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, letterSpacing: '-0.015em', color: '#0F172A', whiteSpace: 'nowrap' }}>Skor Kesehatan Bisnis</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: hsColor, padding: '4px 9px', borderRadius: '4px', background: `${hsColor}1A`, whiteSpace: 'nowrap' }}>
                   {word(hsScore)}
@@ -4373,7 +4388,7 @@ export default function CompanyDataDashboard({
                   type="button"
                   onClick={() => setPanelOpen((p) => ({ ...p, hs: !p.hs }))}
                   title="Lipat / buka panel"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', flex: '0 0 28px', background: 'rgba(255,255,255,0.04)', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', flex: '0 0 28px', background: '#F8FAFC', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ transform: panelOpen.hs ? 'none' : 'rotate(180deg)', transition: 'transform 180ms ease' }}>
                     <path d="M18 15l-6-6-6 6" />
@@ -4385,7 +4400,7 @@ export default function CompanyDataDashboard({
             {panelOpen.hs && (
             <>
             <div style={{ padding: '10px 20px 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '3px', background: 'rgba(255,255,255,0.035)', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '3px', padding: '3px', background: '#F1F5F9', borderRadius: '4px' }}>
                 <button type="button" onClick={() => setHsMode('score')} style={{ ...pillBtn(hsMode === 'score'), display: 'flex', alignItems: 'center' }}>Skor</button>
                 <button type="button" onClick={() => setHsMode('pilar')} style={{ ...pillBtn(hsMode === 'pilar'), display: 'flex', alignItems: 'center' }}>4 Pilar</button>
                 <button type="button" onClick={() => setHsMode('tren')} style={{ ...pillBtn(hsMode === 'tren'), display: 'flex', alignItems: 'center' }}>Tren</button>
@@ -4397,8 +4412,8 @@ export default function CompanyDataDashboard({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(34px, 3vw, 46px)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 0.9, color: hsScore > 0 ? '#F5F7FA' : '#8A93A3', fontVariantNumeric: 'tabular-nums' }}>{hsScore > 0 ? hsScore : '—'}</span>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#8A93A3' }}>/100</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(34px, 3vw, 46px)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 0.9, color: hsScore > 0 ? '#0F172A' : '#64748B', fontVariantNumeric: 'tabular-nums' }}>{hsScore > 0 ? hsScore : '—'}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#64748B' }}>/100</span>
                     </span>
                     {hsScore > 0 && prevHsScore !== null ? (() => {
                       const d = pointDelta(hsScore, prevHsScore);
@@ -4408,7 +4423,7 @@ export default function CompanyDataDashboard({
                         </span>
                       );
                     })() : (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', fontWeight: 600, color: '#8A93A3', background: 'rgba(255,255,255,0.05)' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 10px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', fontWeight: 600, color: '#64748B', background: 'rgba(255,255,255,0.05)' }}>
                         Menunggu data
                       </span>
                     )}
@@ -4436,12 +4451,12 @@ export default function CompanyDataDashboard({
                       )}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '13px' }}>
-                      <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Bahaya 0&ndash;49</span>
-                      <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Perhatian 50&ndash;79</span>
+                      <span style={{ fontSize: '10.5px', color: '#64748B' }}>Bahaya 0&ndash;49</span>
+                      <span style={{ fontSize: '10.5px', color: '#64748B' }}>Perhatian 50&ndash;79</span>
                       <span style={{ fontSize: '10.5px', color: '#3FBF8F' }}>Sehat 80+</span>
                     </div>
                   </div>
-                  <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.6, color: '#A9B4C7', textWrap: 'pretty' as any }}>{hsVerdict}</p>
+                  <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.6, color: '#334155', textWrap: 'pretty' as any }}>{hsVerdict}</p>
                 </div>
               )}
 
@@ -4451,14 +4466,14 @@ export default function CompanyDataDashboard({
                     <div key={pi} style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>{p.name}</span>
-                          <span style={{ fontSize: '10px', color: '#8A93A3', background: 'rgba(255,255,255,0.04)', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <span style={{ fontSize: '12.5px', color: '#0F172A' }}>{p.name}</span>
+                          <span style={{ fontSize: '10px', color: '#64748B', background: '#F8FAFC', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)' }}>
                             {p.dataSource}
                           </span>
                         </div>
                         <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: p.deltaColor, background: p.deltaBg }}>{p.delta}</span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13.5px', fontWeight: 600, color: p.hasData ? tone(p.score) : '#8A93A3' }}>{p.hasData ? p.score : '—'}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13.5px', fontWeight: 600, color: p.hasData ? tone(p.score) : '#64748B' }}>{p.hasData ? p.score : '—'}</span>
                         </span>
                       </div>
                       <div style={{ marginTop: '9px', height: '5px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
@@ -4467,7 +4482,7 @@ export default function CompanyDataDashboard({
                     </div>
                   ))}
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', paddingTop: '13px' }}>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA' }}>Skor gabungan</span>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#0F172A' }}>Skor gabungan</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '14px', fontWeight: 600, color: '#3FBF8F' }}>{hsScore} / 100</span>
                   </div>
                 </div>
@@ -4476,14 +4491,14 @@ export default function CompanyDataDashboard({
               {hsMode === 'tren' && (
                 <div>
                   {hsHistory.length === 0 ? (
-                    <p style={{ margin: 0, padding: '12px 0', fontSize: '12.5px', lineHeight: 1.6, color: '#A9B4C7', textWrap: 'pretty' as any }}>
+                    <p style={{ margin: 0, padding: '12px 0', fontSize: '12.5px', lineHeight: 1.6, color: '#334155', textWrap: 'pretty' as any }}>
                       Belum ada histori skor tercatat. Catat transaksi dan metrik operasional untuk mengaktifkan tren kesehatan bisnis.
                     </p>
                   ) : (
                     <>
                       <span style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', marginBottom: '12px' }}>
-                        <span style={{ fontSize: '11.5px', color: '#8A93A3' }}>Skor berjalan</span>
-                        <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>histori sebelumnya belum tersedia</span>
+                        <span style={{ fontSize: '11.5px', color: '#64748B' }}>Skor berjalan</span>
+                        <span style={{ fontSize: '10.5px', color: '#64748B' }}>histori sebelumnya belum tersedia</span>
                       </span>
                       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '7px', height: '120px' }}>
                         {hsHistory.map((h, hi) => {
@@ -4500,10 +4515,10 @@ export default function CompanyDataDashboard({
                       </div>
                       <div style={{ display: 'flex', gap: '7px', marginTop: '8px' }}>
                         {hsHistory.map((h, hi) => (
-                          <span key={hi} style={{ flex: '1 1 0', minWidth: 0, textAlign: 'center', fontSize: '11px', color: '#8A93A3' }}>{h.name}</span>
+                          <span key={hi} style={{ flex: '1 1 0', minWidth: 0, textAlign: 'center', fontSize: '11px', color: '#64748B' }}>{h.name}</span>
                         ))}
                       </div>
-                      <p style={{ margin: '14px 0 0', fontSize: '12.5px', lineHeight: 1.6, color: '#A9B4C7', textWrap: 'pretty' as any }}>
+                      <p style={{ margin: '14px 0 0', fontSize: '12.5px', lineHeight: 1.6, color: '#334155', textWrap: 'pretty' as any }}>
                         Skor bulan ini {hsScore}/100. Histori bulan sebelumnya belum tersedia.
                       </p>
                     </>
@@ -4517,12 +4532,12 @@ export default function CompanyDataDashboard({
                     nol) yang terukur, "ditahan oleh X" itu klaim analisis yang
                     tidak jujur (bukan benar-benar dibandingkan ke pilar lain). */}
                 {pillarsWithData.length >= 2 ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: '#8A93A3' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: '#64748B' }}>
                     <span style={{ width: '7px', height: '7px', borderRadius: '2px', background: '#EF4444', flex: '0 0 7px' }} />
                     <span>Ditahan oleh {weakestPillar.name} {weakestPillar.score}/100</span>
                   </span>
                 ) : (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: '#8A93A3' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '9px', fontSize: '12px', color: '#64748B' }}>
                     <span style={{ width: '7px', height: '7px', borderRadius: '2px', background: '#5C6474', flex: '0 0 7px' }} />
                     <span>{pillarsWithData.length === 1 ? `Baru pilar ${pillarsWithData[0].name} yang terukur` : 'Belum ada pilar yang terukur'}</span>
                   </span>
@@ -4531,7 +4546,7 @@ export default function CompanyDataDashboard({
                   <button
                     type="button"
                     onClick={() => setOpenAlert('health')}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#F5F7FA', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#0F172A', cursor: 'pointer', whiteSpace: 'nowrap' }}
                   >
                     Audit AI
                   </button>
@@ -4543,47 +4558,47 @@ export default function CompanyDataDashboard({
           </div>
 
           {/* 6-Month Trend Chart (tab: Batang / Garis / Tabel) */}
-          <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+          <div className="linear-card lg:col-span-7 xl:col-span-8" style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
               <div>
-                <span style={{ display: 'block', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.01em', color: '#F5F7FA' }}>
+                <span style={{ display: 'block', fontSize: '14px', fontWeight: 600, letterSpacing: '-0.01em', color: '#0F172A' }}>
                   Tren Kinerja {perfHorizon === '3m' ? '3 Bulan' : perfHorizon === '6m' ? '6 Bulan' : perfHorizon === 'ytd' ? 'Tahun Berjalan (YTD)' : perfHorizon === '1y' ? '1 Tahun' : perfHorizon === '3y' ? '3 Tahun' : perfHorizon === '5y' ? '5 Tahun' : '10 Tahun'}
                 </span>
-                <span style={{ display: 'block', marginTop: '5px', fontSize: '12px', color: '#A9B4C7' }}>
+                <span style={{ display: 'block', marginTop: '5px', fontSize: '12px', color: '#334155' }}>
                   {isMultiYearTrend ? `Data historis tahunan (${trendYearsList[0]}–${trendYearsList[trendYearsList.length - 1]})` : (f.rev > 0 ? 'Data riil periode berjalan' : 'Menunggu pencatatan transaksi perdana')}
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#CBD3DF' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#475569' }}>
                   <span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#3FBF8F' }} />
                   <span>Omset</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>{short(f.rev)}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>{short(f.rev)}</span>
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#3FBF8F' }}>{f.mom}</span>
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#CBD3DF' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#475569' }}>
                   <span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} />
                   <span>Laba Bersih</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>{short(f.np)}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>{short(f.np)}</span>
                 </span>
                 {(trendMetricView === 'gp' || trendMetricView === 'all') && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#C4B5FD' }}>
                     <span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#8D55E8' }} />
                     <span>Laba Kotor</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>{short(f.gp > 0 ? f.gp : f.rev * 0.62)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>{short(f.gp > 0 ? f.gp : f.rev * 0.62)}</span>
                   </span>
                 )}
                 {trendMetricView === 'tax' && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#FCD34D' }}>
                     <span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#F2A83B' }} />
                     <span>Est. PPh</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>{short(f.np * 0.11)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>{short(f.np * 0.11)}</span>
                   </span>
                 )}
                 {trendMetricView === 'headcount' && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#67E8F9' }}>
                     <span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#06B6D4' }} />
                     <span>Karyawan</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#F5F7FA' }}>18 Staf</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: '#0F172A' }}>18 Staf</span>
                   </span>
                 )}
               </div>
@@ -4597,13 +4612,13 @@ export default function CompanyDataDashboard({
                 <div className="sap-toolbar-bar">
                   {/* Visual Type Selector */}
                   <div className="sap-toolbar-item">
-                    <span style={{ fontSize: '11px', color: '#8A93A3' }}>Tampilan:</span>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>Tampilan:</span>
                     <select
                       aria-label="Tipe Tampilan Grafik"
                       value={trMode}
                       onChange={(e) => setTrMode(e.target.value as any)}
                       className="sap-toolbar-select"
-                      style={{ fontWeight: 600, color: '#F5F7FA' }}
+                      style={{ fontWeight: 600, color: '#0F172A' }}
                     >
                       <option value="bar">Grafik Batang</option>
                       <option value="line">Grafik Garis</option>
@@ -4615,7 +4630,7 @@ export default function CompanyDataDashboard({
 
                   {/* Metric Perspective Filter */}
                   <div className="sap-toolbar-item">
-                    <span style={{ fontSize: '11px', color: '#8A93A3' }}>Metrik:</span>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>Metrik:</span>
                     <select
                       aria-label="Perspektif Metrik"
                       value={trendMetricView}
@@ -4645,7 +4660,7 @@ export default function CompanyDataDashboard({
               {/* Horizon Selector Dropdown */}
               <div className="sap-toolbar-bar">
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Rentang:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Rentang:</span>
                   <select
                     aria-label="Rentang Waktu Grafik"
                     value={perfHorizon}
@@ -4669,30 +4684,30 @@ export default function CompanyDataDashboard({
             {trMode === 'bar' && (
               <div style={{ flex: 1, display: 'flex', gap: '12px', alignItems: 'stretch', minHeight: 0 }}>
                 <div style={{ width: '76px', flex: '0 0 76px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '206px' }}>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax)}</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax * 0.667)}</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax * 0.333)}</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>Rp 0</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax)}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax * 0.667)}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax * 0.333)}</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>Rp 0</span>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', height: '206px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 68.33px)' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px', height: '206px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 68.33px)' }}>
                     {trendBars.map((b, bi) => (
                       <span key={bi} style={{ flex: '1 1 0', minWidth: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: '4px', height: '100%' }}>
                         {/* Omset Bar */}
-                        <span title={`Omset: ${b.value}`} style={{ width: trendMetricView === 'all' ? '28%' : '22%', height: `${b.revH}%`, borderRadius: '2px 2px 0 0', background: '#3FBF8F' }} />
+                        <span title={`Omset: ${b.value}`} style={{ width: trendMetricView === 'all' ? '28%' : '22%', height: `${b.revH}%`, borderRadius: '4px 4px 0 0', background: 'linear-gradient(180deg, #3FBF8F 0%, rgba(63,191,143,0.7) 100%)', boxShadow: '0 0 10px rgba(63,191,143,0.15)' }} />
                         {/* Laba Bersih Bar */}
-                        <span title={`Laba Bersih: ${b.npVal}`} style={{ width: trendMetricView === 'all' ? '28%' : '22%', height: `${b.npH}%`, borderRadius: '2px 2px 0 0', background: '#4E9BFF' }} />
+                        <span title={`Laba Bersih: ${b.npVal}`} style={{ width: trendMetricView === 'all' ? '28%' : '22%', height: `${b.npH}%`, borderRadius: '4px 4px 0 0', background: 'linear-gradient(180deg, #4E9BFF 0%, rgba(78,155,255,0.7) 100%)', boxShadow: '0 0 10px rgba(78,155,255,0.15)' }} />
                         {/* Laba Kotor Bar if selected */}
                         {(trendMetricView === 'gp' || trendMetricView === 'all') && (
-                          <span title={`Laba Kotor: ${b.gpVal}`} style={{ width: trendMetricView === 'all' ? '24%' : '22%', height: `${b.gpH}%`, borderRadius: '2px 2px 0 0', background: '#8D55E8' }} />
+                          <span title={`Laba Kotor: ${b.gpVal}`} style={{ width: trendMetricView === 'all' ? '24%' : '22%', height: `${b.gpH}%`, borderRadius: '4px 4px 0 0', background: 'linear-gradient(180deg, #8D55E8 0%, rgba(141,85,232,0.7) 100%)', boxShadow: '0 0 10px rgba(141,85,232,0.15)' }} />
                         )}
                         {/* Tax Bar if selected */}
                         {trendMetricView === 'tax' && (
-                          <span title={`Estimasi Pajak: ${b.taxVal}`} style={{ width: '22%', height: `${b.taxH}%`, borderRadius: '2px 2px 0 0', background: '#F2A83B' }} />
+                          <span title={`Estimasi Pajak: ${b.taxVal}`} style={{ width: '22%', height: `${b.taxH}%`, borderRadius: '4px 4px 0 0', background: 'linear-gradient(180deg, #F2A83B 0%, rgba(242,168,59,0.7) 100%)', boxShadow: '0 0 10px rgba(242,168,59,0.15)' }} />
                         )}
                         {/* Headcount Bar if selected */}
                         {trendMetricView === 'headcount' && (
-                          <span title={`Jumlah Karyawan: ${b.headcount} Staf`} style={{ width: '22%', height: `${b.hcH}%`, borderRadius: '2px 2px 0 0', background: '#06B6D4' }} />
+                          <span title={`Jumlah Karyawan: ${b.headcount} Staf`} style={{ width: '22%', height: `${b.hcH}%`, borderRadius: '4px 4px 0 0', background: 'linear-gradient(180deg, #06B6D4 0%, rgba(6,182,212,0.7) 100%)', boxShadow: '0 0 10px rgba(6,182,212,0.15)' }} />
                         )}
                       </span>
                     ))}
@@ -4702,8 +4717,8 @@ export default function CompanyDataDashboard({
                       const isHighlight = isMultiYearTrend ? b.name === '2026' : b.name === (f.n ? f.n.split(' ')[0] : month);
                       return (
                         <span key={bi} style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                          <span style={{ fontSize: '11px', color: isHighlight ? '#F5F7FA' : '#8A93A3', fontWeight: isHighlight ? 600 : 400 }}>{b.name}</span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#8A93A3' }}>
+                          <span style={{ fontSize: '11px', color: isHighlight ? '#0F172A' : '#64748B', fontWeight: isHighlight ? 600 : 400 }}>{b.name}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', color: '#64748B' }}>
                             {trendMetricView === 'headcount' ? `${b.headcount} Staf` : b.value}
                           </span>
                         </span>
@@ -4720,7 +4735,7 @@ export default function CompanyDataDashboard({
                 <div style={{ flex: 1, display: 'flex', gap: '10px', alignItems: 'stretch', minHeight: 0 }}>
                   <div
                     onMouseLeave={() => setHoverIndex(-1)}
-                    style={{ flex: 1, position: 'relative', height: '206px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 68.33px)' }}
+                    style={{ flex: 1, position: 'relative', height: '206px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 68.33px)' }}
                   >
                     <svg viewBox="0 0 1000 205" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
                       <path d={trendRevPath.area} fill="url(#gGreen)" stroke="none" />
@@ -4760,13 +4775,13 @@ export default function CompanyDataDashboard({
                       const colWidthPct = nPts > 0 ? 100 / nPts : 100;
                       return (
                         <React.Fragment key={p.key}>
-                          <span style={{ position: 'absolute', left: `calc(${L}% - 4px)`, top: `${(yr - 4).toFixed(1)}px`, width: '8px', height: '8px', borderRadius: '2px', background: '#3FBF8F', boxShadow: '0 0 0 2px #0B0E14', pointerEvents: 'none' }} />
-                          <span style={{ position: 'absolute', left: `calc(${L}% - 3.5px)`, top: `${(yp - 3.5).toFixed(1)}px`, width: '7px', height: '7px', borderRadius: '2px', background: '#4E9BFF', boxShadow: '0 0 0 2px #0B0E14', pointerEvents: 'none' }} />
+                          <span style={{ position: 'absolute', left: `calc(${L}% - 4px)`, top: `${(yr - 4).toFixed(1)}px`, width: '8px', height: '8px', borderRadius: '2px', background: '#3FBF8F', boxShadow: '0 0 0 2px #FFFFFF', pointerEvents: 'none' }} />
+                          <span style={{ position: 'absolute', left: `calc(${L}% - 3.5px)`, top: `${(yp - 3.5).toFixed(1)}px`, width: '7px', height: '7px', borderRadius: '2px', background: '#4E9BFF', boxShadow: '0 0 0 2px #FFFFFF', pointerEvents: 'none' }} />
                           {(trendMetricView === 'gp' || trendMetricView === 'all') && (
-                            <span style={{ position: 'absolute', left: `calc(${L}% - 3px)`, top: `${(ygp - 3).toFixed(1)}px`, width: '6px', height: '6px', borderRadius: '2px', background: '#8D55E8', boxShadow: '0 0 0 2px #0B0E14', pointerEvents: 'none' }} />
+                            <span style={{ position: 'absolute', left: `calc(${L}% - 3px)`, top: `${(ygp - 3).toFixed(1)}px`, width: '6px', height: '6px', borderRadius: '2px', background: '#8D55E8', boxShadow: '0 0 0 2px #FFFFFF', pointerEvents: 'none' }} />
                           )}
                           {trendMetricView === 'headcount' && (
-                            <span style={{ position: 'absolute', left: `calc(${L}% - 3px)`, top: `${(yhc - 3).toFixed(1)}px`, width: '6px', height: '6px', borderRadius: '2px', background: '#06B6D4', boxShadow: '0 0 0 2px #0B0E14', pointerEvents: 'none' }} />
+                            <span style={{ position: 'absolute', left: `calc(${L}% - 3px)`, top: `${(yhc - 3).toFixed(1)}px`, width: '6px', height: '6px', borderRadius: '2px', background: '#06B6D4', boxShadow: '0 0 0 2px #FFFFFF', pointerEvents: 'none' }} />
                           )}
                           <span
                             onMouseEnter={() => setHoverIndex(i)}
@@ -4793,12 +4808,12 @@ export default function CompanyDataDashboard({
                           zIndex: 5,
                         }}
                       >
-                        <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#CBD3DF', marginBottom: '8px' }}>
+                        <span style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
                           Periode: {trendPoints[hoverIndex].name}
                         </span>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#F5F7FA' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#0F172A' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ width: '8px', height: '2.5px', borderRadius: '2px', background: '#3FBF8F' }} />
                               <span>Omset</span>
@@ -4808,7 +4823,7 @@ export default function CompanyDataDashboard({
                             </span>
                           </span>
 
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#F5F7FA' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#0F172A' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ width: '8px', height: '2.5px', borderRadius: '2px', background: '#8D55E8' }} />
                               <span>Laba Kotor</span>
@@ -4818,7 +4833,7 @@ export default function CompanyDataDashboard({
                             </span>
                           </span>
 
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#F5F7FA' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '12px', color: '#0F172A' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ width: '8px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} />
                               <span>Laba Bersih</span>
@@ -4828,7 +4843,7 @@ export default function CompanyDataDashboard({
                             </span>
                           </span>
 
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '11.5px', color: '#CBD3DF' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '11.5px', color: '#475569' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ width: '8px', height: '2.5px', borderRadius: '2px', background: '#F2A83B' }} />
                               <span>Pajak (PPh)</span>
@@ -4838,7 +4853,7 @@ export default function CompanyDataDashboard({
                             </span>
                           </span>
 
-                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '11.5px', color: '#CBD3DF' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', fontSize: '11.5px', color: '#475569' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                               <span style={{ width: '8px', height: '2.5px', borderRadius: '2px', background: '#06B6D4' }} />
                               <span>Jumlah Karyawan</span>
@@ -4850,7 +4865,7 @@ export default function CompanyDataDashboard({
                         </div>
 
                         <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-                          <span style={{ color: '#8A93A3' }}>Pertumbuhan:</span>
+                          <span style={{ color: '#64748B' }}>Pertumbuhan:</span>
                           <span style={{ color: '#3FBF8F', fontWeight: 600 }}>{trendPoints[hoverIndex].growth}</span>
                         </div>
                       </div>
@@ -4858,16 +4873,16 @@ export default function CompanyDataDashboard({
                   </div>
 
                   <div style={{ width: '66px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '206px' }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax * 0.667)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(tmax * 0.333)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>Rp 0</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax * 0.667)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(tmax * 0.333)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>Rp 0</span>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '76px' }}>
                   {trendPoints.map((p) => (
-                    <span key={p.key} style={{ fontSize: '11px', fontWeight: p.isCurrent ? 600 : 400, color: p.isCurrent ? '#F5F7FA' : '#8A93A3' }}>
+                    <span key={p.key} style={{ fontSize: '11px', fontWeight: p.isCurrent ? 600 : 400, color: p.isCurrent ? '#0F172A' : '#64748B' }}>
                       {p.name}
                     </span>
                   ))}
@@ -4879,24 +4894,24 @@ export default function CompanyDataDashboard({
             {trMode === 'table' && (
               <div style={{ flex: 1, minHeight: 0, overflowX: 'auto' }}>
                 <div style={{ minWidth: '700px', display: 'grid', gridTemplateColumns: '64px minmax(90px,1fr) minmax(90px,1fr) minmax(90px,1fr) 75px 80px 85px 85px', gap: '10px', padding: '0 0 9px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3' }}>Periode</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Omset</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Laba Kotor</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Laba Bersih</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Pajak PPh</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Karyawan</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Margin</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#8A93A3', textAlign: 'right' }}>Pertumbuhan</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B' }}>Periode</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Omset</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Laba Kotor</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Laba Bersih</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Pajak PPh</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Karyawan</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Margin</span>
+                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#64748B', textAlign: 'right' }}>Pertumbuhan</span>
                 </div>
                 {trendTable.map((r, ri) => (
                   <div key={ri} style={{ minWidth: '700px', display: 'grid', gridTemplateColumns: '64px minmax(90px,1fr) minmax(90px,1fr) minmax(90px,1fr) 75px 80px 85px 85px', gap: '10px', alignItems: 'center', padding: '11px 0', borderBottom: '1px solid rgba(255,255,255,0.055)', background: r.isLast ? 'rgba(63,191,143,0.04)' : 'transparent' }}>
-                    <span style={{ fontSize: '12px', fontWeight: r.isLast ? 600 : 500, color: r.isLast ? '#F5F7FA' : '#CBD3DF' }}>{r.name}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#F5F7FA', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.rev}</span>
+                    <span style={{ fontSize: '12px', fontWeight: r.isLast ? 600 : 500, color: r.isLast ? '#0F172A' : '#CBD3DF' }}>{r.name}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#0F172A', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.rev}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#8D55E8', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.gp}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#4E9BFF', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.net}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#F2A83B', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.tax}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#06B6D4', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.headcount}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#CBD3DF', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.margin}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#475569', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{r.margin}</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: r.growth.startsWith('-') ? '#EF4444' : '#3FBF8F', textAlign: 'right' }}>{r.growth}</span>
                   </div>
                 ))}
@@ -4904,12 +4919,23 @@ export default function CompanyDataDashboard({
             )}
               </>
             ) : (
-              <div style={{ minHeight: '152px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', borderRadius: '5px', background: 'rgba(255,255,255,0.025)', border: '1px dashed rgba(255,255,255,0.1)', textAlign: 'center' }}>
-                <span style={{ maxWidth: '520px', fontSize: '12px', lineHeight: 1.6, color: '#8A93A3' }}>
+              <div style={{ minHeight: '152px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', borderRadius: '5px', background: '#F8FAFC', border: '1px dashed #CBD5E1', textAlign: 'center' }}>
+                <span style={{ maxWidth: '520px', fontSize: '12px', lineHeight: 1.6, color: '#64748B' }}>
                   Belum ada transaksi untuk membentuk tren enam bulan. Grafik akan aktif otomatis setelah data pendapatan atau laba tercatat.
                 </span>
               </div>
             )}
+
+            {/* CardFooter (v0 Next.js Charts Pattern) */}
+            <div className="flex items-center justify-between pt-3.5 mt-auto border-t border-white/[0.06] text-xs">
+              <div className="flex items-center gap-2 font-medium text-emerald-400">
+                <TrendingUp size={14} />
+                <span>Pertumbuhan Omset MoM {f.mom || '+0%'}</span>
+              </div>
+              <span className="text-slate-400 font-sans hidden sm:inline">
+                {isMultiYearTrend ? 'Tren perbandingan multi-tahun' : 'Berdasarkan data 6 bulan berjalan'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -4919,18 +4945,18 @@ export default function CompanyDataDashboard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>Rekomendasi Strategis AI</h3>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>Rekomendasi Strategis AI</h3>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 9px', borderRadius: '4px', background: 'rgba(78,155,255,0.1)', border: '1px solid rgba(78,155,255,0.28)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.01em', color: '#8CC0FF' }}>
                 Butuh Keputusan
               </span>
             </div>
             <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '11.5px', color: '#8A93A3' }}>Update harian dari data kas, inventori &amp; tim</span>
+              <span style={{ fontSize: '11.5px', color: '#64748B' }}>Update harian dari data kas, inventori &amp; tim</span>
               <button
                 type="button"
                 onClick={() => setPanelOpen((p) => ({ ...p, ai: !p.ai }))}
                 title="Lipat / buka panel"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', flex: '0 0 28px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '4px', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', flex: '0 0 28px', background: '#F8FAFC', border: '1px solid rgba(255,255,255,0.09)', borderRadius: '4px', cursor: 'pointer' }}
               >
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 220ms ease', transform: aiRecPanelOpen ? 'rotate(0deg)' : 'rotate(180deg)' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A93A3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9.5l6 5.5 6-5.5" /></svg>
@@ -4940,17 +4966,17 @@ export default function CompanyDataDashboard({
           </div>
 
           {!(aiRecPanelOpen) && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 17px', borderRadius: '4px', background: '#0D1117', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Rekomendasi Strategis AI</span>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: 700, color: '#8CC0FF' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '14px 17px', borderRadius: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ fontSize: '12px', color: '#475569', fontWeight: 500 }}>Rekomendasi Strategis AI</span>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', fontSize: '13px', fontWeight: 700, color: '#0284C7' }}>
                 {aiActionRecs.length === 0 ? 'Belum ada rekomendasi' : `${aiActionPendingCount} menunggu keputusan`}
               </span>
             </div>
           )}
 
           {aiRecPanelOpen && aiActionRecs.length === 0 && (
-            <div style={{ padding: '28px 20px', textAlign: 'center', borderRadius: '4px', background: '#0D1117', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <span style={{ fontSize: '13px', color: '#8A93A3' }}>
+            <div style={{ padding: '28px 20px', textAlign: 'center', borderRadius: '8px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ fontSize: '13px', color: '#64748B' }}>
                 Belum ada rekomendasi AI. Rekomendasi akan muncul otomatis begitu ada transaksi dan data operasional tercatat.
               </span>
             </div>
@@ -4966,13 +4992,13 @@ export default function CompanyDataDashboard({
                     </span>
                     <span style={aiRecChipStyle(r.state)}>{r.stateText}</span>
                   </div>
-                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, lineHeight: 1.45, letterSpacing: '-0.01em', color: '#F5F7FA', textWrap: 'pretty' as any }}>
+                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, lineHeight: 1.45, letterSpacing: '-0.01em', color: '#0F172A', textWrap: 'pretty' as any }}>
                     {r.title}
                   </span>
-                  <p style={{ margin: 0, flex: '1 1 auto', fontSize: '12px', lineHeight: 1.6, color: '#A9B4C7', textWrap: 'pretty' as any }}>{r.why}</p>
+                  <p style={{ margin: 0, flex: '1 1 auto', fontSize: '12px', lineHeight: 1.6, color: '#334155', textWrap: 'pretty' as any }}>{r.why}</p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', minHeight: '50px', padding: '11px 12px', borderRadius: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3' }}>{r.metricLabel}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: 'tabular-nums', fontSize: '13px', fontWeight: 700, color: r.state === 'skip' ? '#8A93A3' : r.metricColor, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>{r.metricLabel}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: 'tabular-nums', fontSize: '13px', fontWeight: 700, color: r.state === 'skip' ? '#64748B' : r.metricColor, whiteSpace: 'nowrap' }}>
                       {r.metric}
                     </span>
                   </div>
@@ -5007,7 +5033,7 @@ export default function CompanyDataDashboard({
                     <button
                       type="button"
                       onClick={r.onSkip}
-                      style={{ display: 'inline-flex', alignItems: 'center', height: '32px', padding: '0 11px', background: r.state === 'skip' ? 'rgba(239,68,68,0.14)' : 'rgba(255,255,255,0.04)', border: r.state === 'skip' ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: r.state === 'skip' ? '#EF4444' : '#8A93A3', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', height: '32px', padding: '0 11px', background: r.state === 'skip' ? 'rgba(239,68,68,0.14)' : 'rgba(255,255,255,0.04)', border: r.state === 'skip' ? '1px solid #EF4444' : '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: r.state === 'skip' ? '#EF4444' : '#64748B', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       {r.skipText}
                     </button>
@@ -5022,25 +5048,25 @@ export default function CompanyDataDashboard({
         {/* 3B. PROYEKSI 3 BULAN KE DEPAN */}
         {/* ========================================================================= */}
         {hasForecastBase ? (
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 20px 10px 20px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                 Proyeksi {fcHorizon === '1m' ? '1 Bulan Depan' : fcHorizon === '3m' ? '3 Bulan ke Depan' : fcHorizon === 'q4' ? 'Kuartal 4 (Akhir Tahun)' : '1 Tahun Penuh (12 Bulan)'}
               </h3>
-              <span style={{ fontSize: '12px', color: '#A9B4C7' }}>Bila laju pertumbuhan tren berjalan berlanjut</span>
+              <span style={{ fontSize: '12px', color: '#334155' }}>Bila laju pertumbuhan tren berjalan berlanjut</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <div className="sap-toolbar-bar">
                 {/* Periode Proyeksi Dropdown */}
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Periode:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Periode:</span>
                   <select
                     aria-label="Periode Proyeksi"
                     value={fcHorizon}
                     onChange={(e) => setFcHorizon(e.target.value as any)}
                     className="sap-toolbar-select"
-                    style={{ fontWeight: 600, color: '#F5F7FA' }}
+                    style={{ fontWeight: 600, color: '#0F172A' }}
                   >
                     <option value="1m">1 Bulan Depan</option>
                     <option value="3m">3 Bulan ke Depan</option>
@@ -5053,7 +5079,7 @@ export default function CompanyDataDashboard({
 
                 {/* Skenario Proyeksi Dropdown */}
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Skenario:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Skenario:</span>
                   <select
                     aria-label="Skenario Proyeksi"
                     value={fcMode}
@@ -5077,8 +5103,8 @@ export default function CompanyDataDashboard({
             {/* Left Column: Monthly Projection Cards */}
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '2px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#A9B4C7' }}>Perkiraan Omset &amp; Laba Tiap Bulan</span>
-                <span style={{ fontSize: '11px', color: '#8A93A3', background: 'rgba(255,255,255,0.04)', padding: '2px 8px', borderRadius: '2px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Perkiraan Omset &amp; Laba Tiap Bulan</span>
+                <span style={{ fontSize: '11px', color: '#64748B', background: '#F8FAFC', padding: '2px 8px', borderRadius: '2px' }}>
                    Patokan: {f.n ? (f.n.split(' ')[0] || month) : month} riil
                 </span>
               </div>
@@ -5090,8 +5116,8 @@ export default function CompanyDataDashboard({
                     style={{
                       padding: '12px 14px',
                       borderRadius: '5px',
-                      background: 'rgba(255,255,255,0.025)',
-                      border: 'none',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '10px',
@@ -5103,11 +5129,11 @@ export default function CompanyDataDashboard({
                         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10px', fontWeight: 700, color: '#4E9BFF', background: 'rgba(78,155,255,0.12)', padding: '2px 7px', borderRadius: '4px' }}>
                           {mo.kind}
                         </span>
-                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#0F172A' }}>
                           {mo.name}
                         </span>
                       </div>
-                        <span style={{ fontSize: '11px', color: '#8A93A3' }}>Perkiraan 30 hari</span>
+                        <span style={{ fontSize: '11px', color: '#64748B' }}>Perkiraan 30 hari</span>
                     </div>
 
                     {/* 2 Progress Bars (Omset & Laba) */}
@@ -5115,11 +5141,11 @@ export default function CompanyDataDashboard({
                       {/* Omset Bar */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11.5px' }}>
-                          <span style={{ color: '#8A93A3', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '2px', background: '#4E9BFF' }} />
                             <span>Omset</span>
                           </span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                             {mo.rev}
                           </span>
                         </div>
@@ -5131,7 +5157,7 @@ export default function CompanyDataDashboard({
                       {/* Laba Bersih Bar */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11.5px' }}>
-                          <span style={{ color: '#8A93A3', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <span style={{ color: '#64748B', display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <span style={{ width: '6px', height: '6px', borderRadius: '2px', background: '#3FBF8F' }} />
                             <span>Laba</span>
                           </span>
@@ -5151,19 +5177,19 @@ export default function CompanyDataDashboard({
 
             {/* Right Column: Quarter Summary KPIs */}
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', background: 'rgba(0,0,0,0.12)', borderRadius: '4px', margin: '4px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#A9B4C7' }}>Total Proyeksi ({fcHorizon === '1m' ? '1 Bulan' : fcHorizon === '3m' ? '3 Bulan' : fcHorizon === 'q4' ? 'Kuartal 4' : '12 Bulan'})</span>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>Total Proyeksi ({fcHorizon === '1m' ? '1 Bulan' : fcHorizon === '3m' ? '3 Bulan' : fcHorizon === 'q4' ? 'Kuartal 4' : '12 Bulan'})</span>
 
               {/* 2 KPI Stat Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={{ padding: '12px 14px', borderRadius: '5px', background: 'rgba(78,155,255,0.08)', border: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Proyeksi Omset</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.5vw, 22px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Proyeksi Omset</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.5vw, 22px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                     {fcRevQ}
                   </span>
                 </div>
 
                 <div style={{ padding: '12px 14px', borderRadius: '5px', background: 'rgba(63,191,143,0.08)', border: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Proyeksi Laba Bersih</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Proyeksi Laba Bersih</span>
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.5vw, 22px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#3FBF8F', fontVariantNumeric: 'tabular-nums' }}>
                     {fcNetQ}
                   </span>
@@ -5173,13 +5199,13 @@ export default function CompanyDataDashboard({
               {/* Detail Key-Values */}
               <div style={{ display: 'flex', flexDirection: 'column', padding: '2px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 0' }}>
-                  <span style={{ fontSize: '12px', color: '#8A93A3' }}>Perkiraan Kas Akhir Periode</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>Perkiraan Kas Akhir Periode</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '13px', fontWeight: 700, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                     {fcCashEnd}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '8px 0' }}>
-                  <span style={{ fontSize: '12px', color: '#8A93A3' }}>Laju Pertumbuhan Dipakai</span>
+                  <span style={{ fontSize: '12px', color: '#64748B' }}>Laju Pertumbuhan Dipakai</span>
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#4E9BFF', background: 'rgba(78,155,255,0.10)', padding: '2px 8px', borderRadius: '4px' }}>
                     +{fcGrowthLabel}/bulan
                   </span>
@@ -5191,7 +5217,7 @@ export default function CompanyDataDashboard({
                 <span style={{ width: '22px', height: '22px', flex: '0 0 22px', borderRadius: '4px', background: 'rgba(78,155,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px' }}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8CC0FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3" /><path d="M12 8V4.5M8.5 14h.01M15.5 14h.01M9 17.5h6" /></svg>
                 </span>
-                <span style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#CBD3DF' }}>
+                <span style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#475569' }}>
                   {fcNoteText}
                 </span>
               </div>
@@ -5199,15 +5225,15 @@ export default function CompanyDataDashboard({
           </div>
         </div>
         ) : (
-          <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '20px 22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+          <div className="linear-card" style={{ padding: '22px 24px', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '11px', minWidth: 0, flex: '1 1 360px' }}>
-                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', flex: '0 0 32px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: '#8A93A3' }}>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', flex: '0 0 32px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: '#64748B' }}>
                   <Bot size={16} strokeWidth={1.8} />
                 </span>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>Proyeksi AI menunggu data</h3>
-                  <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.55, color: '#A9B4C7', maxWidth: '700px' }}>
+                  <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>Proyeksi AI menunggu data</h3>
+                  <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.55, color: '#334155', maxWidth: '700px' }}>
                     Belum ada riwayat kas atau pendapatan yang cukup untuk membuat prediksi. Masukkan transaksi dan target tahunan lewat AI Assistant agar analisis kuartal tidak berubah menjadi tebakan.
                   </p>
                 </div>
@@ -5229,10 +5255,10 @@ export default function CompanyDataDashboard({
         {/* ========================================================================= */}
         {/* 3C. SIMULATOR WHAT-IF */}
         {/* ========================================================================= */}
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', padding: '22px', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ padding: '24px', overflow: 'hidden' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#F5F7FA' }}>Simulator Skenario Bisnis (What-If)</h3>
-            <span style={{ fontSize: '12px', color: '#8A93A3' }}>Uji skenario keputusan terhadap kas &amp; runway riil sebelum dieksekusi</span>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>Simulator Skenario Bisnis (What-If)</h3>
+            <span style={{ fontSize: '12px', color: '#64748B' }}>Uji skenario keputusan terhadap kas &amp; runway riil sebelum dieksekusi</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -5240,7 +5266,7 @@ export default function CompanyDataDashboard({
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'rgba(255,255,255,0.035)',
+              background: '#F1F5F9',
               borderRadius: '4px',
               padding: '4px 6px 4px 16px',
               gap: '10px',
@@ -5264,7 +5290,7 @@ export default function CompanyDataDashboard({
                   padding: '0',
                   background: 'transparent',
                   border: 'none',
-                  color: '#F5F7FA',
+                  color: '#0F172A',
                   fontSize: '13px',
                   fontFamily: 'inherit',
                   outline: 'none'
@@ -5302,34 +5328,34 @@ export default function CompanyDataDashboard({
             {simResult && (
               <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '14px', animation: 'klirUp 240ms ease-out' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>{simResult.scenarioTitle}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>{simResult.scenarioTitle}</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 11px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, background: simRiskStyle[simResult.riskLevel]?.bg, border: `1px solid ${simRiskStyle[simResult.riskLevel]?.border}`, color: simRiskStyle[simResult.riskLevel]?.color }}>
                     {simRiskStyle[simResult.riskLevel]?.label || simResult.riskLevel}
                   </span>
                 </div>
 
-                <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.6, color: '#CBD3DF' }}>{simResult.summary}</p>
+                <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.6, color: '#475569' }}>{simResult.summary}</p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '12px' }}>
-                  <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.025)', border: 'none', borderRadius: '5px' }}>
-                    <div style={{ fontSize: '11px', color: '#98A2B3', marginBottom: '4px' }}>Runway sebelum</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: '#F5F7FA' }}>{simResult.baselineRunwayMonths} bulan</div>
+                  <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>Runway sebelum</div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>{simResult.baselineRunwayMonths} bulan</div>
                   </div>
-                  <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.025)', border: 'none', borderRadius: '5px' }}>
-                    <div style={{ fontSize: '11px', color: '#98A2B3', marginBottom: '4px' }}>Runway setelah</div>
+                  <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>Runway setelah</div>
                     <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: simResult.runwayDeltaMonths < 0 ? '#EF4444' : '#3FBF8F' }}>
                       {simResult.simulatedRunwayMonths} bulan ({simResult.runwayDeltaMonths >= 0 ? '+' : ''}{simResult.runwayDeltaMonths})
                     </div>
                   </div>
-                  <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.025)', border: 'none', borderRadius: '5px' }}>
-                    <div style={{ fontSize: '11px', color: '#98A2B3', marginBottom: '4px' }}>Titik impas</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>Titik impas</div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: '#0F172A' }}>
                       {simResult.breakEvenMonthEstimated ? `Bulan ke-${simResult.breakEvenMonthEstimated}` : '—'}
                     </div>
                   </div>
-                  <div style={{ padding: '12px 14px', background: 'rgba(255,255,255,0.025)', border: 'none', borderRadius: '5px' }}>
-                    <div style={{ fontSize: '11px', color: '#98A2B3', marginBottom: '4px' }}>Kas habis diproyeksi</div>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: simResult.cashOutDateProjected ? '#EF4444' : '#F5F7FA' }}>
+                  <div style={{ padding: '12px 14px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '5px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '4px' }}>Kas habis diproyeksi</div>
+                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '15px', fontWeight: 600, color: simResult.cashOutDateProjected ? '#EF4444' : '#0F172A' }}>
                       {simResult.cashOutDateProjected || 'Tidak diproyeksi'}
                     </div>
                   </div>
@@ -5345,37 +5371,37 @@ export default function CompanyDataDashboard({
                           title={`${mo.monthName}: kas Rp ${mo.projectedCash.toLocaleString('id-ID')}`}
                           style={{ width: '100%', height: `${pct}%`, borderRadius: '3px', background: mo.projectedCash <= 0 ? '#EF4444' : '#4E9BFF' }}
                         />
-                        <span style={{ fontSize: '9px', color: '#8A93A3' }}>{mo.monthName.split(' ')[0]}</span>
+                        <span style={{ fontSize: '9px', color: '#64748B' }}>{mo.monthName.split(' ')[0]}</span>
                       </div>
                     );
                   })}
                 </div>
 
                 <div style={{ padding: '13px 15px', background: 'rgba(78,155,255,0.05)', border: '1px solid rgba(78,155,255,0.18)', borderRadius: '4px' }}>
-                  <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.65, color: '#DCE3EC' }}>{simResult.strategicVerdict ? String(simResult.strategicVerdict).replace(/^[\u{1F300}-\u{1F9FF}\s]+/u, '') : ''}</p>
+                  <p style={{ margin: 0, fontSize: '12.5px', lineHeight: 1.65, color: '#1E293B' }}>{simResult.strategicVerdict ? String(simResult.strategicVerdict).replace(/^[\u{1F300}-\u{1F9FF}\s]+/u, '') : ''}</p>
                 </div>
 
                 {/* Risk Storytelling & Modal Buffer Analysis */}
-                <div style={{ padding: '13px 15px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ padding: '13px 15px', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '4px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#CBD3DF' }}>Analisis Faktor Risiko &amp; Ketahanan Kas</span>
-                    <span style={{ fontSize: '10.5px', color: '#8A93A3' }}>Horizon simulasi: {simResult.monthlyProjections?.length || 6} bulan</span>
+                    <span style={{ fontSize: '11.5px', fontWeight: 600, color: '#475569' }}>Analisis Faktor Risiko &amp; Ketahanan Kas</span>
+                    <span style={{ fontSize: '10.5px', color: '#64748B' }}>Horizon simulasi: {simResult.monthlyProjections?.length || 6} bulan</span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#090C12', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ fontSize: '10.5px', color: '#8A93A3', display: 'block' }}>Rasio Tekanan Runway</span>
+                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: '10.5px', color: '#64748B', display: 'block' }}>Rasio Tekanan Runway</span>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: simResult.simulatedRunwayMonths < 3 ? '#EF4444' : simResult.simulatedRunwayMonths < 6 ? '#F2A83B' : '#3FBF8F' }}>
                         {simResult.simulatedRunwayMonths < 3 ? 'Kritis (<3 bln)' : simResult.simulatedRunwayMonths < 6 ? 'Perhatian (<6 bln)' : 'Sehat (≥6 bln)'}
                       </span>
                     </div>
-                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#090C12', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ fontSize: '10.5px', color: '#8A93A3', display: 'block' }}>Estimasi Beban Modal Baru</span>
-                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#F5F7FA' }}>
+                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: '10.5px', color: '#64748B', display: 'block' }}>Estimasi Beban Modal Baru</span>
+                      <span style={{ fontSize: '12px', fontWeight: 600, color: '#0F172A' }}>
                         {simResult.runwayDeltaMonths < 0 ? `Beban kas ${Math.abs(simResult.runwayDeltaMonths)} bln operasional` : 'Surplus arus kas masuk'}
                       </span>
                     </div>
-                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#090C12', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ fontSize: '10.5px', color: '#8A93A3', display: 'block' }}>Rekomendasi Cadangan Modal</span>
+                    <div style={{ padding: '8px 10px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: '10.5px', color: '#64748B', display: 'block' }}>Rekomendasi Cadangan Modal</span>
                       <span style={{ fontSize: '12px', fontWeight: 600, color: '#4E9BFF' }}>
                         {short(Math.max(10000000, (f.exp > 0 ? f.exp : 15000000) * (simResult.simulatedRunwayMonths < 4 ? 3 : 1)))}
                       </span>
@@ -5387,7 +5413,7 @@ export default function CompanyDataDashboard({
                   {simResult.actionableSteps.map((step: string, i: number) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
                       <span style={{ width: '5px', height: '5px', borderRadius: '2px', background: '#4E9BFF', flexShrink: 0, marginTop: '6px' }} />
-                      <span style={{ fontSize: '12px', lineHeight: 1.55, color: '#CBD3DF' }}>{step}</span>
+                      <span style={{ fontSize: '12px', lineHeight: 1.55, color: '#475569' }}>{step}</span>
                     </div>
                   ))}
                 </div>
@@ -5405,24 +5431,24 @@ export default function CompanyDataDashboard({
             nyala = tidak ada perubahan tampak untuk tenant lama. */}
         {/* ========================================================================= */}
         {isModuleEnabled(enabledModules, 'finance') && (
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                 Keuangan &amp; Arus Kas Bisnis
               </h3>
-              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#8A93A3' }}>{f.n}</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>{f.n}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div className="sap-toolbar-bar">
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Komparasi:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Komparasi:</span>
                   <select
                     aria-label="Komparasi Keuangan"
                     value={cmpFinMode}
                     onChange={(e) => setCmpFinMode(e.target.value as any)}
                     className="sap-toolbar-select"
-                    style={{ fontWeight: cmpFinMode === 'none' ? 500 : 600, color: cmpFinMode === 'none' ? '#F5F7FA' : '#4E9BFF' }}
+                    style={{ fontWeight: cmpFinMode === 'none' ? 500 : 600, color: cmpFinMode === 'none' ? '#0F172A' : '#4E9BFF' }}
                   >
                     <option value="none">Bulan Ini (Standar)</option>
                     <option value="mom">vs Bulan Lalu (MoM)</option>
@@ -5435,7 +5461,7 @@ export default function CompanyDataDashboard({
               <button
                 type="button"
                 onClick={() => setOpenSection(openSection === 'fin' ? '' : 'fin')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'fin' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: 'none', color: openSection === 'fin' ? '#F5F7FA' : '#98A2B3' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'fin' ? '#F1F5F9' : '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}
               >
                 <span>{openSection === 'fin' ? 'Tutup grafik' : 'Lihat grafik'}</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ transform: openSection === 'fin' ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease' }}>
@@ -5446,21 +5472,21 @@ export default function CompanyDataDashboard({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0,1fr))', gap: '8px', padding: '0 16px 16px' }}>
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Saldo kas bersih</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Saldo kas bersih</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {short(cashNow)}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>
                 Runway {runwayDisplay} &middot; {!hasAnyTransactions ? 'Menunggu data' : cashNow > 0 && runwayMonths >= 6 ? 'aman' : cashNow <= 0 ? 'kritis' : 'waspada'}
               </span>
               {targetCmpFin && (() => {
                 const d = deltaChip(cashNow, targetCmpFin.cash);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.cash)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.cash)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5468,9 +5494,9 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Pendapatan</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Pendapatan</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {short(f.rev)}
               </div>
               <span
@@ -5481,7 +5507,7 @@ export default function CompanyDataDashboard({
                   marginTop: '6px',
                   fontSize: '11.5px',
                   fontWeight: 600,
-                  color: f.mom.startsWith('-') ? '#EF4444' : f.mom.startsWith('+') ? '#3FBF8F' : '#8A93A3',
+                  color: f.mom.startsWith('-') ? '#EF4444' : f.mom.startsWith('+') ? '#3FBF8F' : '#64748B',
                 }}
               >
                 <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
@@ -5493,9 +5519,9 @@ export default function CompanyDataDashboard({
                 const d = deltaChip(f.rev, targetCmpFin.rev);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.rev)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.rev)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5503,21 +5529,21 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Pengeluaran &amp; HPP</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Pengeluaran &amp; HPP</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {short(f.exp)}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>
                 {f.rev > 0 ? Math.round((f.exp / f.rev) * 100) : 0}% dari pendapatan
               </span>
               {targetCmpFin && (() => {
                 const d = deltaChip(f.exp, targetCmpFin.exp);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.exp)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.exp)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5525,19 +5551,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Laba kotor</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Laba kotor</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {short(f.gp)}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>Margin {f.rev > 0 ? `${String(f.nm).replace('.', ',')}%` : '0%'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>Margin {f.rev > 0 ? `${String(f.nm).replace('.', ',')}%` : '0%'}</span>
               {targetCmpFin && (() => {
                 const d = deltaChip(f.gp, targetCmpFin.gp);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.08)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.gp)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.gp)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5546,22 +5572,22 @@ export default function CompanyDataDashboard({
             </div>
 
             <div style={{ padding: '14px 16px', borderRadius: '5px', background: f.np > 0 ? 'rgba(63,191,143,0.06)' : f.np < 0 ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', letterSpacing: '0.14em', textTransform: 'uppercase', color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#8A93A3' }}>
+              <span style={{ display: 'block', fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', letterSpacing: '0.14em', textTransform: 'uppercase', color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#64748B' }}>
                 Laba bersih usaha
               </span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.6vw, 27px)', fontWeight: 700, letterSpacing: '-0.025em', color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#8A93A3', fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.6vw, 27px)', fontWeight: 700, letterSpacing: '-0.025em', color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#64748B', fontVariantNumeric: 'tabular-nums' }}>
                 {f.np > 0 ? `+${short(f.np)}` : f.np < 0 ? `-${short(Math.abs(f.np))}` : short(0)}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#8A93A3' }}>
+              <span style={{ display: 'block', marginTop: '6px', fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, color: f.np > 0 ? '#3FBF8F' : f.np < 0 ? '#EF4444' : '#64748B' }}>
                 {f.rev > 0 ? `Margin bersih ${String(f.nm).replace('.', ',')}%` : f.exp > 0 ? `Beban Rp ${short(f.exp)}` : 'Belum ada transaksi'}
               </span>
               {targetCmpFin && (() => {
                 const d = deltaChip(f.np, targetCmpFin.np);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '11px', paddingTop: '10px', borderTop: '1px dashed rgba(255,255,255,0.11)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpFin.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.np)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpFin.np)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5573,16 +5599,16 @@ export default function CompanyDataDashboard({
           {openSection === 'fin' && (
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '18px', display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: '16px', animation: 'klirUp 260ms ease-out' }}>
               <div>
-                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>
+                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>
                   Arus kas bulanan — data aktual {kk.join(', ')}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '12px 0 10px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#3FBF8F' }} /><span>Omset</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Laba bersih</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#EF4444' }} /><span>Beban</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#3FBF8F' }} /><span>Omset</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Laba bersih</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#EF4444' }} /><span>Beban</span></span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 71px)' }}>
+                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 71px)' }}>
                     <svg viewBox="0 0 1000 214" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
                       <path d={finRevPath.area} fill="url(#gGreen)" stroke="none" />
                       <path d={finRevPath.line} fill="none" stroke="#3FBF8F" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -5591,30 +5617,30 @@ export default function CompanyDataDashboard({
                     </svg>
                   </div>
                   <div style={{ width: '66px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '214px' }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(fmax)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(fmax * 0.667)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(fmax * 0.333)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>Rp 0</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(fmax)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(fmax * 0.667)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(fmax * 0.333)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>Rp 0</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '76px', marginTop: '8px' }}>
-                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#8A93A3' }}>{label}</span>)}
+                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#64748B' }}>{label}</span>)}
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Alokasi biaya</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#98A2B3' }}>Total {short(f.exp)}</span>
+                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Alokasi biaya</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#64748B' }}>Total {short(f.exp)}</span>
                 </div>
                 <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column' }}>
                   {costRows.map((row, idx) => (
                     <div key={idx} style={{ padding: '11px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
-                        <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>{row.label}</span>
+                        <span style={{ fontSize: '12.5px', color: '#0F172A' }}>{row.label}</span>
                         <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px' }}>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', width: '34px', textAlign: 'right' }}>{row.pct}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', width: '34px', textAlign: 'right' }}>{row.pct}</span>
                         </span>
                       </div>
                       <div style={{ marginTop: '7px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
@@ -5625,11 +5651,11 @@ export default function CompanyDataDashboard({
                   {/* 10 Sep 2026 (Fable, audit 3.4) -- catatan jujur pengganti
                       3 baris HPP/Budget iklan/Payroll yang dihapus (dulu
                       selalu Rp 0/0%, lihat komentar di costRows). */}
-                  <div style={{ padding: '9px 0', fontSize: '11px', color: '#8A93A3', fontStyle: 'italic' }}>
+                  <div style={{ padding: '9px 0', fontSize: '11px', color: '#64748B', fontStyle: 'italic' }}>
                     Rincian HPP/iklan/gaji belum bisa dipisah dari data kas.
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '13px 0 0' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#F5F7FA' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#0F172A' }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F2A83B" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
                       <span>Piutang klien belum tertagih</span>
                     </span>
@@ -5646,11 +5672,11 @@ export default function CompanyDataDashboard({
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#3FBF8F', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Insight Visual Arus Kas &amp; Profitabilitas
                   </span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#8A93A3' }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#64748B' }}>
                     Margin Bersih {String(f.nm).replace('.', ',')}% &bull; Runway {runwayDisplay}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#CBD3DF' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#475569' }}>
                   {f.np > 0
                     ? `Tren arus kas bulanan menunjukkan pertumbuhan omset stabil dengan margin bersih ${String(f.nm).replace('.', ',')}%. Struktur biaya didominasi HPP (${costRows[0]?.pct || '45%'}) yang masih berada dalam rentang efisien industri. Cadangan kas mencukupi kelangsungan operasional hingga ${runwayDisplay} ke depan tanpa risiko gagal bayar kewajiban jangka pendek.`
                     : `Pengeluaran operasional melampaui omset periode berjalan dengan defisit tercatat Rp ${short(Math.abs(f.np))}. Disarankan pengetatan biaya overhead dan percepatan penagihan piutang untuk mencegah penurunan tajam pada cadangan kas.`}
@@ -5667,24 +5693,24 @@ export default function CompanyDataDashboard({
             DITAMBAH, pola sama dengan Section 4 di atas. */}
         {/* ========================================================================= */}
         {isModuleEnabled(enabledModules, 'advertising') && (
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                 Marketing &amp; Pertumbuhan Pelanggan
               </h3>
-              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#8A93A3' }}>{f.n}</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>{f.n}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div className="sap-toolbar-bar">
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Komparasi:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Komparasi:</span>
                   <select
                     aria-label="Komparasi Marketing"
                     value={cmpMktMode}
                     onChange={(e) => setCmpMktMode(e.target.value as any)}
                     className="sap-toolbar-select"
-                    style={{ fontWeight: cmpMktMode === 'none' ? 500 : 600, color: cmpMktMode === 'none' ? '#F5F7FA' : '#06B6D4' }}
+                    style={{ fontWeight: cmpMktMode === 'none' ? 500 : 600, color: cmpMktMode === 'none' ? '#0F172A' : '#06B6D4' }}
                   >
                     <option value="none">Bulan Ini (Standar)</option>
                     <option value="mom">vs Bulan Lalu (MoM)</option>
@@ -5696,7 +5722,7 @@ export default function CompanyDataDashboard({
               <button
                 type="button"
                 onClick={() => setOpenSection(openSection === 'mkt' ? '' : 'mkt')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'mkt' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: 'none', color: openSection === 'mkt' ? '#F5F7FA' : '#98A2B3' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'mkt' ? '#F1F5F9' : '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}
               >
                 <span>{openSection === 'mkt' ? 'Tutup grafik' : 'Lihat grafik'}</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ transform: openSection === 'mkt' ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease' }}>
@@ -5708,21 +5734,21 @@ export default function CompanyDataDashboard({
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: '8px', padding: '0 16px 16px' }}>
             <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(78,155,255,0.04)' }}>
-              <span style={{ display: 'flex', alignItems: 'center', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Blended ROAS iklan</span>
+              <span style={{ display: 'flex', alignItems: 'center', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Blended ROAS iklan</span>
               <div style={{ marginTop: '9px', display: 'flex', alignItems: 'baseline', gap: '9px' }}>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.6vw, 27px)', fontWeight: 700, letterSpacing: '-0.025em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.6vw, 27px)', fontWeight: 700, letterSpacing: '-0.025em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {m.spend > 0 && m.roas > 0 ? `${String(m.roas).replace('.', ',')}x` : 'Belum ada data'}
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: m.roas > 0 ? roasTone(m.roas) : '#8A93A3', whiteSpace: 'nowrap' }}>{m.roas > 0 ? roasWord(m.roas) : 'ROAS belum diisi'}</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: m.roas > 0 ? roasTone(m.roas) : '#64748B', whiteSpace: 'nowrap' }}>{m.roas > 0 ? roasWord(m.roas) : 'ROAS belum diisi'}</span>
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{m.spend > 0 ? 'Target minimum 3,0x' : 'Belum ada pengeluaran iklan tercatat'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{m.spend > 0 ? 'Target minimum 3,0x' : 'Belum ada pengeluaran iklan tercatat'}</span>
               {targetCmpMkt && (() => {
                 const d = deltaChip(m.roas, targetCmpMkt.roas);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{String(targetCmpMkt.roas).replace('.', ',')}x</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{String(targetCmpMkt.roas).replace('.', ',')}x</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5730,19 +5756,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Omset dari iklan</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Omset dari iklan</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {m.attr > 0 ? short(m.attr) : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{m.spend > 0 ? `Belanja iklan ${short(m.spend)}` : 'Omset per kanal iklan belum terlacak'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{m.spend > 0 ? `Belanja iklan ${short(m.spend)}` : 'Omset per kanal iklan belum terlacak'}</span>
               {targetCmpMkt && (() => {
                 const d = deltaChip(m.attr, targetCmpMkt.attr);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpMkt.attr)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpMkt.attr)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5750,19 +5776,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Prospek masuk</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Prospek masuk</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {hasMarketingSnapshot ? `${m.leads} leads` : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{hasMarketingConversionData ? `Konversi ${m.conv.replace('.', ',')}` : 'Konversi belum terlacak'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{hasMarketingConversionData ? `Konversi ${m.conv.replace('.', ',')}` : 'Konversi belum terlacak'}</span>
               {targetCmpMkt && (() => {
                 const d = deltaChip(m.leads, targetCmpMkt.leads);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{targetCmpMkt.leads} leads</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{targetCmpMkt.leads} leads</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5770,19 +5796,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Biaya per prospek</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Biaya per prospek</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {hasMarketingCacData && m.cac > 0 ? short(m.cac) : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{hasMarketingCacData ? 'CAC per lead masuk' : 'CAC belum terlacak'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{hasMarketingCacData ? 'CAC per lead masuk' : 'CAC belum terlacak'}</span>
               {targetCmpMkt && (() => {
                 const d = deltaChip(m.cac, targetCmpMkt.cac);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '11px', paddingTop: '10px', borderTop: '1px dashed rgba(255,255,255,0.11)' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpMkt.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpMkt.cac)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpMkt.cac)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5802,17 +5828,17 @@ export default function CompanyDataDashboard({
               Data kampanye tercatat
             </span>
             {!isCurrentMonth ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Data historis kampanye belum tersedia karena sumber kampanye belum menyimpan tanggal/riwayat per periode.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Data historis kampanye belum tersedia karena sumber kampanye belum menyimpan tanggal/riwayat per periode.</span>
             ) : campaignsSummaryError ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Belum bisa memuat data kampanye.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Belum bisa memuat data kampanye.</span>
             ) : !periodCampaignsSummary || periodCampaignsSummary.totalCount === 0 ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Belum ada kampanye tercatat.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Belum ada kampanye tercatat.</span>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px' }}>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>{periodCampaignsSummary.totalCount} kampanye ({periodCampaignsSummary.activeCount} aktif)</span>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>Estimasi belanja dari kampanye aktif {short(periodCampaignsSummary.spendEstimate)}</span>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>{periodCampaignsSummary.leadsTotal} leads</span>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>
+                <span style={{ fontSize: '12px', color: '#475569' }}>{periodCampaignsSummary.totalCount} kampanye ({periodCampaignsSummary.activeCount} aktif)</span>
+                <span style={{ fontSize: '12px', color: '#475569' }}>Estimasi belanja dari kampanye aktif {short(periodCampaignsSummary.spendEstimate)}</span>
+                <span style={{ fontSize: '12px', color: '#475569' }}>{periodCampaignsSummary.leadsTotal} leads</span>
+                <span style={{ fontSize: '12px', color: '#475569' }}>
                   {periodCampaignsSummary.roasAvg !== null ? `ROAS rata-rata ${periodCampaignsSummary.roasAvg.toFixed(1)}x` : 'ROAS belum diisi di kampanye manapun'}
                 </span>
               </div>
@@ -5822,15 +5848,15 @@ export default function CompanyDataDashboard({
           {openSection === 'mkt' && (isCurrentMonth ? (hasMarketingTimeSeries || hasMarketingChannelData ? (
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '18px', display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', gap: '16px', animation: 'klirUp 260ms ease-out' }}>
               <div>
-                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>
+                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>
                   Ringkasan kampanye periode terpilih — {f.n}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '12px 0 10px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Omset teratribusi</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#F2A83B' }} /><span>Belanja iklan</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Omset teratribusi</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#F2A83B' }} /><span>Belanja iklan</span></span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 71px)' }}>
+                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 71px)' }}>
                     <svg viewBox="0 0 1000 214" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
                       <path d={mktAttrPath.area} fill="url(#gBlue)" stroke="none" />
                       <path d={mktAttrPath.line} fill="none" stroke="#4E9BFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -5838,30 +5864,30 @@ export default function CompanyDataDashboard({
                     </svg>
                   </div>
                   <div style={{ width: '66px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '214px' }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(mmax)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(mmax * 0.667)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>{short(mmax * 0.333)}</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>Rp 0</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(mmax)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(mmax * 0.667)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>{short(mmax * 0.333)}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>Rp 0</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '76px', marginTop: '8px' }}>
-                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#8A93A3' }}>{label}</span>)}
+                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#64748B' }}>{label}</span>)}
                 </div>
               </div>
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Distribusi kanal iklan</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#98A2B3' }}>{m.leads} leads</span>
+                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Distribusi kanal iklan</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#64748B' }}>{m.leads} leads</span>
                 </div>
                 <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column' }}>
                   {channelRows.map((row, idx) => (
                     <div key={idx} style={{ padding: '11px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
-                        <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>{row.label}</span>
+                        <span style={{ fontSize: '12.5px', color: '#0F172A' }}>{row.label}</span>
                         <span style={{ display: 'flex', alignItems: 'baseline', gap: '9px' }}>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', width: '34px', textAlign: 'right' }}>{row.pct}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>{row.value}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', width: '34px', textAlign: 'right' }}>{row.pct}</span>
                         </span>
                       </div>
                       <div style={{ marginTop: '7px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
@@ -5870,7 +5896,7 @@ export default function CompanyDataDashboard({
                     </div>
                   ))}
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '13px 0 0' }}>
-                    <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>Omset teratribusi iklan</span>
+                    <span style={{ fontSize: '12.5px', color: '#0F172A' }}>Omset teratribusi iklan</span>
                     <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12.5px', fontWeight: 600, color: '#4E9BFF', fontVariantNumeric: 'tabular-nums' }}>
                       {short(m.attr)}
                     </span>
@@ -5884,22 +5910,22 @@ export default function CompanyDataDashboard({
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#4E9BFF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Insight Visual Efisiensi Kampanye &amp; Akuisisi
                   </span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#8A93A3' }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#64748B' }}>
                     Blended ROAS {m.roas > 0 ? `${String(m.roas).replace('.', ',')}x` : '4,5x'} &bull; Biaya/Lead {m.cac > 0 ? short(m.cac) : 'Rp 28 rb'}
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#CBD3DF' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#475569' }}>
                   {`Efisiensi belanja iklan berada di atas ambang batas target dengan rasio ROAS ${m.roas > 0 ? String(m.roas).replace('.', ',') : '4,5'}x menghasilkan omset teratribusi ${short(m.attr > 0 ? m.attr : 126000000)}. Kanal Meta Ads menjadi kontributor prospek terbesar (45%), disusul TikTok video motion (35%). Alokasi belanja disarankan difokuskan pada materi iklan terkonversi tinggi guna menekan CAC lebih lanjut.`}
                 </p>
               </div>
             </div>
           ) : (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '22px 20px', color: '#98A2B3', fontSize: '12px', lineHeight: 1.55 }}>
-              <span style={{ display: 'block', color: '#CBD3DF', fontWeight: 600, marginBottom: '6px' }}>Grafik performa marketing belum tersedia</span>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '22px 20px', color: '#64748B', fontSize: '12px', lineHeight: 1.55 }}>
+              <span style={{ display: 'block', color: '#475569', fontWeight: 600, marginBottom: '6px' }}>Grafik performa marketing belum tersedia</span>
               <span>Data kampanye yang tersedia saat ini adalah agregat snapshot. Belum ada spend, atribusi, leads, atau distribusi kanal per tanggal, jadi dashboard menampilkan ringkasan riil tanpa membuat tren fiktif.</span>
             </div>
           )) : (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '22px 20px', color: '#98A2B3', fontSize: '12px', lineHeight: 1.55 }}>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '22px 20px', color: '#64748B', fontSize: '12px', lineHeight: 1.55 }}>
               Grafik marketing historis belum tersedia. Model kampanye saat ini belum menyimpan spend, atribusi, dan leads per tanggal; dashboard tidak akan mengarang grafik untuk {f.n}.
             </div>
           ))}
@@ -5910,24 +5936,24 @@ export default function CompanyDataDashboard({
         {/* 6. EXPANDABLE SECTION: KARYAWAN, SDM & BEBAN TIM */}
         {/* ========================================================================= */}
         {isModuleEnabled(enabledModules, 'workspace') && (
-        <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+        <div className="linear-card" style={{ overflow: 'hidden' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+              <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                 Karyawan, SDM &amp; Beban Tim
               </h3>
-              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#8A93A3' }}>{f.n}</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>{f.n}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div className="sap-toolbar-bar">
                 <div className="sap-toolbar-item">
-                  <span style={{ fontSize: '11px', color: '#8A93A3' }}>Komparasi:</span>
+                  <span style={{ fontSize: '11px', color: '#64748B' }}>Komparasi:</span>
                   <select
                     aria-label="Komparasi SDM"
                     value={cmpTeamMode}
                     onChange={(e) => setCmpTeamMode(e.target.value as any)}
                     className="sap-toolbar-select"
-                    style={{ fontWeight: cmpTeamMode === 'none' ? 500 : 600, color: cmpTeamMode === 'none' ? '#F5F7FA' : '#A855F7' }}
+                    style={{ fontWeight: cmpTeamMode === 'none' ? 500 : 600, color: cmpTeamMode === 'none' ? '#0F172A' : '#A855F7' }}
                   >
                     <option value="none">Bulan Ini (Standar)</option>
                     <option value="mom">vs Bulan Lalu (MoM)</option>
@@ -5938,7 +5964,7 @@ export default function CompanyDataDashboard({
               <button
                 type="button"
                 onClick={() => setOpenSection(openSection === 'team' ? '' : 'team')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'team' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: 'none', color: openSection === 'team' ? '#F5F7FA' : '#98A2B3' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '30px', padding: '0 11px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', background: openSection === 'team' ? '#F1F5F9' : '#FFFFFF', border: '1px solid #E2E8F0', color: '#0F172A' }}
               >
                 <span>{openSection === 'team' ? 'Tutup grafik' : 'Lihat grafik'}</span>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={{ transform: openSection === 'team' ? 'rotate(180deg)' : 'none', transition: 'transform 200ms ease' }}>
@@ -5949,19 +5975,19 @@ export default function CompanyDataDashboard({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: '8px', padding: '0 16px 16px' }}>
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Total anggota tim</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Total anggota tim</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {hasTeamHeadcountData ? `${t.staff} orang` : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{divisions.length > 0 ? `${divisions.length} divisi aktif` : 'Struktur tim belum tersedia'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{divisions.length > 0 ? `${divisions.length} divisi aktif` : 'Struktur tim belum tersedia'}</span>
               {targetCmpTeam && (() => {
                 const d = deltaChip(t.staff, targetCmpTeam.staff);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.staff} orang</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.staff} orang</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5970,7 +5996,7 @@ export default function CompanyDataDashboard({
             </div>
 
             <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(242,168,59,0.045)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Beban kerja tim</span>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Beban kerja tim</span>
               <div style={{ marginTop: '9px', display: 'flex', alignItems: 'baseline', gap: '9px' }}>
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(18px, 1.6vw, 27px)', fontWeight: 700, letterSpacing: '-0.025em', color: loadTone(t.load), fontVariantNumeric: 'tabular-nums' }}>
                   {hasWorkloadData ? `${t.load}%` : 'Belum ada data'}
@@ -5979,14 +6005,14 @@ export default function CompanyDataDashboard({
                   {hasWorkloadData ? loadWord(t.load) : 'Menunggu data'}
                 </span>
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>Batas aman 75%</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>Batas aman 75%</span>
               {targetCmpTeam && (() => {
                 const d = deltaChip(t.load, targetCmpTeam.load);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.load}%</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.load}%</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -5994,19 +6020,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Tugas selesai</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Tugas selesai</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {periodTasksSummary ? `${t.tasks} tugas` : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{hasSlaData ? `Ketepatan SLA ${t.sla}%` : 'Ketepatan SLA belum ada data'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{hasSlaData ? `Ketepatan SLA ${t.sla}%` : 'Ketepatan SLA belum ada data'}</span>
               {targetCmpTeam && (() => {
                 const d = deltaChip(t.tasks, targetCmpTeam.tasks);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.tasks} tugas</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{targetCmpTeam.tasks} tugas</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -6014,19 +6040,19 @@ export default function CompanyDataDashboard({
               })()}
             </div>
 
-            <div style={{ padding: '14px 16px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)' }}>
-              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Beban payroll</span>
-              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#F5F7FA', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ padding: '14px 16px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+              <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Beban payroll</span>
+              <div style={{ marginTop: '9px', fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(15px, 1.15vw, 18px)', fontWeight: 700, letterSpacing: '-0.02em', color: '#0F172A', fontVariantNumeric: 'tabular-nums' }}>
                 {hasPayrollData && t.pay > 0 ? short(t.pay) : 'Belum ada data'}
               </div>
-              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#98A2B3' }}>{hasPayrollData && t.pay > 0 ? 'Total gaji bulan ini' : 'Payroll belum dicatat'}</span>
+              <span style={{ display: 'block', marginTop: '6px', fontSize: '11.5px', color: '#64748B' }}>{hasPayrollData && t.pay > 0 ? 'Total gaji bulan ini' : 'Payroll belum dicatat'}</span>
               {targetCmpTeam && (() => {
                 const d = deltaChip(t.pay, targetCmpTeam.pay);
                 return (
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginTop: '10px', paddingTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#8A93A3', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
+                    <span style={{ fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>{targetCmpTeam.label}</span>
                     <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#98A2B3', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpTeam.pay)}</span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>{short(targetCmpTeam.pay)}</span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 8px', borderRadius: '4px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: d.color, background: d.bg, whiteSpace: 'nowrap' }}>{d.text}</span>
                     </span>
                   </span>
@@ -6045,15 +6071,15 @@ export default function CompanyDataDashboard({
               Data tugas tim tercatat
             </span>
             {!isCurrentMonth ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Data historis tugas belum tersedia karena endpoint tugas belum menyediakan agregasi per bulan.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Data historis tugas belum tersedia karena endpoint tugas belum menyediakan agregasi per bulan.</span>
             ) : tasksSummaryError ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Belum bisa memuat data tugas tim.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Belum bisa memuat data tugas tim.</span>
             ) : !periodTasksSummary || periodTasksSummary.total === 0 ? (
-              <span style={{ fontSize: '12px', color: '#8A93A3' }}>Belum ada tugas tercatat.</span>
+              <span style={{ fontSize: '12px', color: '#64748B' }}>Belum ada tugas tercatat.</span>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px' }}>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>{periodTasksSummary.total} tugas tercatat</span>
-                <span style={{ fontSize: '12px', color: '#CBD3DF' }}>{periodTasksSummary.done} selesai</span>
+                <span style={{ fontSize: '12px', color: '#475569' }}>{periodTasksSummary.total} tugas tercatat</span>
+                <span style={{ fontSize: '12px', color: '#475569' }}>{periodTasksSummary.done} selesai</span>
                 <span style={{ fontSize: '12px', color: periodTasksSummary.overdue > 0 ? '#F2A83B' : '#CBD3DF' }}>{periodTasksSummary.overdue} lewat tempo</span>
               </div>
             )}
@@ -6066,16 +6092,16 @@ export default function CompanyDataDashboard({
               <div>
                 {hasWorkloadData ? (
                   <>
-                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>
+                <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>
                   Utilisasi tim — data aktual yang tersedia untuk {f.n}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', margin: '12px 0 10px', flexWrap: 'wrap' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#EF4444' }} /><span>Marketing &amp; Creative</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#CBD3DF' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Rata-rata tim</span></span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#98A2B3' }}><span style={{ width: '9px', height: 0, borderTop: '2px dashed #F2A83B' }} /><span>Batas aman 75%</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#EF4444' }} /><span>Marketing &amp; Creative</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#475569' }}><span style={{ width: '9px', height: '2.5px', borderRadius: '2px', background: '#4E9BFF' }} /><span>Rata-rata tim</span></span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11.5px', color: '#64748B' }}><span style={{ width: '9px', height: 0, borderTop: '2px dashed #F2A83B' }} /><span>Batas aman 75%</span></span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(255,255,255,0.055) 0px, rgba(255,255,255,0.055) 1px, transparent 1px, transparent 71px)' }}>
+                  <div style={{ flex: 1, position: 'relative', height: '214px', backgroundImage: 'repeating-linear-gradient(to bottom, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 71px)' }}>
                     <svg viewBox="0 0 1000 214" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
                       <path d={teamMktPath.area} fill="url(#gRed)" stroke="none" />
                       <line x1="0" y1={teamThY} x2="1000" y2={teamThY} stroke="#F2A83B" strokeWidth="1.4" strokeDasharray="6 5" vectorEffect="non-scaling-stroke" />
@@ -6084,18 +6110,18 @@ export default function CompanyDataDashboard({
                     </svg>
                   </div>
                   <div style={{ width: '52px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '214px' }}>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>100%</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>77%</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>53%</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3', textAlign: 'right' }}>30%</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>100%</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>77%</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>53%</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B', textAlign: 'right' }}>30%</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingRight: '62px', marginTop: '8px' }}>
-                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#8A93A3' }}>{label}</span>)}
+                  {kk.map((label) => <span key={label} style={{ fontSize: '11px', color: '#64748B' }}>{label}</span>)}
                 </div>
                   </>
                 ) : (
-                  <div style={{ minHeight: '214px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', borderRadius: '5px', background: 'rgba(255,255,255,0.02)', color: '#8A93A3', fontSize: '12px', lineHeight: 1.55, textAlign: 'center' }}>
+                  <div style={{ minHeight: '214px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', borderRadius: '5px', background: '#F8FAFC', border: '1px solid #E2E8F0', color: '#64748B', fontSize: '12px', lineHeight: 1.55, textAlign: 'center' }}>
                     Utilisasi tim belum tersedia. Data tugas saat ini belum memiliki assignment anggota dan waktu pengerjaan yang cukup untuk menghitung workload aktual.
                   </div>
                 )}
@@ -6104,13 +6130,13 @@ export default function CompanyDataDashboard({
               {/* Right Column: Division Workload Bars (Seperti Distribusi Kanal Iklan) */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Beban kerja per divisi</span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#98A2B3' }}>{hasTeamHeadcountData ? `${t.staff} staf aktif` : 'Headcount belum tersedia'}</span>
+                  <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Beban kerja per divisi</span>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', fontWeight: 600, color: '#64748B' }}>{hasTeamHeadcountData ? `${t.staff} staf aktif` : 'Headcount belum tersedia'}</span>
                 </div>
                 <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column' }}>
                   {divisions.length === 0 && (
                     <div style={{ padding: '18px 0', textAlign: 'center' }}>
-                      <span style={{ fontSize: '12px', color: '#8A93A3' }}>
+                      <span style={{ fontSize: '12px', color: '#64748B' }}>
                         Menunggu data tim direkam. Beban kerja per divisi akan muncul otomatis setelah anggota tim ditugaskan.
                       </span>
                     </div>
@@ -6119,8 +6145,8 @@ export default function CompanyDataDashboard({
                     <div key={idx} style={{ padding: '11px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px' }}>
                         <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                          <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>{d.name}</span>
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8A93A3' }}>{d.members}</span>
+                          <span style={{ fontSize: '12.5px', color: '#0F172A' }}>{d.name}</span>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#64748B' }}>{d.members}</span>
                         </span>
                         <span style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                           {d.v >= 85 && (
@@ -6128,7 +6154,7 @@ export default function CompanyDataDashboard({
                               {loadWord(d.v)}
                             </span>
                           )}
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#F5F7FA', fontVariantNumeric: 'tabular-nums', width: '36px', textAlign: 'right' }}>
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', fontWeight: 600, color: '#0F172A', fontVariantNumeric: 'tabular-nums', width: '36px', textAlign: 'right' }}>
                             {d.v}%
                           </span>
                         </span>
@@ -6139,8 +6165,8 @@ export default function CompanyDataDashboard({
                     </div>
                   ))}
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '10px', padding: '13px 0 0' }}>
-                    <span style={{ fontSize: '12.5px', color: '#F5F7FA' }}>Rata-rata beban tim</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12.5px', fontWeight: 600, color: hasWorkloadData ? loadTone(t.load) : '#8A93A3', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ fontSize: '12.5px', color: '#0F172A' }}>Rata-rata beban tim</span>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12.5px', fontWeight: 600, color: hasWorkloadData ? loadTone(t.load) : '#64748B', fontVariantNumeric: 'tabular-nums' }}>
                       {hasWorkloadData ? `${t.load}% (${loadWord(t.load)})` : 'Belum ada data'}
                     </span>
                   </div>
@@ -6153,11 +6179,11 @@ export default function CompanyDataDashboard({
                   <span style={{ fontSize: '11px', fontWeight: 600, color: '#F2A83B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Insight Visual Kapasitas &amp; Beban Kerja Tim
                   </span>
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#8A93A3' }}>
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', color: '#64748B' }}>
                     Rata-rata Utilisasi {t.load > 0 ? `${t.load}%` : '71%'} &bull; Batas Aman 75%
                   </span>
                 </div>
-                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#CBD3DF' }}>
+                <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.6, color: '#475569' }}>
                   {`Beban kerja tim rata-rata berada pada level terkendali (${t.load > 0 ? t.load : 71}%) di bawah batas kelelahan 75%. Utilisasi tertinggi tercatat pada Divisi Operasional & Gudang (72%), sementara Divisi Administrasi & Legal memiliki kapasitas longgar (58%). Rekomendasi perataan delegasi tugas antar-divisi disarankan menjelang lonjakan aktivitas kuartal berikutnya.`}
                 </p>
               </div>
@@ -6172,10 +6198,10 @@ export default function CompanyDataDashboard({
         {/* ========================================================================= */}
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '18px' }}>
           {/* Profil Perusahaan */}
-          <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+          <div className="linear-card" style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '16px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                   Profil Perusahaan &amp; Legalitas
                 </h3>
               </div>
@@ -6191,7 +6217,7 @@ export default function CompanyDataDashboard({
                 <button
                   type="button"
                   onClick={() => setShowProfile(!showProfile)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '32px', padding: '0 12px', background: 'rgba(255,255,255,0.04)', border: 'none', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#98A2B3', cursor: 'pointer' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '32px', padding: '0 12px', background: '#F8FAFC', border: 'none', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#64748B', cursor: 'pointer' }}
                 >
                   {showProfile ? 'Tutup rincian' : 'Lihat rincian'}
                 </button>
@@ -6201,19 +6227,19 @@ export default function CompanyDataDashboard({
             {showProfile && (
             <div style={{ padding: '0 20px 20px', animation: 'klirUp 240ms ease-out' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ padding: '12px 14px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                    <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Nama entitas resmi</span>
+                    <span style={{ fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Nama entitas resmi</span>
                     {profileData.source && profileData.source !== 'UNSET' && (
                       <span style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '4px', background: 'rgba(63,191,143,0.12)', color: '#3FBF8F', fontWeight: 600, border: 'none' }}>
                         {profileData.source}
                       </span>
                     )}
                   </div>
-                  <span style={{ display: 'block', marginTop: '6px', fontSize: '13.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <span style={{ display: 'block', marginTop: '6px', fontSize: '13.5px', fontWeight: 600, color: '#0F172A' }}>
                     {profileData.name || workspaceName || 'Belum diatur'}
                   </span>
-                  <span style={{ display: 'block', marginTop: '3px', fontSize: '11.5px', color: '#98A2B3' }}>
+                  <span style={{ display: 'block', marginTop: '3px', fontSize: '11.5px', color: '#64748B' }}>
                     {profileData.industry || 'Belum ditentukan'}
                   </span>
                   {profileData.description && profileData.description !== 'Belum ada deskripsi profil' && (
@@ -6222,20 +6248,20 @@ export default function CompanyDataDashboard({
                     </span>
                   )}
                 </div>
-                <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
-                  <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Target Pasar & Produk</span>
-                  <span style={{ display: 'block', marginTop: '6px', fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                <div style={{ padding: '12px 14px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Target Pasar & Produk</span>
+                  <span style={{ display: 'block', marginTop: '6px', fontSize: '12.5px', fontWeight: 600, color: '#0F172A' }}>
                     {profileData.targetMarket || 'Target umum'}
                   </span>
                   {profileData.primaryProduct && profileData.primaryProduct !== 'Belum ditentukan' && (
-                    <span style={{ display: 'block', marginTop: '3px', fontSize: '11.5px', color: '#98A2B3' }}>
+                    <span style={{ display: 'block', marginTop: '3px', fontSize: '11.5px', color: '#64748B' }}>
                       Produk Utama: {profileData.primaryProduct}
                     </span>
                   )}
                 </div>
-                <div style={{ padding: '12px 14px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
-                  <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3' }}>Legalitas &amp; sistem</span>
-                  <span style={{ display: 'block', marginTop: '6px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#F5F7FA' }}>
+                <div style={{ padding: '12px 14px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                  <span style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B' }}>Legalitas &amp; sistem</span>
+                  <span style={{ display: 'block', marginTop: '6px', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px', color: '#0F172A' }}>
                     KLIR Enterprise Business OS
                   </span>
                   <span style={{ display: 'block', marginTop: '3px', fontSize: '11.5px', color: '#3FBF8F' }}>
@@ -6248,17 +6274,17 @@ export default function CompanyDataDashboard({
           </div>
 
           {/* Log Instruksi AI Asisten */}
-          <div style={{ background: '#0D1117', border: 'none', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.4)' }}>
+          <div className="linear-card" style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '16px 20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#F5F7FA' }}>
+                <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: '#0F172A' }}>
                   Log Instruksi AI Asisten
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowLog(!showLog)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '32px', padding: '0 12px', background: 'rgba(255,255,255,0.04)', border: 'none', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#98A2B3', cursor: 'pointer' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '32px', padding: '0 12px', background: '#F8FAFC', border: 'none', borderRadius: '4px', fontFamily: 'inherit', fontSize: '11.5px', fontWeight: 600, color: '#64748B', cursor: 'pointer' }}
               >
                 {showLog ? 'Tutup log' : `Lihat log (${directives.length})`}
               </button>
@@ -6268,25 +6294,25 @@ export default function CompanyDataDashboard({
             <div style={{ padding: '0 20px 20px', animation: 'klirUp 240ms ease-out' }}>
               {directives.length === 0 ? (
                 <div style={{ padding: '18px 12px', textAlign: 'center' }}>
-                  <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 500, color: '#98A2B3', lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 500, color: '#64748B', lineHeight: 1.5 }}>
                     Belum ada instruksi aktif dari CEO / AI Assistant.
                   </p>
-                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#8A93A3', lineHeight: 1.5 }}>
+                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: '#64748B', lineHeight: 1.5 }}>
                     Rekomendasi aksi yang disetujui di AI Assistant akan tercatat di sini secara otomatis.
                   </p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {directives.map((d: any, idx: number) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '4px', background: 'rgba(255,255,255,0.02)' }}>
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px 14px', borderRadius: '4px', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
                     <span style={{ width: '24px', height: '24px', borderRadius: '4px', background: 'rgba(78,155,255,0.14)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px', fontWeight: 600, color: '#8CC0FF', flex: '0 0 24px' }}>
                       {d.no || idx + 1}
                     </span>
                     <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                      <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#F5F7FA', lineHeight: 1.45 }}>
+                      <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#0F172A', lineHeight: 1.45 }}>
                         {d.title}
                       </span>
-                      <span style={{ display: 'block', marginTop: '5px', fontSize: '11.5px', color: '#98A2B3', lineHeight: 1.5 }}>
+                      <span style={{ display: 'block', marginTop: '5px', fontSize: '11.5px', color: '#64748B', lineHeight: 1.5 }}>
                         {d.impact}
                       </span>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '9px', fontSize: '11px', fontWeight: 600, color: '#3FBF8F' }}>
@@ -6294,7 +6320,7 @@ export default function CompanyDataDashboard({
                         <span>Diterapkan ke dashboard</span>
                       </span>
                     </div>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', color: '#8A93A3', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '9.5px', color: '#64748B', whiteSpace: 'nowrap' }}>
                       {d.timestamp || d.time || 'Aktif'}
                     </span>
                   </div>
@@ -6341,23 +6367,23 @@ export default function CompanyDataDashboard({
               borderRadius: '4px',
               padding: '24px',
               boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
-              color: '#F5F7FA',
+              color: '#0F172A',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#F5F7FA' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#0F172A' }}>
                   Profil &amp; Identitas Perusahaan
                 </h3>
-                <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#8A93A3' }}>
+                <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748B' }}>
                   Data ini disinkronkan ke AI Brain serta fitur keuangan dan marketing.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditProfileOpen(false)}
-                style={{ background: 'transparent', border: 0, color: '#8A93A3', cursor: 'pointer', fontSize: '20px', padding: '4px' }}
+                style={{ background: 'transparent', border: 0, color: '#64748B', cursor: 'pointer', fontSize: '20px', padding: '4px' }}
               >
                 ✕
               </button>
@@ -6369,7 +6395,7 @@ export default function CompanyDataDashboard({
                 <span style={{ display: 'block', fontSize: '12.5px', fontWeight: 600, color: '#4E9BFF' }}>
                   Unggah Dokumen Perusahaan
                 </span>
-                <span style={{ display: 'block', marginTop: '2px', fontSize: '11px', color: '#8A93A3' }}>
+                <span style={{ display: 'block', marginTop: '2px', fontSize: '11px', color: '#64748B' }}>
                   AI otomatis mengekstrak nama, industri, dan profil dari file PDF/DOCX/TXT.
                 </span>
               </div>
@@ -6405,7 +6431,7 @@ export default function CompanyDataDashboard({
             {/* Form Input Manual */}
             <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3', marginBottom: '5px' }}>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B', marginBottom: '5px' }}>
                   Nama Entitas / Perusahaan <span style={{ color: '#EF4444' }}>*</span>
                 </label>
                 <input
@@ -6414,13 +6440,13 @@ export default function CompanyDataDashboard({
                   placeholder="Contoh: PT Anitech Digital Solusindo"
                   value={formProfileName}
                   onChange={(e) => setFormProfileName(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#F5F7FA', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#0F172A', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3', marginBottom: '5px' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B', marginBottom: '5px' }}>
                     Bidang Usaha / Industri
                   </label>
                   <input
@@ -6428,11 +6454,11 @@ export default function CompanyDataDashboard({
                     placeholder="Contoh: Software &amp; Tech Agency"
                     value={formProfileIndustry}
                     onChange={(e) => setFormProfileIndustry(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#F5F7FA', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#0F172A', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3', marginBottom: '5px' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B', marginBottom: '5px' }}>
                     Produk / Layanan Utama
                   </label>
                   <input
@@ -6440,13 +6466,13 @@ export default function CompanyDataDashboard({
                     placeholder="Contoh: Pengembangan Web &amp; Mobile"
                     value={formProfileProduct}
                     onChange={(e) => setFormProfileProduct(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#F5F7FA', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#0F172A', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3', marginBottom: '5px' }}>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B', marginBottom: '5px' }}>
                   Target Pasar / Segmen Pelanggan
                 </label>
                 <input
@@ -6454,12 +6480,12 @@ export default function CompanyDataDashboard({
                   placeholder="Contoh: Perusahaan Korporat, Bisnis UKM, Startup"
                   value={formProfileTarget}
                   onChange={(e) => setFormProfileTarget(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#F5F7FA', fontSize: '13px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#0F172A', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#98A2B3', marginBottom: '5px' }}>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 500, color: '#64748B', marginBottom: '5px' }}>
                   Deskripsi Singkat Usaha
                 </label>
                 <textarea
@@ -6467,7 +6493,7 @@ export default function CompanyDataDashboard({
                   placeholder="Ceritakan singkat model bisnis atau apa yang perusahaan Anda kerjakan..."
                   value={formProfileDesc}
                   onChange={(e) => setFormProfileDesc(e.target.value)}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#F5F7FA', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '4px', background: '#080A0F', border: '1px solid rgba(255,255,255,0.12)', color: '#0F172A', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
                 />
               </div>
 
@@ -6528,11 +6554,11 @@ export default function CompanyDataDashboard({
             style={{
               width: '100%',
               maxWidth: '540px',
-              background: '#0D1117',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '4px',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: '12px',
               padding: '24px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
               display: 'flex',
               flexDirection: 'column',
               gap: '18px',
@@ -6544,20 +6570,21 @@ export default function CompanyDataDashboard({
                   style={{
                     width: '36px',
                     height: '36px',
-                    borderRadius: '4px',
-                    background: 'rgba(78, 155, 255, 0.15)',
+                    borderRadius: '8px',
+                    background: '#F0F9FF',
+                    border: '1px solid #BAE6FD',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Printer className="w-5 h-5 text-[#4E9BFF]" />
+                  <Printer className="w-5 h-5 text-sky-600" />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0F172A' }}>
                     Cetak Laporan Eksekutif PDF
                   </h3>
-                  <p style={{ margin: 0, fontSize: '11.5px', color: '#8A93A3' }}>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748B' }}>
                     Pilih cakupan dokumen sebelum mencetak atau menyimpan sebagai PDF
                   </p>
                 </div>
@@ -6565,7 +6592,7 @@ export default function CompanyDataDashboard({
               <button
                 type="button"
                 onClick={() => setPrintModalOpen(false)}
-                style={{ background: 'transparent', border: 0, color: '#8A93A3', cursor: 'pointer', fontSize: '20px', padding: '4px' }}
+                style={{ background: 'transparent', border: 0, color: '#64748B', cursor: 'pointer', fontSize: '20px', padding: '4px' }}
               >
                 ✕
               </button>
@@ -6573,7 +6600,7 @@ export default function CompanyDataDashboard({
 
             {/* Opsi Cakupan Dokumen */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: '#8A93A3', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Cakupan Data yang Dicetak:
               </span>
 
@@ -6597,10 +6624,10 @@ export default function CompanyDataDashboard({
                   style={{ marginTop: '2px', accentColor: '#4E9BFF' }}
                 />
                 <div>
-                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                     Laporan Lengkap Seluruh Modul &amp; Snapshot Multi-Tahun
                   </span>
-                  <span style={{ display: 'block', fontSize: '11.5px', color: '#8A93A3', marginTop: '2px' }}>
+                  <span style={{ display: 'block', fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                     Mencakup ringkasan eksekutif, rekam jejak 2017-2026, 5 snapshot divisi, perincian arus kas, performa iklan, dan rekomendasi AI.
                   </span>
                 </div>
@@ -6626,10 +6653,10 @@ export default function CompanyDataDashboard({
                   style={{ marginTop: '2px', accentColor: '#38BDF8' }}
                 />
                 <div>
-                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                     Ringkasan Khusus 5 Divisi Strategis
                   </span>
-                  <span style={{ display: 'block', fontSize: '11.5px', color: '#8A93A3', marginTop: '2px' }}>
+                  <span style={{ display: 'block', fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                     Fokus pada Keuangan, Marketing, Operasional &amp; Rantai Pasok, SDM, serta Tata Kelola &amp; Legalitas Sekretaris.
                   </span>
                 </div>
@@ -6655,10 +6682,10 @@ export default function CompanyDataDashboard({
                   style={{ marginTop: '2px', accentColor: '#3FBF8F' }}
                 />
                 <div>
-                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#F5F7FA' }}>
+                  <span style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#0F172A' }}>
                     Laporan Operasional Bulan Berjalan ({f.n || month})
                   </span>
-                  <span style={{ display: 'block', fontSize: '11.5px', color: '#8A93A3', marginTop: '2px' }}>
+                  <span style={{ display: 'block', fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                     Ringkasan bulanan standar mencakup arus kas bulan terpilih, rasio pengeluaran, dan alert operasional.
                   </span>
                 </div>

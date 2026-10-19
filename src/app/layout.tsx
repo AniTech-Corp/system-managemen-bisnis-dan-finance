@@ -18,8 +18,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="id" suppressHydrationWarning className={`bg-[#06080C] ${sans.variable} ${outfit.variable} ${mono.variable}`} style={{ backgroundColor: '#06080C', colorScheme: 'dark' }}>
-            <body className="bg-[#0A0E15] text-[#F5F7FA] antialiased selection:bg-[#0058BE] selection:text-white">
+        <html lang="id" suppressHydrationWarning className={`bg-slate-50 ${sans.variable} ${outfit.variable} ${mono.variable}`} style={{ backgroundColor: '#F8FAFC', colorScheme: 'light' }}>
+            <body className="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
                 <Script src="/av-visuals.js" strategy="afterInteractive" />
                 {children}
             </body>
