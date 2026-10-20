@@ -15,6 +15,13 @@ import {
 } from '../src/lib/accounting/period';
 import { aggregateBalances, assertJournalBalanced, statementAmount, type JournalLineRow } from '../src/lib/accounting/reports';
 import { canAccounting } from '../src/lib/accounting/rbac';
+import {
+  ancestorIds,
+  buildAccountTree,
+  descendantIds,
+  flattenAccountTree,
+  wouldCreateCycle,
+} from '../src/lib/accounting/account-tree';
 
 /* ── money ─────────────────────────────────────────────────────────────── */
 
@@ -331,5 +338,84 @@ describe('accounting: rbac', () => {
     for (const action of ['view', 'draft', 'post', 'lock_period', 'manage_settings', 'opening_balance'] as const) {
       assert.equal(canAccounting(auth('OWNER', true), action), true, `owner harus boleh ${action}`);
     }
+  });
+});
+
+/* ── hierarki bagan akun ───────────────────────────────────────────────── */
+
+describe('accounting: hierarki bagan akun', () => {
+  const acc = (id: string, code: string, parentId: string | null = null) => ({
+    id,
+    code,
+    name: `Akun ${code}`,
+    parentId,
+  });
+
+  const flat = [
+    acc('aset', '1-1000'),
+    acc('kas', '1-1100', 'aset'),
+    acc('kas-kecil', '1-1110', 'kas'),
+    acc('bank', '1-1200', 'aset'),
+    acc('beban', '6-1000'),
+    acc('internet', '6-1400', 'beban'),
+    acc('lain', '6-9000', 'beban'),
+  ];
+
+  test('buildAccountTree menyusun induk–anak dan mengurutkan kode', () => {
+    const tree = buildAccountTree(flat);
+    assert.deepEqual(tree.map((n) => n.account.id), ['aset', 'beban']);
+    assert.deepEqual(tree[0].children.map((n) => n.account.id), ['kas', 'bank']);
+    assert.deepEqual(tree[0].children[0].children.map((n) => n.account.id), ['kas-kecil']);
+    assert.deepEqual(tree[1].children.map((n) => n.account.id), ['internet', 'lain']);
+  });
+
+  test('akun dengan induk yang tidak dimuat tetap muncul sebagai akar', () => {
+    const tree = buildAccountTree([acc('anak', '6-9500', 'induk-hilang')]);
+    assert.equal(tree.length, 1);
+    assert.equal(tree[0].account.id, 'anak');
+  });
+
+  test('data bersiklus tidak membuat akun hilang atau render tak berujung', () => {
+    const tree = buildAccountTree([acc('a', '9-1000', 'b'), acc('b', '9-2000', 'a')]);
+    const ids = tree.map((n) => n.account.id);
+    assert.equal(ids.length, 2);
+    assert.equal(tree.every((n) => n.children.length === 0), true);
+  });
+
+  test('flattenAccountTree menghormati status buka/tutup dan kedalaman', () => {
+    const tree = buildAccountTree(flat);
+
+    const all = flattenAccountTree(tree);
+    assert.deepEqual(all.map((r) => r.account.id), ['aset', 'kas', 'kas-kecil', 'bank', 'beban', 'internet', 'lain']);
+    assert.deepEqual(all.map((r) => r.depth), [0, 1, 2, 1, 0, 1, 1]);
+    assert.equal(all.find((r) => r.account.id === 'aset')?.hasChildren, true);
+    assert.equal(all.find((r) => r.account.id === 'bank')?.hasChildren, false);
+
+    const collapsed = flattenAccountTree(tree, (id) => id !== 'aset');
+    assert.deepEqual(collapsed.map((r) => r.account.id), ['aset', 'beban', 'internet', 'lain']);
+  });
+
+  test('ancestorIds memberi induk terdekat lebih dulu', () => {
+    assert.deepEqual(ancestorIds(flat, 'kas-kecil'), ['kas', 'aset']);
+    assert.deepEqual(ancestorIds(flat, 'aset'), []);
+  });
+
+  test('descendantIds mencakup anak dan cucu', () => {
+    assert.deepEqual([...descendantIds(flat, 'aset')].sort(), ['bank', 'kas', 'kas-kecil']);
+    assert.equal(descendantIds(flat, 'lain').size, 0);
+  });
+
+  test('wouldCreateCycle menolak diri sendiri dan turunannya', () => {
+    assert.equal(wouldCreateCycle(flat, 'aset', 'aset'), true);
+    assert.equal(wouldCreateCycle(flat, 'aset', 'kas-kecil'), true);
+    assert.equal(wouldCreateCycle(flat, 'kas', 'kas-kecil'), true);
+    assert.equal(wouldCreateCycle(flat, 'kas-kecil', 'aset'), false);
+    assert.equal(wouldCreateCycle(flat, 'internet', 'beban'), false);
+    assert.equal(wouldCreateCycle(flat, 'internet', null), false);
+  });
+
+  test('wouldCreateCycle tidak menggantung pada data yang sudah bersiklus', () => {
+    const cyclic = [acc('a', '9-1000', 'b'), acc('b', '9-2000', 'a')];
+    assert.equal(wouldCreateCycle(cyclic, 'c', 'a'), false);
   });
 });

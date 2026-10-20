@@ -365,6 +365,25 @@ Akun sistem (tidak bisa dihapus, hanya bisa dinonaktifkan):
 `2-1300`, `2-1310`, `2-1320`, `2-1330`, `3-1100`, `3-1200`, `3-2000`, `3-3000`,
 `4-1100`, `4-1200`, `5-1100`, `6-1100`, `6-1800`, `7-1000`.
 
+### Hierarki akun
+
+Bagan akun tersusun tiga tingkat (mis. `1-1000 Aset Lancar` → `1-1100 Kas` →
+`1-1110 Kas Kecil`). Di tab **Pengaturan → Bagan Akun**:
+
+- klik panah untuk membuka/menutup sub-akun; pencarian tetap menampilkan induk
+  dari akun yang cocok supaya konteksnya tidak hilang;
+- **Tambah akun** bisa langsung memilih induk; **Ubah** bisa memindahkan akun
+  ke induk lain;
+- akun bertanda **header** hanya pengelompokan dan tidak bisa dipakai di jurnal;
+- aturan yang dijaga server: induk harus **tipe yang sama**, tidak boleh diri
+  sendiri atau turunannya (anti-siklus), dan akun yang masih punya sub-akun
+  tidak bisa dihapus;
+- **kode, tipe, dan saldo normal tidak bisa diubah** setelah akun dibuat karena
+  sudah dirujuk jurnal. Buat akun baru, lalu nonaktifkan yang lama.
+
+Laporan (Neraca, Laba Rugi, dst.) masih menampilkan akun secara datar; hierarki
+baru memengaruhi tampilan pengelolaan akun, bukan angka laporan.
+
 ### Profil pajak
 
 | Profil | Efek |
@@ -386,6 +405,7 @@ prisma/schema.prisma                    ← bagian "MODUL LAPORAN KEUANGAN"
 src/lib/accounting/money.ts             ← Decimal, anti pembulatan biner
 src/lib/accounting/period.ts            ← batas bulan WIB, resolusi rentang laporan
 src/lib/accounting/coa-seed.ts          ← template 58 akun + fungsi setup
+src/lib/accounting/account-tree.ts      ← pembentuk pohon, anti-siklus, pencarian induk
 src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
 src/lib/accounting/reports.ts           ← mesin 6 laporan
@@ -394,7 +414,7 @@ src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 138 pemeriksaan end-to-end (butuh server + DB kosong)
+scripts/accounting-smoke.mjs            ← 146 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -408,7 +428,6 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 | --- | --- |
 | Integrasi payroll ke jurnal (gaji, PPh 21, BPJS) | Fase 2 |
 | Anggaran/target & laporan realisasi vs anggaran | Fase 2 |
-| Rekursi akun di UI (tampilan saat ini rata/datar, hierarki `parent_id` sudah tersimpan) | Fase 2 |
 | Persediaan & HPP barang (kartu stok, metode FIFO/rata-rata) | Fase 3 |
 | Laporan PDF server-side (sekarang: cetak dari browser / Ekspor Excel) | Fase 3 |
 | Multi-mata uang aktif (kolom `currency` + `exchange_rate` sudah ada, kurs belum dikelola) | Fase 3 |

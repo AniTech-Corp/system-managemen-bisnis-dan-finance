@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 138 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 146 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -77,6 +77,71 @@ const cashAccounts = cashRes.json?.data ?? [];
 const kas = cashAccounts.find((c) => c.code === 'KAS-01');
 const bank = cashAccounts.find((c) => c.code === 'BANK-01');
 ok('dua rekening kas default', Boolean(kas && bank), cashAccounts.map((c) => c.name).join(', '));
+
+/* 4b. hierarki bagan akun (induk–anak) */
+const childAccount = await api('/api/v1/accounting/accounts', {
+  method: 'POST',
+  body: {
+    code: '6-9500',
+    name: 'Beban Uji Hierarki',
+    type: 'EXPENSE',
+    normalBalance: 'DEBIT',
+    parentId: byCode['6-1400'].id,
+  },
+});
+const childId = childAccount.json?.data?.id;
+ok(
+  'akun anak dibuat dengan induk',
+  childAccount.status === 201 && childAccount.json?.data?.parentId === byCode['6-1400'].id,
+  childAccount.json?.message
+);
+
+const treeRes = await api('/api/v1/accounting/accounts');
+const childRow = (treeRes.json?.data ?? []).find((a) => a.id === childId);
+ok('daftar akun mengembalikan parentId anak', childRow?.parentId === byCode['6-1400'].id);
+
+const crossType = await api('/api/v1/accounting/accounts', {
+  method: 'POST',
+  body: {
+    code: '6-9600',
+    name: 'Salah Tipe',
+    type: 'EXPENSE',
+    normalBalance: 'DEBIT',
+    parentId: byCode['1-1000'].id,
+  },
+});
+ok('induk beda tipe ditolak', crossType.status === 400, crossType.json?.message?.slice(0, 80));
+
+const cycle = await api(`/api/v1/accounting/accounts/${byCode['6-1400'].id}`, {
+  method: 'PATCH',
+  body: { parentId: childId },
+});
+ok('siklus hierarki ditolak', cycle.status === 400, cycle.json?.message?.slice(0, 80));
+
+const deleteParent = await api(`/api/v1/accounting/accounts/${byCode['6-1400'].id}`, { method: 'DELETE' });
+ok(
+  'akun induk yang punya sub-akun tidak bisa dihapus',
+  deleteParent.status === 400,
+  deleteParent.json?.message?.slice(0, 70)
+);
+
+const reparent = await api(`/api/v1/accounting/accounts/${childId}`, {
+  method: 'PATCH',
+  body: { parentId: byCode['6-9000'].id },
+});
+ok(
+  'akun anak bisa dipindah induk',
+  reparent.status === 200 && reparent.json?.data?.parentId === byCode['6-9000'].id
+);
+
+const rename = await api(`/api/v1/accounting/accounts/${childId}`, {
+  method: 'PATCH',
+  body: { name: 'Beban Uji Hierarki (ubah)' },
+});
+ok('nama akun bisa diubah', rename.status === 200 && rename.json?.data?.name === 'Beban Uji Hierarki (ubah)');
+
+const deleteChild = await api(`/api/v1/accounting/accounts/${childId}`, { method: 'DELETE' });
+ok('akun tanpa jurnal & tanpa anak bisa dihapus', deleteChild.status === 200);
 
 /* 5. pemetaan kategori */
 const mapping = await api('/api/v1/accounting/category-mapping', {

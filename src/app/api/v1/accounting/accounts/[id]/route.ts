@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { badRequest, guardAccounting, notFound, serverError } from '@/lib/accounting/api';
+import { wouldCreateCycle } from '@/lib/accounting/account-tree';
 
 export const PATCH = withTenantGuard(
   async (req: NextRequest, { auth, params }) => {
@@ -27,11 +28,20 @@ export const PATCH = withTenantGuard(
       if (body.parentId !== undefined) {
         if (body.parentId === id) return badRequest('Akun tidak bisa menjadi induk dirinya sendiri.');
         if (body.parentId) {
-          const parent = await prisma.account.findFirst({
-            where: { id: body.parentId, workspaceId: auth.workspace.id },
-            select: { id: true },
+          // Hierarki dibaca sekaligus: cukup satu query untuk validasi induk &
+          // siklus (akun tidak boleh dipindah ke bawah turunannya sendiri).
+          const siblings = await prisma.account.findMany({
+            where: { workspaceId: auth.workspace.id },
+            select: { id: true, code: true, name: true, type: true, parentId: true },
           });
+          const parent = siblings.find((a) => a.id === body.parentId);
           if (!parent) return badRequest('Akun induk tidak ditemukan.');
+          if (parent.type !== account.type) {
+            return badRequest('Tipe akun induk harus sama dengan tipe akun ini.');
+          }
+          if (wouldCreateCycle(siblings, id, parent.id)) {
+            return badRequest('Akun induk tidak boleh akun itu sendiri atau turunannya.');
+          }
         }
         data.parent = body.parentId ? { connect: { id: body.parentId } } : { disconnect: true };
       }

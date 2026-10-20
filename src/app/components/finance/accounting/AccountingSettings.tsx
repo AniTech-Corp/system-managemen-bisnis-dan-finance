@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { CalendarCheck2, CheckCircle2, Loader2, Lock, Plus, RefreshCw, Unlock } from 'lucide-react';
+import { CalendarCheck2, CheckCircle2, ChevronDown, ChevronRight, Loader2, Lock, Plus, RefreshCw, Unlock } from 'lucide-react';
 import { apiGet, apiSend } from './client';
+import { ancestorIds, buildAccountTree, descendantIds, flattenAccountTree } from '@/lib/accounting/account-tree';
 
 /* ── tipe data ─────────────────────────────────────────────────────────── */
 
@@ -42,9 +43,11 @@ interface AccountDto {
   name: string;
   type: string;
   normalBalance: string;
+  parentId: string | null;
   isPostable: boolean;
   isSystem: boolean;
   isActive: boolean;
+  description: string | null;
 }
 
 interface PeriodDto {
@@ -680,47 +683,117 @@ function PeriodsCard({ canClose, canLock }: { canClose: boolean; canLock: boolea
 
 /* ── Kartu bagan akun ──────────────────────────────────────────────────── */
 
-function ChartOfAccountsCard() {
+function ChartOfAccountsCard({ canManage }: { canManage: boolean }) {
   const [accounts, setAccounts] = useState<AccountDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [editing, setEditing] = useState<{ mode: 'create' | 'edit'; account?: AccountDto } | null>(null);
+  const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
 
-  const load = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await apiGet<{ success: boolean; data: AccountDto[] }>(
-        `/api/v1/accounting/accounts?includeInactive=${showInactive}`
-      );
-      setAccounts(res.data ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, [showInactive]);
+  const load = React.useCallback(
+    async (expandId?: string) => {
+      setLoading(true);
+      try {
+        const res = await apiGet<{ success: boolean; data: AccountDto[] }>(
+          `/api/v1/accounting/accounts?includeInactive=${showInactive}`
+        );
+        const data = res.data ?? [];
+        setAccounts(data);
+        setExpanded((prev) => {
+          const next = new Set(prev);
+          if (expandId) {
+            /// Buka induk dari akun yang baru disimpan, supaya hasilnya langsung terlihat.
+            const saved = data.find((a) => a.id === expandId);
+            if (saved?.parentId) next.add(saved.parentId);
+            next.add(expandId);
+          }
+          if (next.size === 0) {
+            // Awal: buka akun tingkat atas saja (header/grup), sisanya bisa diklik.
+            data.filter((a) => !a.parentId).forEach((a) => next.add(a.id));
+          }
+          return next;
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [showInactive]
+  );
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const filtered = useMemo(() => {
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(null), 4500);
+    return () => clearTimeout(timer);
+  }, [message]);
+
+  const tree = useMemo(() => buildAccountTree(accounts), [accounts]);
+
+  const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return accounts;
-    return accounts.filter((a) => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
-  }, [accounts, search]);
+    if (!q) {
+      return flattenAccountTree(tree, (id) => expanded.has(id));
+    }
+
+    // Saat mencari, tampilkan akun yang cocok BESERTA induknya agar konteks
+    // hierarki tidak hilang (mis. cari "Kas Kecil" tetap menampilkan "Kas").
+    const matches = accounts.filter(
+      (a) => a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)
+    );
+    const keep = new Set(matches.map((a) => a.id));
+    matches.forEach((m) => ancestorIds(accounts, m.id).forEach((id) => keep.add(id)));
+    const subset = accounts.filter((a) => keep.has(a.id));
+    return flattenAccountTree(buildAccountTree(subset), () => true);
+  }, [tree, accounts, search, expanded]);
+
+  function toggleExpand(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   async function toggle(account: AccountDto) {
     setBusyId(account.id);
     try {
       await apiSend(`/api/v1/accounting/accounts/${account.id}`, 'PATCH', { isActive: !account.isActive });
-      void load();
+      await load();
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Gagal mengubah status akun.' });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function remove(account: AccountDto) {
+    if (!window.confirm(`Hapus akun ${account.code} ${account.name}? Akun yang sudah dipakai jurnal atau punya sub-akun tidak bisa dihapus.`)) {
+      return;
+    }
+    setBusyId(account.id);
+    try {
+      await apiSend(`/api/v1/accounting/accounts/${account.id}`, 'DELETE');
+      setMessage({ type: 'ok', text: `Akun ${account.code} ${account.name} dihapus.` });
+      await load();
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Gagal menghapus akun.' });
     } finally {
       setBusyId(null);
     }
   }
 
   return (
-    <Card title="Bagan Akun (Chart of Accounts)" subtitle="Kode dan nama akun standar Indonesia. Akun sistem sebaiknya tidak dihapus.">
+    <Card
+      title="Bagan Akun (Chart of Accounts)"
+      subtitle="Klik panah untuk membuka sub-akun. Akun bertanda 'header' hanya pengelompokan dan tidak bisa dipakai di jurnal."
+    >
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <input
           value={search}
@@ -732,48 +805,348 @@ function ChartOfAccountsCard() {
           <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
           Tampilkan akun nonaktif
         </label>
-        <button onClick={load} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50">
+        {canManage && (
+          <button
+            onClick={() => setEditing({ mode: 'create' })}
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800"
+          >
+            <Plus className="h-3.5 w-3.5" /> Tambah akun
+          </button>
+        )}
+        <button
+          onClick={() => void load()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        >
           <RefreshCw className="h-3.5 w-3.5" /> Muat ulang
         </button>
       </div>
+
+      {message && (
+        <p
+          className={`mb-3 rounded-lg px-3 py-2 text-xs font-medium ${
+            message.type === 'ok' ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'
+          }`}
+        >
+          {message.text}
+        </p>
+      )}
+
+      {canManage && editing && (
+        <AccountForm
+          key={editing.account?.id ?? 'new'}
+          mode={editing.mode}
+          account={editing.account}
+          accounts={accounts}
+          onCancel={() => setEditing(null)}
+          onSaved={async (text, accountId) => {
+            setEditing(null);
+            setMessage({ type: 'ok', text });
+            await load(accountId);
+          }}
+        />
+      )}
 
       {loading ? (
         <p className="flex items-center gap-2 py-4 text-xs text-slate-500">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Memuat akun…
         </p>
+      ) : rows.length === 0 ? (
+        <p className="py-6 text-center text-xs text-slate-500">Tidak ada akun yang cocok dengan pencarian.</p>
       ) : (
-        <div className="max-h-[420px] overflow-y-auto">
+        <div className="max-h-[460px] overflow-y-auto">
           <table className="w-full border-collapse">
+            <thead className="sticky top-0 bg-white">
+              <tr className="border-b border-slate-200 text-[10px] uppercase tracking-wide text-slate-400">
+                <th className="py-1.5 text-left font-medium">Kode</th>
+                <th className="py-1.5 text-left font-medium">Nama akun</th>
+                <th className="py-1.5 text-right font-medium">Tipe</th>
+                <th className="py-1.5 text-right font-medium">Aksi</th>
+              </tr>
+            </thead>
             <tbody>
-              {filtered.map((a) => (
-                <tr key={a.id} className="border-b border-slate-50">
-                  <td className="py-1.5 font-mono text-[11px] text-slate-500">{a.code}</td>
-                  <td className="py-1.5 text-xs text-slate-800">
-                    {a.name}
-                    {!a.isPostable && <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">header</span>}
-                    {a.isSystem && <span className="ml-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">sistem</span>}
-                  </td>
-                  <td className="py-1.5 text-right text-[10px] uppercase text-slate-400">{a.type}</td>
-                  <td className="py-1.5 text-right">
-                    <button
-                      onClick={() => toggle(a)}
-                      disabled={busyId === a.id}
-                      className={`rounded-md border px-2 py-1 text-[10px] font-medium ${
-                        a.isActive
-                          ? 'border-slate-300 text-slate-600 hover:bg-slate-50'
-                          : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
-                      }`}
-                    >
-                      {a.isActive ? 'Nonaktifkan' : 'Aktifkan'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {rows.map(({ account: a, depth, hasChildren }) => {
+                const isOpen = expanded.has(a.id);
+                return (
+                  <tr key={a.id} className={`border-b border-slate-50 hover:bg-slate-50/60 ${a.isActive ? '' : 'opacity-50'}`}>
+                    <td className="py-1.5 align-middle">
+                      <div className="flex items-center gap-1" style={{ paddingLeft: depth * 16 }}>
+                        {hasChildren ? (
+                          <button
+                            onClick={() => toggleExpand(a.id)}
+                            className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            aria-label={isOpen ? 'Tutup sub-akun' : 'Buka sub-akun'}
+                          >
+                            {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                          </button>
+                        ) : (
+                          <span className="inline-block h-4 w-4" />
+                        )}
+                        <span className="font-mono text-[11px] text-slate-500">{a.code}</span>
+                      </div>
+                    </td>
+                    <td className="py-1.5 text-xs text-slate-800">
+                      {a.name}
+                      {!a.isPostable && (
+                        <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500">header</span>
+                      )}
+                      {a.isSystem && (
+                        <span className="ml-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-700">sistem</span>
+                      )}
+                      {!a.isActive && (
+                        <span className="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-700">nonaktif</span>
+                      )}
+                    </td>
+                    <td className="py-1.5 text-right text-[10px] uppercase text-slate-400">{a.type}</td>
+                    <td className="py-1.5 text-right whitespace-nowrap">
+                      {!canManage ? (
+                        <span className="text-[10px] text-slate-400">—</span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setEditing({ mode: 'edit', account: a })}
+                            className="rounded-md border border-slate-300 px-2 py-1 text-[10px] font-medium text-slate-600 hover:bg-slate-50"
+                          >
+                            Ubah
+                          </button>
+                          <button
+                            onClick={() => void toggle(a)}
+                            disabled={busyId === a.id}
+                            className={`ml-1 rounded-md border px-2 py-1 text-[10px] font-medium disabled:opacity-40 ${
+                              a.isActive
+                                ? 'border-slate-300 text-slate-600 hover:bg-slate-50'
+                                : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
+                            }`}
+                          >
+                            {a.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                          </button>
+                          {!a.isSystem && (
+                            <button
+                              onClick={() => void remove(a)}
+                              disabled={busyId === a.id}
+                              className="ml-1 rounded-md border border-red-200 px-2 py-1 text-[10px] font-medium text-red-600 hover:bg-red-50 disabled:opacity-40"
+                            >
+                              Hapus
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
     </Card>
+  );
+}
+
+/* ── form tambah / ubah akun ───────────────────────────────────────────── */
+
+const ACCOUNT_TYPE_OPTIONS = [
+  { value: 'ASSET', label: 'Aset' },
+  { value: 'LIABILITY', label: 'Liabilitas' },
+  { value: 'EQUITY', label: 'Ekuitas' },
+  { value: 'REVENUE', label: 'Pendapatan' },
+  { value: 'EXPENSE', label: 'Beban' },
+];
+
+function AccountForm({
+  mode,
+  account,
+  accounts,
+  onCancel,
+  onSaved,
+}: {
+  mode: 'create' | 'edit';
+  account?: AccountDto;
+  accounts: AccountDto[];
+  onCancel: () => void;
+  onSaved: (message: string, accountId: string) => void | Promise<void>;
+}) {
+  const [code, setCode] = useState(account?.code ?? '');
+  const [name, setName] = useState(account?.name ?? '');
+  const [type, setType] = useState(account?.type ?? 'EXPENSE');
+  const [normalBalance, setNormalBalance] = useState(account?.normalBalance ?? 'DEBIT');
+  const [parentId, setParentId] = useState(account?.parentId ?? '');
+  const [isPostable, setIsPostable] = useState(account ? account.isPostable : true);
+  const [description, setDescription] = useState(account?.description ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Pilihan induk: hanya tipe yang sama, tanpa diri sendiri & turunannya.
+  const parentOptions = useMemo(() => {
+    const excluded = new Set<string>();
+    if (account) {
+      excluded.add(account.id);
+      descendantIds(accounts, account.id).forEach((id) => excluded.add(id));
+    }
+    const sameType = accounts.filter((a) => a.type === type && !excluded.has(a.id));
+    return flattenAccountTree(buildAccountTree(sameType), () => true);
+  }, [accounts, type, account]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!name.trim()) {
+      setError('Nama akun wajib diisi.');
+      return;
+    }
+    if (mode === 'create' && !code.trim()) {
+      setError('Kode akun wajib diisi.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload: Record<string, unknown> = {
+        name: name.trim(),
+        parentId: parentId || null,
+        isPostable,
+        description,
+      };
+      if (mode === 'create') {
+        payload.code = code.trim();
+        payload.type = type;
+        payload.normalBalance = normalBalance;
+      }
+
+      const res = await apiSend<{ success: boolean; data: AccountDto }>(
+        mode === 'create' ? '/api/v1/accounting/accounts' : `/api/v1/accounting/accounts/${account!.id}`,
+        mode === 'create' ? 'POST' : 'PATCH',
+        payload
+      );
+      await onSaved(
+        mode === 'create'
+          ? `Akun ${res.data.code} ${res.data.name} dibuat.`
+          : `Akun ${res.data.code} ${res.data.name} diperbarui.`,
+        res.data.id
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menyimpan akun.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-slate-700">
+        {mode === 'create' ? 'Tambah akun baru' : `Ubah akun ${account?.code}`}
+      </p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600">
+          Kode
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            disabled={mode === 'edit'}
+            placeholder="6-9100"
+            className="h-8 rounded-lg border border-slate-300 px-2 font-mono text-xs disabled:bg-slate-100 disabled:text-slate-500"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600 sm:col-span-2">
+          Nama akun
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Beban Perjalanan Dinas"
+            className="h-8 rounded-lg border border-slate-300 px-2 text-xs"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600">
+          Tipe
+          <select
+            value={type}
+            onChange={(e) => {
+              const next = e.target.value;
+              setType(next);
+              setParentId('');
+              if (mode === 'create') {
+                setNormalBalance(next === 'ASSET' || next === 'EXPENSE' ? 'DEBIT' : 'CREDIT');
+              }
+            }}
+            disabled={mode === 'edit'}
+            className="h-8 rounded-lg border border-slate-300 px-2 text-xs disabled:bg-slate-100 disabled:text-slate-500"
+          >
+            {ACCOUNT_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600">
+          Saldo normal
+          <select
+            value={normalBalance}
+            onChange={(e) => setNormalBalance(e.target.value)}
+            disabled={mode === 'edit'}
+            className="h-8 rounded-lg border border-slate-300 px-2 text-xs disabled:bg-slate-100 disabled:text-slate-500"
+          >
+            <option value="DEBIT">Debit</option>
+            <option value="CREDIT">Kredit</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600 sm:col-span-2">
+          Akun induk (opsional)
+          <select
+            value={parentId}
+            onChange={(e) => setParentId(e.target.value)}
+            className="h-8 rounded-lg border border-slate-300 px-2 text-xs"
+          >
+            <option value="">— Tanpa induk (akun tingkat atas) —</option>
+            {parentOptions.map(({ account: p, depth }) => (
+              <option key={p.id} value={p.id}>
+                {'\u00A0\u00A0'.repeat(depth)}
+                {p.code} — {p.name}
+                {p.isPostable ? '' : ' (header)'}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-[11px] text-slate-600 sm:col-span-2">
+          Deskripsi (opsional)
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="h-8 rounded-lg border border-slate-300 px-2 text-xs"
+          />
+        </label>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 text-[11px] text-slate-600">
+          <input type="checkbox" checked={!isPostable} onChange={(e) => setIsPostable(!e.target.checked)} />
+          Akun header (hanya pengelompokan, tidak bisa dipakai di jurnal)
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-8 rounded-lg border border-slate-300 px-3 text-xs font-medium text-slate-600 hover:bg-white"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+          >
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Simpan
+          </button>
+        </div>
+      </div>
+
+      {mode === 'edit' && (
+        <p className="mt-2 text-[10px] text-slate-500">
+          Kode, tipe, dan saldo normal tidak bisa diubah karena sudah dirujuk jurnal. Buat akun baru bila perlu.
+        </p>
+      )}
+      {error && <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-[11px] text-red-700">{error}</p>}
+    </form>
   );
 }
 
@@ -830,7 +1203,15 @@ function useApiOnce<T>(url: string | null) {
 
 /* ── komponen utama ───────────────────────────────────────────────────── */
 
-export function AccountingSettingsView({ canManageSettings, canLock }: { canManageSettings: boolean; canLock: boolean }) {
+export function AccountingSettingsView({
+  canManageSettings,
+  canManageAccounts,
+  canLock,
+}: {
+  canManageSettings: boolean;
+  canManageAccounts: boolean;
+  canLock: boolean;
+}) {
   const [data, setData] = useState<SettingsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -879,7 +1260,7 @@ export function AccountingSettingsView({ canManageSettings, canLock }: { canMana
       <CashAccountsCard data={data} reload={reload} />
       <CategoryMappingCard />
       <PeriodsCard canClose={canManageSettings} canLock={canLock} />
-      <ChartOfAccountsCard />
+      <ChartOfAccountsCard canManage={canManageAccounts} />
     </div>
   );
 }

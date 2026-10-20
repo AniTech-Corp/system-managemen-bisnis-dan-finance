@@ -62,9 +62,12 @@ export const POST = withTenantGuard(
       if (body.parentId) {
         const parent = await prisma.account.findFirst({
           where: { id: body.parentId, workspaceId: auth.workspace.id },
-          select: { id: true },
+          select: { id: true, type: true },
         });
         if (!parent) return badRequest('Akun induk tidak ditemukan.');
+        if (parent.type !== body.type) {
+          return badRequest('Tipe akun induk harus sama dengan tipe akun ini.');
+        }
       }
 
       const created = await prisma.account.create({

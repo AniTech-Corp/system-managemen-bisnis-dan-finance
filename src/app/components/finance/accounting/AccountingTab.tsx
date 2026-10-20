@@ -104,6 +104,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
       draft: Boolean(p.draft),
       post: Boolean(p.post),
       manageSettings: Boolean(p.manage_settings),
+      manageAccounts: Boolean(p.manage_accounts),
       lock: Boolean(p.lock_period),
     };
   }, [permissions]);
@@ -189,7 +190,11 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
                   Peran Anda: <strong className="text-slate-700">{permissions.role}</strong>
                 </p>
               </div>
-              <AccountingSettingsView canManageSettings={can.manageSettings} canLock={can.lock} />
+              <AccountingSettingsView
+                canManageSettings={can.manageSettings}
+                canManageAccounts={can.manageAccounts}
+                canLock={can.lock}
+              />
             </div>
           )}
         </>
