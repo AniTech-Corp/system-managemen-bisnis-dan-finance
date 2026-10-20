@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { PurchaseOrderStatus, StockMovementType, TransactionType } from '@prisma/client';
 import { publicApiError } from '@/lib/api-error';
+import { recordCashTransaction } from '@/lib/accounting/posting';
 import {
   createSpendingApprovalRequest,
   evaluateSpendingApproval,
@@ -264,16 +265,15 @@ export const POST = withTenantGuard(
           });
         }
 
-        const cashTransaction = await tx.cashTransaction.create({
-          data: {
-            workspaceId,
-            userId: auth.user.id,
-            type: TransactionType.EXPENSE,
-            category: 'Pembelian Stok/Purchasing',
-            amount: totalAmount,
-            description: `Pembelian Stok PO #${poNumber} (${supplierName})`,
-            paymentMethod,
-          },
+        const { transaction: cashTransaction } = await recordCashTransaction(tx, {
+          workspaceId,
+          userId: auth.user.id,
+          type: TransactionType.EXPENSE,
+          category: 'Pembelian Stok/Purchasing',
+          amount: totalAmount,
+          description: `Pembelian Stok PO #${poNumber} (${supplierName})`,
+          paymentMethod,
+          autoMapFallback: true,
         });
 
         const updatedPurchaseOrder = await tx.purchaseOrder.update({

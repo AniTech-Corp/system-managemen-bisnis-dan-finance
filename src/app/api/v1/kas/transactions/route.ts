@@ -454,7 +454,7 @@ export const DELETE = withTenantGuard(
       const result = await prisma.$transaction(async (tx) => {
         const existing = await tx.cashTransaction.findFirst({
           where: { id, workspaceId: auth.workspace.id },
-          select: { id: true, invoiceId: true, obligationId: true },
+          select: { id: true, invoiceId: true, obligationId: true, payrollId: true },
         });
         if (!existing) return { deleted: false, reversed: false };
 
@@ -504,6 +504,17 @@ export const DELETE = withTenantGuard(
             await tx.scheduledObligation.update({
               where: { id: existing.obligationId },
               data: { status: 'PENDING', paidAt: null, paymentMethod: null },
+            });
+          }
+        }
+        if (existing.payrollId) {
+          const remaining = await tx.cashTransaction.count({
+            where: { workspaceId: auth.workspace.id, payrollId: existing.payrollId },
+          });
+          if (remaining === 0) {
+            await tx.employeePayroll.update({
+              where: { id: existing.payrollId },
+              data: { isPaid: false, paidAt: null },
             });
           }
         }

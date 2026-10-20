@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 146 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 158 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -794,6 +794,93 @@ ok('kewajiban batal bisa dihapus', delOblig.status === 200, delOblig.json?.messa
 
 const bsFinalAp = await api('/api/v1/accounting/reports/balance-sheet?period=2026-11');
 ok('neraca balance setelah seluruh alur kewajiban', Number(bsFinalAp.json?.data?.current?.totals?.difference) === 0);
+
+/* 18d. PAYROLL - akrual saat slip dibuat, pelunasan saat gaji dibayarkan */
+
+const opexBeforePayroll = Number(
+  (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses
+);
+const cashBeforePayroll = Number(
+  (await api('/api/v1/accounting/reports/cash-flow?period=2026-11')).json?.data?.current?.totals?.closingCash
+);
+
+const payroll = await api('/api/v1/kerja/payroll', {
+  method: 'POST',
+  body: {
+    employeeName: 'Staf Uji Payroll',
+    role: 'Staf Operasional',
+    basicSalary: 6_000_000,
+    allowance: 500_000,
+    deductions: 0,
+    monthYear: 'November 2026',
+    accrualDate: '2026-11-10',
+  },
+});
+const payrollId = payroll.json?.payroll?.id;
+ok('slip gaji dibuat', payroll.status === 200 && Boolean(payrollId), payroll.json?.message?.slice(0, 70));
+ok('slip gaji otomatis dijurnal (source PAYROLL)', Boolean(payroll.json?.journalNumber), payroll.json?.journalNumber);
+
+const novAfterPayroll = await api('/api/v1/accounting/journals?period=2026-11&limit=200');
+const payrollJournal = (novAfterPayroll.json?.data ?? []).find(
+  (j) => j.source === 'PAYROLL' && j.sourceId === payrollId
+);
+ok(
+  'jurnal gaji: Dr Beban Gaji / Cr Utang Gaji',
+  Number(payrollJournal?.lines?.find((l) => l.account.code === '6-1100')?.debit) === 6_500_000 &&
+    Number(payrollJournal?.lines?.find((l) => l.account.code === '2-1200')?.credit) === 6_500_000,
+  (payrollJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+ok(
+  'beban gaji diakui saat slip dibuat',
+  Number((await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses) ===
+    opexBeforePayroll + 6_500_000
+);
+ok(
+  'utang gaji muncul di neraca',
+  Number(
+    ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-11')).json?.data?.current?.liabilities ?? []).find(
+      (a) => a.code === '2-1200'
+    )?.amount
+  ) === 6_500_000
+);
+ok(
+  'arus kas belum berubah (gaji belum dibayar)',
+  Number((await api('/api/v1/accounting/reports/cash-flow?period=2026-11')).json?.data?.current?.totals?.closingCash) ===
+    cashBeforePayroll
+);
+
+const paidPayroll = await api('/api/v1/kerja/payroll', { method: 'PUT', body: { payrollId, paymentDate: '2026-11-28' } });
+ok('gaji dibayarkan', paidPayroll.status === 200 && paidPayroll.json?.payroll?.isPaid === true);
+
+const novAfterPayrollPay = await api('/api/v1/accounting/journals?period=2026-11&limit=200');
+const payrollSettlement = (novAfterPayrollPay.json?.data ?? []).find(
+  (j) => j.source === 'CASH_TX' && j.lines?.some((l) => l.account.code === '2-1200') && Number(j.totalDebit) === 6_500_000
+);
+ok(
+  'pembayaran gaji: Dr Utang Gaji / Cr Kas',
+  Number(payrollSettlement?.lines?.find((l) => l.account.code === '2-1200')?.debit) === 6_500_000 &&
+    Number(payrollSettlement?.lines?.find((l) => l.account.code === '1-1210')?.credit) === 6_500_000,
+  (payrollSettlement?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+ok(
+  'pembayaran gaji TIDAK menambah beban (tanpa hitung ganda)',
+  Number((await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses) ===
+    opexBeforePayroll + 6_500_000
+);
+ok(
+  'kas berkurang saat gaji dibayar',
+  Number((await api('/api/v1/accounting/reports/cash-flow?period=2026-11')).json?.data?.current?.totals?.closingCash) ===
+    cashBeforePayroll - 6_500_000
+);
+ok(
+  'utang gaji nol setelah dibayar',
+  !(((await api('/api/v1/accounting/reports/balance-sheet?period=2026-11')).json?.data?.current?.liabilities ?? []).find(
+    (a) => a.code === '2-1200'
+  ))
+);
+
+const paidPayrollAgain = await api('/api/v1/kerja/payroll', { method: 'PUT', body: { payrollId } });
+ok('pembayaran gaji ganda ditolak', paidPayrollAgain.status === 400, paidPayrollAgain.json?.message?.slice(0, 70));
 
 /* 19. TUTUP TAHUN BUKU (jurnal penutup) */
 

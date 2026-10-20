@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { TransactionType, TaskPriority, TaskStatus } from '@prisma/client';
+import { recordCashTransaction } from './accounting/posting';
 
 export interface WorkflowEventPayload {
   workspaceId: string;
@@ -81,8 +82,8 @@ export async function dispatchWorkflowEvent({
           const amount = Number(payload.amount || payload.totalPrice || 500000);
           const description = payload.description || `Pendapatan Otomatis dari ${triggerSource} (${payload.customerName || 'Klien'})`;
 
-          const tx = await prisma.cashTransaction.create({
-            data: {
+          const { transaction: tx } = await prisma.$transaction((db) =>
+            recordCashTransaction(db, {
               workspaceId,
               userId: userId || null,
               type: TransactionType.INCOME,
@@ -90,8 +91,9 @@ export async function dispatchWorkflowEvent({
               amount,
               description,
               paymentMethod: payload.paymentMethod || 'TRANSFER_BANK',
-            },
-          });
+              autoMapFallback: true,
+            })
+          );
 
           details = `✓ Transaksi Kas Masuk Rp ${amount.toLocaleString()} berhasil dicatat (ID: ${tx.id.slice(0, 8)}).`;
           outputData = { transactionId: tx.id, amount, type: 'INCOME' };
@@ -103,8 +105,8 @@ export async function dispatchWorkflowEvent({
           const amount = Number(payload.amount || payload.netSalary || 4500000);
           const description = payload.description || `Beban Penggajian Staf: ${payload.employeeName || 'Karyawan'}`;
 
-          const tx = await prisma.cashTransaction.create({
-            data: {
+          const { transaction: tx } = await prisma.$transaction((db) =>
+            recordCashTransaction(db, {
               workspaceId,
               userId: userId || null,
               type: TransactionType.EXPENSE,
@@ -112,8 +114,9 @@ export async function dispatchWorkflowEvent({
               amount,
               description,
               paymentMethod: 'TRANSFER_BANK',
-            },
-          });
+              autoMapFallback: true,
+            })
+          );
 
           details = `✓ Beban Kas Keluar Rp ${amount.toLocaleString()} berhasil dicatat (ID: ${tx.id.slice(0, 8)}).`;
           outputData = { transactionId: tx.id, amount, type: 'EXPENSE' };

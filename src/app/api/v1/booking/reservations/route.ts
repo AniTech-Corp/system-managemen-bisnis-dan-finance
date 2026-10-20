@@ -4,6 +4,7 @@ import { withTenantGuard } from '@/lib/tenant-guard';
 import { BookingStatus, TransactionType } from '@prisma/client';
 import { encryptField, decryptFields } from '@/lib/crypto';
 import { publicApiError } from '@/lib/api-error';
+import { recordCashTransaction } from '@/lib/accounting/posting';
 
 // GET: Ambil daftar reservasi booking
 export const GET = withTenantGuard(
@@ -72,16 +73,15 @@ export const POST = withTenantGuard(
         });
 
         if (isDepositPaid && Number(depositAmount) > 0) {
-          await tx.cashTransaction.create({
-            data: {
-              workspaceId: auth.workspace.id,
-              userId: auth.user.id,
-              type: TransactionType.INCOME,
-              category: 'Deposit Reservasi Booking',
-              amount: Number(depositAmount),
-              description: `Uang Muka Reservasi #${bookingCode} (${created.customerName} - ${created.serviceName})`,
-              paymentMethod: 'TRANSFER_BANK',
-            },
+          await recordCashTransaction(tx, {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            type: TransactionType.INCOME,
+            category: 'Deposit Reservasi Booking',
+            amount: Number(depositAmount),
+            description: `Uang Muka Reservasi #${bookingCode} (${created.customerName} - ${created.serviceName})`,
+            paymentMethod: 'TRANSFER_BANK',
+            autoMapFallback: true,
           });
         }
         return created;
@@ -134,16 +134,15 @@ export const PUT = withTenantGuard(
         if (status === 'COMPLETED' && existingReservation.status !== 'COMPLETED') {
           const remainingAmount = existingReservation.totalPrice - (existingReservation.isDepositPaid ? existingReservation.depositAmount : 0);
           if (remainingAmount > 0) {
-            await tx.cashTransaction.create({
-              data: {
-                workspaceId: auth.workspace.id,
-                userId: auth.user.id,
-                type: TransactionType.INCOME,
-                category: 'Pelunasan Layanan Booking',
-                amount: remainingAmount,
-                description: `Pelunasan Layanan Reservasi #${existingReservation.bookingCode} (${existingReservation.customerName})`,
-                paymentMethod: 'TRANSFER_BANK',
-              },
+            await recordCashTransaction(tx, {
+              workspaceId: auth.workspace.id,
+              userId: auth.user.id,
+              type: TransactionType.INCOME,
+              category: 'Pelunasan Layanan Booking',
+              amount: remainingAmount,
+              description: `Pelunasan Layanan Reservasi #${existingReservation.bookingCode} (${existingReservation.customerName})`,
+              paymentMethod: 'TRANSFER_BANK',
+              autoMapFallback: true,
             });
           }
         }

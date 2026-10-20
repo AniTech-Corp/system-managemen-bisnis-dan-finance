@@ -35,6 +35,28 @@ export interface CoaTemplateEntry {
   description?: string;
 }
 
+/**
+ * Pemetaan kategori bawaan untuk transaksi yang dibuat modul lain (payroll,
+ * inventori, booking, workflow, AI). Tanpa pemetaan ini, transaksi dari modul
+ * tersebut akan gagal dijurnal saat modul akuntansi aktif. Owner tetap bisa
+ * mengubahnya lewat Pengaturan → Pemetaan Kategori.
+ */
+export const DEFAULT_CATEGORY_MAPPINGS: Array<{
+  category: string;
+  type: AccountType;
+  accountCode: string;
+}> = [
+  { category: 'Gaji Staf & Honor Tim', type: AccountType.EXPENSE, accountCode: '6-1100' },
+  { category: 'Beban Gaji & Upah Karyawan', type: AccountType.EXPENSE, accountCode: '6-1100' },
+  { category: 'Pembelian Stok/Purchasing', type: AccountType.EXPENSE, accountCode: '5-1100' },
+  { category: 'Operasional', type: AccountType.EXPENSE, accountCode: '6-9000' },
+  { category: 'Penjualan Stok/Kasir', type: AccountType.REVENUE, accountCode: '4-1200' },
+  { category: 'Deposit Reservasi Booking', type: AccountType.REVENUE, accountCode: '4-1100' },
+  { category: 'Pelunasan Layanan Booking', type: AccountType.REVENUE, accountCode: '4-1100' },
+  { category: 'Penjualan / Layanan Jasa', type: AccountType.REVENUE, accountCode: '4-1100' },
+  { category: 'Pemasukan Lainnya', type: AccountType.REVENUE, accountCode: '4-1900' },
+];
+
 export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   // ── ASET ────────────────────────────────────────────────────────────────
   { code: '1-1000', name: 'Aset Lancar', type: AccountType.ASSET, normalBalance: NormalBalance.DEBIT, isPostable: false },
@@ -115,6 +137,7 @@ export interface SetupResult {
   accountsCreated: number;
   accountsExisting: number;
   cashAccountsCreated: number;
+  categoryMappingsCreated: number;
   setting: {
     booksStartDate: Date;
     taxProfile: TaxProfile;
@@ -180,6 +203,34 @@ export async function seedChartOfAccounts(
   const cashAccount = byCode.get('1-1110');
   const bankAccount = byCode.get('1-1210');
   const defaultRevenue = byCode.get('4-1100');
+
+  // Pemetaan kategori bawaan: hanya dibuat kalau belum ada, supaya pilihan owner
+  // tidak tertimpa saat setup dijalankan ulang.
+  let mappingsCreated = 0;
+  for (const mapping of DEFAULT_CATEGORY_MAPPINGS) {
+    const account = byCode.get(mapping.accountCode);
+    if (!account) continue;
+    const existingMap = await tx.categoryAccountMap.findUnique({
+      where: {
+        workspaceId_category_type: {
+          workspaceId,
+          category: mapping.category,
+          type: mapping.type,
+        },
+      },
+      select: { id: true },
+    });
+    if (existingMap) continue;
+    await tx.categoryAccountMap.create({
+      data: {
+        workspaceId,
+        category: mapping.category,
+        type: mapping.type,
+        accountId: account.id,
+      },
+    });
+    mappingsCreated += 1;
+  }
 
   // Awal bulan BERJALAN (bukan bulan depan). Tanggal mulai pembukuan yang jatuh
   // di masa depan membuat setiap jurnal yang dibuat hari ini tercatat sebelum
@@ -260,6 +311,7 @@ export async function seedChartOfAccounts(
     accountsCreated: created,
     accountsExisting: existingBefore.length,
     cashAccountsCreated: cashCreated,
+    categoryMappingsCreated: mappingsCreated,
     setting: {
       booksStartDate: setting.booksStartDate ?? defaultBooksStart,
       taxProfile: setting.taxProfile,

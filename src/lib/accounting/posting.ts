@@ -7,6 +7,7 @@ import {
   type Account,
   type CashAccount,
   type CashTransaction,
+  type EmployeePayroll,
   type Invoice,
   type ScheduledObligation,
 } from '@prisma/client';
@@ -40,6 +41,7 @@ export interface PostingContext {
     | 'transactionDate'
     | 'invoiceId'
     | 'obligationId'
+    | 'payrollId'
   >;
 }
 
@@ -158,6 +160,10 @@ const RECEIVABLE_ACCOUNT_CODE = '1-1300'; // Piutang Usaha
 const PAYABLE_ACCOUNT_CODE = '2-1100'; // Utang Usaha
 const PPN_OUTPUT_ACCOUNT_CODE = '2-1310'; // PPN Keluaran
 const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100'; // Pendapatan Jasa
+const SALARY_EXPENSE_ACCOUNT_CODE = '6-1100'; // Beban Gaji & Tunjangan
+const SALARY_PAYABLE_ACCOUNT_CODE = '2-1200'; // Utang Gaji
+const FALLBACK_INCOME_ACCOUNT_CODE = '4-1900'; // Pendapatan Lain-lain
+const FALLBACK_EXPENSE_ACCOUNT_CODE = '6-9000'; // Beban Lain-lain
 
 /**
  * Kategori yang dipakai modul faktur saat mencatat pelunasan sebagai transaksi
@@ -428,6 +434,25 @@ export async function postCashTransaction(
     });
   }
 
+  // Pembayaran gaji: uang keluar melunasi UTANG GAJI yang sudah diakui saat
+  // slip gaji dibuat, bukan menambah beban gaji lagi.
+  if (transaction.payrollId && transaction.type === TransactionType.EXPENSE) {
+    const payableId = await resolveAccountIdByCode(tx, ctx.workspaceId, SALARY_PAYABLE_ACCOUNT_CODE);
+    return createJournalInTx(tx, {
+      workspaceId: ctx.workspaceId,
+      userId: ctx.userId,
+      entryDate: transaction.transactionDate,
+      description: transaction.description || 'Pembayaran gaji',
+      source: JournalSource.CASH_TX,
+      sourceId: transaction.id,
+      lines: [
+        { accountId: payableId, debit: amount, credit: 0 },
+        { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: 0, credit: amount },
+      ],
+      postImmediately: true,
+    });
+  }
+
   const target = await resolveCategoryAccount(
     tx,
     ctx.workspaceId,
@@ -458,4 +483,158 @@ export async function postCashTransaction(
     lines,
     postImmediately: true,
   });
+}
+
+/* ─────────────────── GAJI (PAYROLL) ─────────────────── */
+
+/**
+ * Jurnal saat slip gaji dibuat (basis akrual):
+ *
+ *   Dr  Beban Gaji & Tunjangan (6-1100)
+ *       Cr  Utang Gaji (2-1200)
+ *
+ * Pembayaran gaji nanti hanya memindahkan utang menjadi kas, jadi beban tidak
+ * dihitung dua kali.
+ *
+ * Catatan v1: `deductions` pada slip dianggap sudah disetor di luar sistem, jadi
+ * yang diakui adalah `netSalary` (jumlah yang benar-benar dibayarkan).
+ */
+export async function postPayrollAccruedInTx(
+  tx: Prisma.TransactionClient,
+  ctx: {
+    workspaceId: string;
+    userId: string;
+    payroll: Pick<EmployeePayroll, 'id' | 'employeeName' | 'netSalary' | 'monthYear' | 'createdAt'>;
+    /** Tanggal pengakuan beban. Default: saat slip dibuat. */
+    entryDate?: Date;
+  }
+): Promise<JournalWithLines | null> {
+  const setting = await getAccountingSetting(tx, ctx.workspaceId);
+  if (!setting?.isEnabled) return null;
+
+  const amount = toMoney(ctx.payroll.netSalary);
+  const expenseId = await resolveAccountIdByCode(tx, ctx.workspaceId, SALARY_EXPENSE_ACCOUNT_CODE);
+  const payableId = await resolveAccountIdByCode(tx, ctx.workspaceId, SALARY_PAYABLE_ACCOUNT_CODE);
+
+  return createJournalInTx(tx, {
+    workspaceId: ctx.workspaceId,
+    userId: ctx.userId,
+    entryDate: ctx.entryDate ?? ctx.payroll.createdAt,
+    description: `Gaji ${ctx.payroll.employeeName} — ${ctx.payroll.monthYear}`,
+    source: JournalSource.PAYROLL,
+    sourceId: ctx.payroll.id,
+    lines: [
+      { accountId: expenseId, debit: amount, credit: 0, description: 'Beban gaji' },
+      { accountId: payableId, debit: 0, credit: amount, description: 'Utang gaji' },
+    ],
+    postImmediately: true,
+  });
+}
+
+/* ─────────────────── PINTU TUNGGAL TRANSAKSI KAS ─────────────────── */
+
+/**
+ * Cari user yang dipakai sebagai pembuat jurnal. Modul otomatis (workflow, AI)
+ * kadang tidak punya user; jurnal tetap harus punya `createdBy` yang valid.
+ */
+async function resolveJournalUserId(
+  tx: Prisma.TransactionClient,
+  workspaceId: string,
+  preferred?: string | null
+): Promise<string> {
+  if (preferred) return preferred;
+
+  const owner = await tx.workspaceMember.findFirst({
+    where: { workspaceId, role: { in: ['OWNER', 'ADMIN'] } },
+    select: { userId: true },
+    orderBy: { joinedAt: 'asc' },
+  });
+  if (owner?.userId) return owner.userId;
+
+  const anyMember = await tx.workspaceMember.findFirst({
+    where: { workspaceId },
+    select: { userId: true },
+  });
+  if (anyMember?.userId) return anyMember.userId;
+
+  throw new JournalValidationError('Tidak ada pengguna workspace untuk mencatat jurnal.');
+}
+
+/**
+ * **Pintu tunggal** pencatatan uang keluar/masuk di luar form Buku Kas.
+ *
+ * Semua modul (payroll, inventori, booking, workflow, AI) WAJIB memakai fungsi
+ * ini supaya setiap baris `cash_transactions` punya jurnal. Kalau tidak, angka
+ * Buku Kas dan Laporan Keuangan akan berbeda.
+ *
+ * `autoMapFallback`: kategori yang belum dipetakan otomatis dipetakan ke akun
+ * "lain-lain" (4-1900 / 6-9000) dan pemetaannya disimpan, sehingga muncul di
+ * layar Pemetaan Kategori untuk dibetulkan. Tanpa opsi ini, kategori yang belum
+ * dipetakan tetap ditolak (perilaku form manual).
+ */
+export async function recordCashTransaction(
+  tx: Prisma.TransactionClient,
+  ctx: {
+    workspaceId: string;
+    userId?: string | null;
+    type: TransactionType;
+    category: string;
+    amount: number | Prisma.Decimal;
+    description: string;
+    paymentMethod?: string;
+    transactionDate?: Date;
+    invoiceId?: string | null;
+    obligationId?: string | null;
+    payrollId?: string | null;
+    autoMapFallback?: boolean;
+  }
+): Promise<{ transaction: CashTransaction; journal: JournalWithLines | null; warning?: string }> {
+  const category = ctx.category.trim().slice(0, 100);
+  let warning: string | undefined;
+
+  if (ctx.autoMapFallback) {
+    const setting = await getAccountingSetting(tx, ctx.workspaceId);
+    if (setting?.isEnabled) {
+      const accountType = ctx.type === TransactionType.INCOME ? AccountType.REVENUE : AccountType.EXPENSE;
+      const existing = await tx.categoryAccountMap.findUnique({
+        where: { workspaceId_category_type: { workspaceId: ctx.workspaceId, category, type: accountType } },
+        select: { id: true },
+      });
+
+      if (!existing) {
+        const fallbackCode =
+          accountType === AccountType.REVENUE ? FALLBACK_INCOME_ACCOUNT_CODE : FALLBACK_EXPENSE_ACCOUNT_CODE;
+        const accountId = await resolveAccountIdByCode(tx, ctx.workspaceId, fallbackCode);
+        await tx.categoryAccountMap.create({
+          data: { workspaceId: ctx.workspaceId, category, type: accountType, accountId },
+        });
+        warning = `Kategori "${category}" belum dipetakan; sementara dicatat ke ${fallbackCode}. Lengkapi di Pengaturan → Pemetaan Kategori.`;
+      }
+    }
+  }
+
+  const created = await tx.cashTransaction.create({
+    data: {
+      workspaceId: ctx.workspaceId,
+      userId: ctx.userId ?? null,
+      type: ctx.type,
+      category,
+      amount: Number(ctx.amount),
+      description: ctx.description,
+      paymentMethod: ctx.paymentMethod ?? 'TRANSFER_BANK',
+      transactionDate: ctx.transactionDate ?? new Date(),
+      invoiceId: ctx.invoiceId ?? null,
+      obligationId: ctx.obligationId ?? null,
+      payrollId: ctx.payrollId ?? null,
+    },
+  });
+
+  const journalUserId = await resolveJournalUserId(tx, ctx.workspaceId, ctx.userId);
+  const journal = await postCashTransaction(tx, {
+    workspaceId: ctx.workspaceId,
+    userId: journalUserId,
+    transaction: created,
+  });
+
+  return { transaction: created, journal, warning };
 }

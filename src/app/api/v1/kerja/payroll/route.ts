@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { TransactionType } from '@prisma/client';
 import { publicApiError } from '@/lib/api-error';
+import { postPayrollAccruedInTx, recordCashTransaction } from '@/lib/accounting/posting';
 
 // GET: Ambil daftar slip gaji karyawan
 export const GET = withTenantGuard(
@@ -38,7 +39,16 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { employeeName, role = 'Staf Operasional', basicSalary, allowance = 0, overtime = 0, deductions = 0, monthYear = 'Agustus 2026' } = await req.json();
+      const {
+        employeeName,
+        role = 'Staf Operasional',
+        basicSalary,
+        allowance = 0,
+        overtime = 0,
+        deductions = 0,
+        monthYear = 'Agustus 2026',
+        accrualDate,
+      } = await req.json();
 
       if (!employeeName || !basicSalary) {
         return NextResponse.json({ message: 'Nama staf dan gaji pokok wajib diisi.' }, { status: 400 });
@@ -50,25 +60,48 @@ export const POST = withTenantGuard(
       const deduct = Number(deductions) || 0;
       const netSalary = Math.max(basic + allow + ot - deduct, 0);
 
-      const payroll = await prisma.employeePayroll.create({
-        data: {
+      // Opsional: tanggal pengakuan beban gaji (mis. mencatat slip bulan lalu).
+      let entryDate: Date | undefined;
+      if (accrualDate) {
+        entryDate = new Date(String(accrualDate));
+        if (Number.isNaN(entryDate.getTime())) {
+          return NextResponse.json({ message: 'Tanggal pengakuan tidak valid.' }, { status: 400 });
+        }
+      }
+
+      const result = await prisma.$transaction(async (tx) => {
+        const payroll = await tx.employeePayroll.create({
+          data: {
+            workspaceId: auth.workspace.id,
+            employeeName: employeeName.trim(),
+            role: role.trim(),
+            basicSalary: basic,
+            allowance: allow,
+            overtime: ot,
+            deductions: deduct,
+            netSalary,
+            monthYear,
+            isPaid: false,
+          },
+        });
+
+        // Basis akrual: beban gaji diakui saat slip dibuat (Dr Beban Gaji /
+        // Cr Utang Gaji). Pembayaran nanti hanya melunasi utang.
+        const journal = await postPayrollAccruedInTx(tx, {
           workspaceId: auth.workspace.id,
-          employeeName: employeeName.trim(),
-          role: role.trim(),
-          basicSalary: basic,
-          allowance: allow,
-          overtime: ot,
-          deductions: deduct,
-          netSalary,
-          monthYear,
-          isPaid: false,
-        },
+          userId: auth.user.id,
+          payroll,
+          entryDate,
+        });
+
+        return { payroll, journal };
       });
 
       return NextResponse.json({
         success: true,
-        message: `Slip gaji untuk ${payroll.employeeName} periode ${payroll.monthYear} berhasil dibuat!`,
-        payroll,
+        message: `Slip gaji untuk ${result.payroll.employeeName} periode ${result.payroll.monthYear} berhasil dibuat!`,
+        payroll: result.payroll,
+        journalNumber: result.journal?.entryNumber ?? null,
       });
     } catch (err: any) {
       return NextResponse.json({ message: publicApiError('Payroll gagal dibuat. Periksa data dan coba lagi.') }, { status: 400 });
@@ -81,7 +114,7 @@ export const POST = withTenantGuard(
 export const PUT = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { payrollId } = await req.json();
+      const { payrollId, paymentDate } = await req.json();
 
       if (!payrollId) {
         return NextResponse.json({ message: 'Payroll ID wajib diisi.' }, { status: 400 });
@@ -99,10 +132,18 @@ export const PUT = withTenantGuard(
         return NextResponse.json({ message: 'Gaji karyawan ini sudah dibayarkan sebelumnya.' }, { status: 400 });
       }
 
+      let paidAt = new Date();
+      if (paymentDate) {
+        paidAt = new Date(String(paymentDate));
+        if (Number.isNaN(paidAt.getTime())) {
+          return NextResponse.json({ message: 'Tanggal pembayaran tidak valid.' }, { status: 400 });
+        }
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         const transition = await tx.employeePayroll.updateMany({
           where: { id: payrollId, workspaceId: auth.workspace.id, isPaid: false },
-          data: { isPaid: true, paidAt: new Date() },
+          data: { isPaid: true, paidAt },
         });
 
         if (transition.count === 0) {
@@ -110,16 +151,18 @@ export const PUT = withTenantGuard(
           return { payroll: latest, postedCash: false, alreadyPaid: Boolean(latest?.isPaid) };
         }
 
-        await tx.cashTransaction.create({
-          data: {
-            workspaceId: auth.workspace.id,
-            userId: auth.user.id,
-            type: TransactionType.EXPENSE,
-            category: 'Gaji Staf & Honor Tim',
-            amount: payroll.netSalary,
-            description: `Pembayaran Gaji ${payroll.employeeName} (${payroll.role}) Periode ${payroll.monthYear}`,
-            paymentMethod: 'TRANSFER_BANK',
-          },
+        // Satu pintu: baris kas + jurnal pelunasan utang gaji (Dr Utang Gaji /
+        // Cr Kas). Tanpa ini, pembayaran gaji tidak muncul di Laporan Keuangan.
+        await recordCashTransaction(tx, {
+          workspaceId: auth.workspace.id,
+          userId: auth.user.id,
+          type: TransactionType.EXPENSE,
+          category: 'Gaji Staf & Honor Tim',
+          amount: payroll.netSalary,
+          description: `Pembayaran Gaji ${payroll.employeeName} (${payroll.role}) Periode ${payroll.monthYear}`,
+          paymentMethod: 'TRANSFER_BANK',
+          transactionDate: paidAt,
+          payrollId: payroll.id,
         });
 
         const updated = await tx.employeePayroll.findUnique({ where: { id: payrollId } });

@@ -255,12 +255,31 @@ Dr  Beban (sesuai kategori)   nilai kewajiban
 membalik jurnal akrual lewat jurnal pembalik. Kewajiban yang sudah `PAID` harus
 dikembalikan ke `PENDING` dulu sebelum dibatalkan atau dihapus.
 
-**Kas manual.** `POST /api/v1/kas/transactions` (termasuk impor batch mutasi bank)
-otomatis membuat jurnal bila `accounting_settings.is_enabled = true`.
-`DELETE /api/v1/kas/transactions?id=...` otomatis membuat jurnal pembalik dan
-mengembalikan faktur/kewajiban terkait ke status belum lunas.
+**Gaji (payroll).** Membuat slip gaji `POST /api/v1/kerja/payroll` mengakui
+bebannya lebih dulu:
 
-Belum terintegrasi (jurnalnya masih manual): payroll dan persediaan.
+```
+Dr  Beban Gaji & Tunjangan (6-1100)
+    Cr  Utang Gaji (2-1200)
+```
+
+Membayar slip (`PUT` yang sama) mencatat kas keluar dan melunasi utang
+(`Dr Utang Gaji / Cr Kas`), jadi beban tidak dihitung dua kali. Menghapus baris
+kas pembayaran gaji mengembalikan slip ke status belum dibayar.
+
+**Kas manual & impor rekening koran.** `POST /api/v1/kas/transactions` dan
+impor mutasi bank (`/workspace-files/{id}/import-ledger`) menjurnal setiap baris.
+`DELETE /api/v1/kas/transactions?id=...` membuat jurnal pembalik dan
+mengembalikan faktur/kewajiban/slip gaji terkait ke status belum lunas.
+
+**Aturan pintu tunggal.** Semua modul yang menyentuh uang (payroll, inventori,
+booking, workflow otomatis, AI) memakai `recordCashTransaction()` di
+`src/lib/accounting/posting.ts`, sehingga **setiap baris kas pasti punya jurnal**.
+Kategori yang belum dipetakan dari modul otomatis tidak menggagalkan transaksi:
+sistem memetakannya sementara ke `4-1900`/`6-9000` dan pemetaan itu muncul di
+layar Pemetaan Kategori untuk dibetulkan.
+
+Belum terintegrasi: persediaan/HPP (jurnal HPP & nilai persediaan).
 
 ### Cara sistem memilih rekening kas/bank
 
@@ -414,7 +433,7 @@ src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 146 pemeriksaan end-to-end (butuh server + DB kosong)
+scripts/accounting-smoke.mjs            ← 158 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -426,7 +445,7 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 
 | Item | Rencana |
 | --- | --- |
-| Integrasi payroll ke jurnal (gaji, PPh 21, BPJS) | Fase 2 |
+| Rincian PPh 21 & BPJS pada slip gaji (sekarang potongan masih gabungan) | Fase 2 |
 | Anggaran/target & laporan realisasi vs anggaran | Fase 2 |
 | Persediaan & HPP barang (kartu stok, metode FIFO/rata-rata) | Fase 3 |
 | Laporan PDF server-side (sekarang: cetak dari browser / Ekspor Excel) | Fase 3 |

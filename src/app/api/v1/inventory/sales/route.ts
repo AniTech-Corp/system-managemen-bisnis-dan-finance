@@ -5,6 +5,7 @@ import { withTenantGuard } from '@/lib/tenant-guard';
 import { StockMovementType, TransactionType } from '@prisma/client';
 import { invalidateContextCache } from '@/lib/ai-brain';
 import { isConsignedProduct, planConsignmentSaleLiability } from '@/lib/ai-brain/consignment-engine';
+import { recordCashTransaction } from '@/lib/accounting/posting';
 
 // KLIR Inventory -- Penjualan keluar manual / kasir (10 Sep 2026, agent
 // api-stock-ops, F3 kontrak Tingkat B). Beda dari purchase-orders (barang MASUK +
@@ -129,16 +130,15 @@ export const POST = withTenantGuard(
         const description = descriptionName
           ? `Penjualan ${itemCount} item (${descriptionName})`
           : `Penjualan ${itemCount} item`;
-        const cashTransaction = await tx.cashTransaction.create({
-          data: {
-            workspaceId,
-            userId: auth.user.id,
-            type: TransactionType.INCOME,
-            category: 'Penjualan Stok/Kasir',
-            amount: totalAmount,
-            description,
-            paymentMethod,
-          },
+        const { transaction: cashTransaction } = await recordCashTransaction(tx, {
+          workspaceId,
+          userId: auth.user.id,
+          type: TransactionType.INCOME,
+          category: 'Penjualan Stok/Kasir',
+          amount: totalAmount,
+          description,
+          paymentMethod,
+          autoMapFallback: true,
         });
 
         const saleItems: Array<{ productId: string; name: string; qty: number; unitPrice: number; subtotal: number }> = [];
@@ -207,7 +207,9 @@ export const POST = withTenantGuard(
             sourceId: cashTransaction.id,
           });
           if ('error' in plan) throw new Error(plan.error);
-          await tx.cashTransaction.create({ data: plan.cashTransaction });
+          // Baris kas ini juga harus dijurnal supaya Buku Kas dan Laporan
+          // Keuangan tidak berbeda (kategori konsinyasi otomatis dipetakan).
+          await recordCashTransaction(tx, { ...plan.cashTransaction, autoMapFallback: true });
           consignmentLiabilityAmount += plan.cashTransaction.amount;
           consignmentItemCount += 1;
         }

@@ -328,6 +328,9 @@ model CashTransaction {
   // Kewajiban yang dibayar transaksi ini (kalau ada). Jurnalnya melunasi UTANG,
   // bukan menambah beban lagi -- bebannya sudah diakui saat kewajiban dicatat.
   obligationId    String?         @map("obligation_id") @db.Uuid
+  // Slip gaji yang dibayar transaksi ini (kalau ada). Sama seperti kewajiban:
+  // bebannya sudah diakui saat slip dibuat, jadi pembayaran hanya melunasi utang.
+  payrollId       String?         @map("payroll_id") @db.Uuid
   type            TransactionType
   category        String          @db.VarChar(100)
   amount          Float
@@ -341,12 +344,14 @@ model CashTransaction {
   user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   invoice    Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   obligation ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
+  payroll    EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, type])
   @@index([workspaceId, transactionDate])
   @@index([workspaceId, sourceFileId])
   @@index([workspaceId, invoiceId])
   @@index([workspaceId, obligationId])
+  @@index([workspaceId, payrollId])
   @@map("cash_transactions")
 }
 
@@ -675,7 +680,8 @@ model EmployeePayroll {
   paidAt       DateTime? @map("paid_at")
   createdAt    DateTime  @default(now()) @map("created_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTransactions CashTransaction[]
 
   @@index([workspaceId, monthYear])
   @@map("employee_payrolls")
