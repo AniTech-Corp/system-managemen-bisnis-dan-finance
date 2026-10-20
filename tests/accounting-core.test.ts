@@ -419,3 +419,38 @@ describe('accounting: hierarki bagan akun', () => {
     assert.equal(wouldCreateCycle(cyclic, 'c', 'a'), false);
   });
 });
+
+describe('anggaran (budget)', () => {
+  test('tahun buku dihitung dari bulan pertama tahun buku', async () => {
+    const { fiscalStartYear } = await import('../src/lib/accounting/budgets');
+    assert.equal(fiscalStartYear(2026, 1, 1), 2026);
+    assert.equal(fiscalStartYear(2026, 12, 1), 2026);
+    assert.equal(fiscalStartYear(2026, 4, 4), 2026);
+    assert.equal(fiscalStartYear(2026, 3, 4), 2025, 'Maret masih tahun buku yang mulai April 2025');
+    assert.equal(fiscalStartYear(2027, 1, 4), 2026);
+  });
+
+  test('posisi bulan 0-11 mengikuti tahun buku, bukan kalender', async () => {
+    const { monthIndexInFiscalYear } = await import('../src/lib/accounting/budgets');
+    assert.equal(monthIndexInFiscalYear(2026, 1, 1), 0);
+    assert.equal(monthIndexInFiscalYear(2026, 11, 1), 10);
+    assert.equal(monthIndexInFiscalYear(2026, 12, 1), 11);
+    assert.equal(monthIndexInFiscalYear(2026, 4, 4), 0, 'April = slot pertama');
+    assert.equal(monthIndexInFiscalYear(2026, 12, 4), 8);
+    assert.equal(monthIndexInFiscalYear(2027, 1, 4), 9);
+    assert.equal(monthIndexInFiscalYear(2027, 3, 4), 11, 'Maret = slot terakhir');
+  });
+
+  test('parseMonthly menerima 12 angka dan menolak input tidak valid', async () => {
+    const { parseMonthly } = await import('../src/lib/accounting/budgets');
+    const parsed = parseMonthly([1_000_000, '250000', '', 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    assert.equal(parsed.length, 12);
+    assert.equal(parsed[0].toFixed(2), '1000000.00');
+    assert.equal(parsed[1].toFixed(2), '250000.00');
+    assert.equal(parsed[2].toFixed(2), '0.00');
+
+    assert.throws(() => parseMonthly([1, 2, 3]), /tepat 12 angka/);
+    assert.throws(() => parseMonthly([-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), /tidak boleh negatif/);
+    assert.throws(() => parseMonthly([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'abc']), /tidak valid/);
+  });
+});

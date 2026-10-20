@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 173 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 182 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -1034,6 +1034,97 @@ ok(
   'utang usaha di neraca bertambah 80.000',
   apAfterCons === apBeforeCons + 80_000,
   `sebelum=${apBeforeCons} sesudah=${apAfterCons}`
+);
+
+/* 18g. ANGGARAN (rencana, tidak membuat jurnal) */
+
+const budgetAccounts = await api('/api/v1/accounting/budgets?year=2026');
+ok(
+  'daftar akun anggaran tersedia (pendapatan & beban)',
+  budgetAccounts.status === 200 &&
+    (budgetAccounts.json?.data?.accounts ?? []).some((a) => a.code === '4-1100') &&
+    (budgetAccounts.json?.data?.accounts ?? []).some((a) => a.code === '6-1400'),
+  `${budgetAccounts.json?.data?.accounts?.length ?? 0} akun`
+);
+
+const journalsBeforeBudget = (await api('/api/v1/accounting/journals?period=2026-11&limit=300')).json?.data?.length ?? 0;
+const saveBudget = await api('/api/v1/accounting/budgets', {
+  method: 'PUT',
+  body: {
+    year: 2026,
+    items: [
+      {
+        accountId: byCode['4-1100'].id,
+        monthly: Array.from({ length: 12 }, () => 1_000_000),
+      },
+      {
+        accountId: byCode['6-1400'].id,
+        monthly: Array.from({ length: 12 }, () => 500_000),
+      },
+    ],
+  },
+});
+ok('anggaran 2 akun tersimpan', saveBudget.status === 200 && saveBudget.json?.data?.saved === 2, saveBudget.json?.message);
+
+const budgetAfterSave = await api('/api/v1/accounting/budgets?year=2026');
+const budgetItems = budgetAfterSave.json?.data?.items ?? [];
+const budgetRevenue = budgetItems.find((b) => b.code === '4-1100');
+ok(
+  'anggaran terbaca dengan total setahun benar',
+  budgetItems.length === 2 && Number(budgetRevenue?.total) === 12_000_000,
+  `items=${budgetItems.length} total=${budgetRevenue?.total}`
+);
+
+const journalsAfterBudget = (await api('/api/v1/accounting/journals?period=2026-11&limit=300')).json?.data?.length ?? 0;
+ok('menyimpan anggaran TIDAK membuat jurnal', journalsAfterBudget === journalsBeforeBudget, `sebelum=${journalsBeforeBudget} sesudah=${journalsAfterBudget}`);
+
+const budgetReport = await api('/api/v1/accounting/reports/budget?period=2026-11');
+const budgetReportCur = budgetReport.json?.data?.current;
+const revenueRow = (budgetReportCur?.rows ?? []).find((r) => r.code === '4-1100');
+ok(
+  'laporan anggaran: anggaran bulan 1.000.000 dan YTD 11.000.000',
+  Number(revenueRow?.budgetMonth) === 1_000_000 && Number(revenueRow?.budgetYtd) === 11_000_000,
+  `bulan=${revenueRow?.budgetMonth} ytd=${revenueRow?.budgetYtd}`
+);
+
+const ytdIncome = await api('/api/v1/accounting/reports/income-statement?period=2026-11&comparative=ytd');
+const ytdRevenue = Number(
+  (ytdIncome.json?.data?.comparison?.revenue ?? []).find((l) => l.code === '4-1100')?.amount ?? 0
+);
+ok(
+  'laporan anggaran: realisasi YTD = angka Laba Rugi YTD',
+  Number(revenueRow?.actualYtd) === ytdRevenue,
+  `anggaran=${revenueRow?.actualYtd} laba-rugi=${ytdRevenue}`
+);
+ok(
+  'laporan anggaran: selisih YTD = realisasi - anggaran',
+  Number(revenueRow?.varianceYtd) === ytdRevenue - 11_000_000,
+  `selisih=${revenueRow?.varianceYtd}`
+);
+
+const invalidBudget = await api('/api/v1/accounting/budgets', {
+  method: 'PUT',
+  body: {
+    year: 2026,
+    items: [{ accountId: byCode['1-1210'].id, monthly: Array.from({ length: 12 }, () => 100_000) }],
+  },
+});
+ok('akun neraca tidak bisa dianggarkan', invalidBudget.status === 400, invalidBudget.json?.message?.slice(0, 70));
+
+const clearBudget = await api('/api/v1/accounting/budgets', {
+  method: 'PUT',
+  body: {
+    year: 2026,
+    items: [{ accountId: byCode['6-1400'].id, monthly: Array.from({ length: 12 }, () => 0) }],
+  },
+});
+const budgetAfterClear = await api('/api/v1/accounting/budgets?year=2026');
+ok(
+  'mengosongkan anggaran menghapus barisnya',
+  clearBudget.status === 200 &&
+    clearBudget.json?.data?.deleted === 1 &&
+    (budgetAfterClear.json?.data?.items ?? []).length === 1,
+  `deleted=${clearBudget.json?.data?.deleted} sisa=${budgetAfterClear.json?.data?.items?.length}`
 );
 
 /* 19. TUTUP TAHUN BUKU (jurnal penutup) */

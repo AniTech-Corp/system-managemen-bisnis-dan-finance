@@ -79,6 +79,7 @@ model Workspace {
   promoCoupons         PromoCoupon[]
   campaigns            Campaign[]
   scheduledObligations ScheduledObligation[]
+  budgets              Budget[]
   workspaceFiles       WorkspaceFile[]
   ingestLogs           IngestLog[]
   contentCalendars     ContentCalendar[]
@@ -1087,6 +1088,7 @@ model Account {
   lines        JournalLine[]
   cashAccounts CashAccount[]
   categoryMaps CategoryAccountMap[]
+  budgets      Budget[]
 
   @@unique([workspaceId, code])
   @@index([workspaceId, type])
@@ -1261,6 +1263,32 @@ model CategoryAccountMap {
 
   @@unique([workspaceId, category, type])
   @@map("category_account_maps")
+}
+
+/// Anggaran tahunan per akun pendapatan/beban.
+///
+/// `fiscalYear` = tahun kalender saat tahun buku DIMULAI (Januari untuk tahun
+/// buku normal). `monthly` berisi 12 angka berurutan mulai dari bulan pertama
+/// tahun buku, sehingga tahun buku yang mulai April tetap punya 12 slot.
+///
+/// Anggaran murni rencana: tidak pernah membuat jurnal dan tidak memengaruhi
+/// laporan utama. Realisasi dihitung dari jurnal yang sama dengan Laba Rugi.
+model Budget {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  fiscalYear  Int      @map("fiscal_year")
+  accountId   String   @map("account_id") @db.Uuid
+  monthly     Json     @db.JsonB
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, fiscalYear, accountId])
+  @@index([workspaceId, fiscalYear])
+  @@map("budgets")
 }
 
 model DocumentSequence {

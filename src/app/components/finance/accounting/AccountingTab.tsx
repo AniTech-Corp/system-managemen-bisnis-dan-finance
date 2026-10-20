@@ -14,6 +14,7 @@ import {
   Receipt,
   Scale,
   Settings,
+  Target,
   TrendingUp,
   Wand2,
 } from 'lucide-react';
@@ -29,6 +30,7 @@ import {
   TrialBalanceView,
 } from './ReportViews';
 import { LedgerView } from './LedgerView';
+import { BudgetView } from './BudgetView';
 import { JournalView } from './JournalView';
 import { OpeningBalanceView } from './OpeningBalanceWizard';
 import { AccountingSettingsView } from './AccountingSettings';
@@ -40,7 +42,7 @@ interface PermissionsResponse {
 }
 
 interface SettingsProbeResponse {
-  setting: { isEnabled: boolean } | null;
+  setting: { isEnabled: boolean; fiscalYearStartMonth?: number } | null;
   accountCount: number;
   latestPeriodKey: string | null;
 }
@@ -54,6 +56,7 @@ type ViewId =
   | 'trial'
   | 'aging'
   | 'tax'
+  | 'budget'
   | 'ledger'
   | 'journals'
   | 'opening'
@@ -68,6 +71,7 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
+  { id: 'budget', label: 'Anggaran', icon: Target },
   { id: 'ledger', label: 'Buku Besar', icon: BookOpen },
   { id: 'journals', label: 'Jurnal Umum', icon: FileSpreadsheet },
   { id: 'opening', label: 'Saldo Awal', icon: Wand2 },
@@ -80,6 +84,9 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
   const [comparative, setComparative] = useState('none');
   const [permissions, setPermissions] = useState<PermissionsResponse | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
+  // Bulan pertama tahun buku (dari Pengaturan) -- dipakai tab Anggaran supaya
+  // kolomnya dimulai dari bulan yang benar.
+  const [fiscalStartMonth, setFiscalStartMonth] = useState(1);
   // Menandai user sudah memilih periode sendiri; kalau sudah, jangan ditimpa
   // oleh periode otomatis dari server.
   const periodTouched = useRef(false);
@@ -97,6 +104,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
         if (!alive) return;
         const ready = Boolean(res.data?.setting?.isEnabled) && (res.data?.accountCount ?? 0) > 0;
         setEnabled(ready);
+        setFiscalStartMonth(res.data?.setting?.fiscalYearStartMonth ?? 1);
         // Buka periode terakhir yang sudah ada jurnalnya (kalau ada), supaya
         // owner langsung melihat angka alih-alih bulan berjalan yang kosong.
         if (ready && res.data?.latestPeriodKey) {
@@ -194,6 +202,13 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {view === 'trial' && <TrialBalanceView {...reportProps} />}
           {view === 'aging' && <AgingView {...reportProps} />}
           {view === 'tax' && <TaxView {...reportProps} />}
+          {view === 'budget' && (
+            <BudgetView
+              {...reportProps}
+              canEdit={can.manageSettings}
+              fiscalStartMonth={fiscalStartMonth}
+            />
+          )}
           {view === 'ledger' && <LedgerView {...reportProps} />}
           {view === 'journals' && (
             <JournalView {...reportProps} canPost={can.post} canDraft={can.draft} />

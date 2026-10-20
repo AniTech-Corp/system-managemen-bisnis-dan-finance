@@ -12,6 +12,7 @@ import {
   getTrialBalance,
 } from '@/lib/accounting/reports';
 import { getAgingReport, getTaxSummary, type AgingType } from '@/lib/accounting/aux-reports';
+import { getBudgetReport } from '@/lib/accounting/budgets';
 
 const SUPPORTED = new Set([
   'income-statement',
@@ -22,6 +23,7 @@ const SUPPORTED = new Set([
   'ledger',
   'aging',
   'tax',
+  'budget',
 ]);
 
 export const GET = withTenantGuard(
@@ -132,6 +134,11 @@ export const GET = withTenantGuard(
             if (Number.isNaN(asOf.getTime())) return badRequest('Tanggal potong (asOf) tidak valid.');
           }
           const current = await getAgingReport(workspaceId, rawType as AgingType, asOf);
+          return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
+        }
+
+        case 'budget': {
+          const current = await getBudgetReport(workspaceId, range, fiscalYearStartMonth);
           return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
         }
 

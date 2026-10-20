@@ -210,7 +210,8 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 | `/periods/{id}/reopen` | POST | Buka kembali + alasan (tercatat di `activity_events`) |
 | `/opening-balance` | GET, POST | Baca / isi saldo awal |
 | `/category-mapping` | GET, PUT | Lihat / simpan pemetaan kategori |
-| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax` |
+| `/budgets` | GET, PUT | Lihat / simpan anggaran tahunan per akun |
+| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget` |
 | `/reports/summary` | GET | KPI + rasio + peringatan |
 | `/reports/export` | GET | Unduh satu berkas Excel berisi semua laporan |
 
@@ -399,6 +400,20 @@ PPh dipotong   = saldo kredit 2-1320 (PPh 21) dan 2-1330 (PPh Final UMKM)
 Untuk profil non-PKP angkanya nol; kalau tetap ada jurnal PPN, laporan memberi
 peringatan agar diperiksa.
 
+**Anggaran vs Realisasi** — rencana, bukan jurnal
+
+```
+Anggaran bulan  = slot bulan berjalan pada Budget.monthly
+Anggaran YTD    = jumlah slot 0 s.d. bulan berjalan
+Realisasi YTD   = angka akun yang sama dari getIncomeStatement()
+Selisih         = Realisasi - Anggaran
+```
+
+12 slot anggaran selalu dimulai dari bulan pertama tahun buku (Pengaturan),
+jadi tahun buku April–Maret tetap punya 12 kolom yang benar. Hanya akun
+pendapatan dan beban yang bisa dianggarkan. **Menyimpan anggaran tidak pernah
+membuat jurnal** — kalau ada jurnal baru setelah menyimpan, itu bug.
+
 ---
 
 ## 6. Bagan akun bawaan
@@ -469,12 +484,14 @@ src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
 src/lib/accounting/reports.ts           ← mesin 6 laporan utama
 src/lib/accounting/aux-reports.ts       ← umur piutang/utang + ringkasan PPN
+src/lib/accounting/budgets.ts           ← anggaran tahunan + realisasi vs anggaran
 src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
+src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input + realisasi)
 tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 166 pemeriksaan end-to-end (butuh server + DB kosong)
+scripts/accounting-smoke.mjs            ← 182 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -487,7 +504,6 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 | Item | Rencana |
 | --- | --- |
 | Rincian PPh 21 & BPJS pada slip gaji (sekarang potongan masih gabungan) | Fase 2 |
-| Anggaran/target & laporan realisasi vs anggaran | Fase 2 |
 | Persediaan & HPP barang (kartu stok, metode FIFO/rata-rata) | Fase 3 |
 | Laporan PDF server-side (sekarang: cetak dari browser / Ekspor Excel) | Fase 3 |
 | Multi-mata uang aktif (kolom `currency` + `exchange_rate` sudah ada, kurs belum dikelola) | Fase 3 |

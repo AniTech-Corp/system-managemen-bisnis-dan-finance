@@ -5,8 +5,9 @@ selesai**, apa yang **berikutnya**, urutan pengerjaan, kriteria diterima, dan
 risiko yang harus diputuskan sebelum mulai. Dokumen modul yang sudah berjalan
 ada di `docs/11_MODUL_LAPORAN_KEUANGAN.md`.
 
-Status terakhir: **Fase 0–2.5 selesai**, termasuk laporan pendukung (umur
-piutang/utang dan ringkasan PPN). 166 pemeriksaan smoke + 59 unit test hijau.
+Status terakhir: **Fase 0–2.6 selesai**, termasuk laporan pendukung (umur
+piutang/utang, ringkasan PPN) dan anggaran. Konsinyasi sudah menjadi utang
+usaha. 182 pemeriksaan smoke + 62 unit test hijau.
 
 ---
 
@@ -42,14 +43,16 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 | 2 | Integrasi piutang (AR), utang (AP Opsi A), tutup tahun, hierarki CoA | `posting.ts`, `period-actions.ts` |
 | 2.5 | Pintu tunggal kas: payroll, inventori, booking, workflow, AI, impor rekening koran | `recordCashTransaction()` |
 | 2.5 | Laporan umur piutang/utang + ringkasan PPN | `aux-reports.ts`, tab Umur & PPN |
+| 2.5 | Konsinyasi menjadi utang usaha (bukan pengurangan kas) | `consignment-engine.ts` |
+| 2.6 | Anggaran tahunan + realisasi vs anggaran | `budgets.ts`, tab Anggaran |
 
-Yang **belum** dari cita-cita "lengkap": anggaran, HPP persediaan, pembayaran
-sebagian, pajak payroll rinci, multi-mata uang, PDF server-side, rekonsiliasi
-bank, dan pengerasan produksi. Itu isi fase berikutnya.
+Yang **belum** dari cita-cita "lengkap": HPP persediaan, pembayaran sebagian,
+pajak payroll rinci, multi-mata uang, PDF server-side, rekonsiliasi bank, dan
+pengerasan produksi. Itu isi fase berikutnya.
 
 ---
 
-## 2. Fase 2.6 — Anggaran & realisasi
+## 2. Fase 2.6 — Anggaran & realisasi ✅ SELESAI
 
 **Tujuan.** Owner bisa menetapkan target bulanan per akun dan melihat realisasi
 vs anggaran tanpa berpindah aplikasi.
@@ -380,8 +383,8 @@ Wajib sebelum dipakai bisnis nyata.
 
 | Urutan | Fase | Alasan |
 | --- | --- | --- |
-| 1 | 2.6 Anggaran | Cepat, langsung berguna untuk analisis owner |
-| 2 | 3.3 Payroll (input manual) | Menutup celah pajak tanpa mesin pajak yang rawan |
+| ~~1~~ | ~~2.6 Anggaran~~ | Selesai |
+| 1 | 3.3 Payroll (input manual) | Menutup celah pajak tanpa mesin pajak yang rawan |
 | 3 | 3.1 Persediaan & HPP | Dampak terbesar ke akurasi laba; butuh keputusan metode |
 | 4 | 3.2 Pembayaran sebagian | Dibutuhkan setelah volume transaksi naik |
 | 5 | 3.7 Pengerasan produksi | Sebelum go-live serius |

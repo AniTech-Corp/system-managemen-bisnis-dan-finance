@@ -13,6 +13,7 @@ import {
   getTrialBalance,
 } from '@/lib/accounting/reports';
 import { getAgingReport, getTaxSummary } from '@/lib/accounting/aux-reports';
+import { getBudgetReport } from '@/lib/accounting/budgets';
 
 function num(value: unknown): number {
   const n = Number(value ?? 0);
@@ -35,7 +36,7 @@ export const GET = withTenantGuard(
         endDate: sp.get('endDate'),
       });
 
-      const [income, balance, cashFlow, equity, trial, entries, agingAr, agingAp, tax] = await Promise.all([
+      const [income, balance, cashFlow, equity, trial, entries, agingAr, agingAp, tax, budget] = await Promise.all([
         getIncomeStatement(workspaceId, range),
         getBalanceSheet(workspaceId, range.endDate, setting?.fiscalYearStartMonth ?? 1),
         getCashFlowStatement(workspaceId, range),
@@ -54,6 +55,7 @@ export const GET = withTenantGuard(
         getAgingReport(workspaceId, 'AR', range.endDate),
         getAgingReport(workspaceId, 'AP', range.endDate),
         getTaxSummary(workspaceId, range, setting?.taxProfile ?? 'UMKM_NON_PKP'),
+        getBudgetReport(workspaceId, range, setting?.fiscalYearStartMonth ?? 1),
       ]);
 
       const workbook = new ExcelJS.Workbook();
@@ -232,6 +234,31 @@ export const GET = withTenantGuard(
       }
       taxSheet.getColumn(1).width = 34;
       taxSheet.getColumn(2).numFmt = '#,##0';
+
+      /* ── Anggaran vs Realisasi ── */
+      const budgetSheet = workbook.addWorksheet('Anggaran');
+      headerRow(budgetSheet, 'Realisasi vs Anggaran', `Tahun buku ${budget.fiscalYear} s.d. ${range.label}`);
+      budgetSheet.addRow([]);
+      budgetSheet.addRow(['Akun', 'Anggaran YTD', 'Realisasi YTD', 'Selisih', '%']);
+      budgetSheet.getRow(4).font = { bold: true };
+      for (const row of budget.rows) {
+        budgetSheet.addRow([
+          `${row.code} ${row.name}`,
+          num(row.budgetYtd),
+          num(row.actualYtd),
+          num(row.varianceYtd),
+          row.variancePctYtd ?? '',
+        ]);
+      }
+      budgetSheet.addRow([
+        'TOTAL LABA',
+        num(budget.totals.profit.budgetYtd),
+        num(budget.totals.profit.actualYtd),
+        num(budget.totals.profit.actualYtd.minus(budget.totals.profit.budgetYtd)),
+        '',
+      ]).font = { bold: true };
+      budgetSheet.getColumn(1).width = 40;
+      for (const col of [2, 3, 4]) budgetSheet.getColumn(col).numFmt = '#,##0';
 
       const buffer = await workbook.xlsx.writeBuffer();
       const fileName = `laporan-keuangan-${range.periodKey ?? range.endDate.toISOString().slice(0, 10)}.xlsx`;
