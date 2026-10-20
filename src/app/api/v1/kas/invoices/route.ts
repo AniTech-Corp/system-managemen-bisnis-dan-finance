@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
-import { InvoiceStatus, TransactionType } from '@prisma/client';
+import { InvoiceStatus, JournalSource, TransactionType } from '@prisma/client';
+import { INVOICE_SETTLEMENT_CATEGORY, postCashTransaction, postInvoiceIssuedInTx } from '@/lib/accounting/posting';
+import { JournalValidationError, reverseJournalBySourceInTx } from '@/lib/accounting/journal-service';
+import { PeriodClosedError } from '@/lib/accounting/period';
 import { encryptField, decryptFields } from '@/lib/crypto';
 import { publicApiError } from '@/lib/api-error';
 
@@ -67,7 +70,7 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes } = await req.json();
+      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes, issueDate } = await req.json();
 
       if (!clientName || !items.length) {
         return NextResponse.json({ message: 'Nama klien dan minimal 1 item tagihan wajib diisi.' }, { status: 400 });
@@ -97,6 +100,13 @@ export const POST = withTenantGuard(
 
       // V4f, 8 Sep 2026 -- tanggal jatuh tempo dicek HANYA kalau diisi (kosong
       // tetap pakai default +7 hari existing di bawah, yang selalu valid).
+      if (issueDate) {
+        const issueDateError = checkBusinessDate(issueDate, 'Tanggal faktur');
+        if (issueDateError) {
+          return NextResponse.json({ message: issueDateError }, { status: 400 });
+        }
+      }
+
       if (dueDate) {
         const dueDateError = checkBusinessDate(dueDate, 'Tanggal jatuh tempo');
         if (dueDateError) {
@@ -123,25 +133,40 @@ export const POST = withTenantGuard(
       const qrisString = `00020101021226580016ID.CO.ANITECH.WWW011893600002011${invoiceNumber}520458125303360540${totalAmount}5802ID5914${clientName.slice(0, 14)}6007JAKARTA6304`;
       const virtualAccount = `8808${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
-      const invoice = await prisma.invoice.create({
-        data: {
+      const invoice = await prisma.$transaction(async (tx) => {
+        const created = await tx.invoice.create({
+          data: {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            invoiceNumber,
+            clientName,
+            clientEmail: encryptField(clientEmail),
+            clientPhone: encryptField(clientPhone),
+            subtotal,
+            taxRate: calculatedTaxRate,
+            taxAmount,
+            totalAmount,
+            status: InvoiceStatus.UNPAID,
+            issueDate: issueDate ? new Date(issueDate) : new Date(),
+            dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 hari
+            items,
+            qrisString,
+            virtualAccount,
+            notes,
+          },
+        });
+
+        // Basis akrual: pendapatan diakui saat faktur diterbitkan (Dr Piutang /
+        // Cr Pendapatan), bukan saat uangnya masuk. Tanpa langkah ini, laporan
+        // laba rugi hanya melihat kas dan tidak mencerminkan jasa yang sudah
+        // diserahkan tapi belum dibayar.
+        await postInvoiceIssuedInTx(tx, {
           workspaceId: auth.workspace.id,
           userId: auth.user.id,
-          invoiceNumber,
-          clientName,
-          clientEmail: encryptField(clientEmail),
-          clientPhone: encryptField(clientPhone),
-          subtotal,
-          taxRate: calculatedTaxRate,
-          taxAmount,
-          totalAmount,
-          status: InvoiceStatus.UNPAID,
-          dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 hari
-          items,
-          qrisString,
-          virtualAccount,
-          notes,
-        },
+          invoice: created,
+        });
+
+        return created;
       });
 
       return NextResponse.json({
@@ -149,7 +174,10 @@ export const POST = withTenantGuard(
         message: `Invoice #${invoiceNumber} berhasil diterbitkan!`,
         invoice: decryptFields(invoice, ['clientEmail', 'clientPhone']),
       });
-    } catch (err: any) {
+    } catch (_err: any) {
+      if (_err instanceof JournalValidationError || _err instanceof PeriodClosedError) {
+        return NextResponse.json({ message: _err.message }, { status: 400 });
+      }
       return NextResponse.json({ message: publicApiError('Invoice gagal dibuat. Periksa data dan coba lagi.') }, { status: 400 });
     }
   },
@@ -160,7 +188,7 @@ export const POST = withTenantGuard(
 export const PUT = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { invoiceId, status } = await req.json();
+      const { invoiceId, status, paidAt } = await req.json();
 
       if (!invoiceId || !status) {
         return NextResponse.json({ message: 'Invoice ID dan status baru wajib diisi.' }, { status: 400 });
@@ -170,16 +198,38 @@ export const PUT = withTenantGuard(
         return NextResponse.json({ message: 'Status invoice tidak valid.' }, { status: 400 });
       }
 
+      // Tanggal bisnis pelunasan. Kalau tidak diisi, pakai waktu sekarang --
+      // tetapi staf keuangan sering mencatat pelunasan beberapa hari setelah
+      // uangnya masuk, jadi tanggalnya harus bisa ditentukan.
+      let paymentDate = new Date();
+      if (paidAt) {
+        const paidAtError = checkBusinessDate(paidAt, 'Tanggal pelunasan');
+        if (paidAtError) {
+          return NextResponse.json({ message: paidAtError }, { status: 400 });
+        }
+        paymentDate = new Date(paidAt);
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         const existingInvoice = await tx.invoice.findUnique({ where: { id: invoiceId } });
         if (!existingInvoice || existingInvoice.workspaceId !== auth.workspace.id) return null;
+
+        // Pelunasan tidak boleh bertanggal sebelum fakturnya diterbitkan --
+        // kalau tanggal pembayaran tidak diisi dan faktur bertanggal masa depan,
+        // pakai tanggal faktur.
+        const effectivePaymentDate =
+          !paidAt &&
+          existingInvoice.issueDate &&
+          paymentDate.getTime() < existingInvoice.issueDate.getTime()
+            ? new Date(existingInvoice.issueDate)
+            : paymentDate;
 
         const shouldPostCash = status === 'PAID' && existingInvoice.status !== InvoiceStatus.PAID;
         const transition = await tx.invoice.updateMany({
           where: { id: invoiceId, workspaceId: auth.workspace.id, status: existingInvoice.status },
           data: {
             status: status as InvoiceStatus,
-            paidAt: status === 'PAID' ? new Date() : null,
+            paidAt: status === 'PAID' ? effectivePaymentDate : null,
           },
         });
 
@@ -192,17 +242,82 @@ export const PUT = withTenantGuard(
         }
 
         if (shouldPostCash) {
-          await tx.cashTransaction.create({
+          const settlement = await tx.cashTransaction.create({
             data: {
               workspaceId: auth.workspace.id,
               userId: auth.user.id,
               type: TransactionType.INCOME,
-              category: 'Pelunasan Invoice Digital',
+              category: INVOICE_SETTLEMENT_CATEGORY,
               amount: existingInvoice.totalAmount,
               description: `Pelunasan Invoice #${existingInvoice.invoiceNumber} dari ${existingInvoice.clientName}`,
               paymentMethod: 'QRIS_VIRTUAL_ACCOUNT',
+              // Tanggal bisnis pelunasan, bukan waktu server -- supaya jurnalnya
+              // masuk ke periode yang benar.
+              transactionDate: effectivePaymentDate,
+              // Ditautkan ke faktur supaya jurnalnya mengurangi PIUTANG, bukan
+              // menambah pendapatan untuk kedua kalinya.
+              invoiceId: existingInvoice.id,
             },
           });
+
+          await postCashTransaction(tx, {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            transaction: settlement,
+          });
+        }
+
+        // Faktur dibatalkan: piutang yang sudah diakui harus dibatalkan juga.
+        // Jurnal aslinya tidak dihapus, hanya dibalik, supaya jejak auditnya tetap ada.
+        if (status === 'CANCELLED' && existingInvoice.status !== InvoiceStatus.CANCELLED) {
+          await reverseJournalBySourceInTx(
+            tx,
+            auth.workspace.id,
+            auth.user.id,
+            JournalSource.INVOICE,
+            existingInvoice.id,
+            `Faktur ${existingInvoice.invoiceNumber} dibatalkan`
+          );
+
+          const settlementRows = await tx.cashTransaction.findMany({
+            where: { workspaceId: auth.workspace.id, invoiceId: existingInvoice.id },
+            select: { id: true },
+          });
+          for (const row of settlementRows) {
+            await reverseJournalBySourceInTx(
+              tx,
+              auth.workspace.id,
+              auth.user.id,
+              JournalSource.CASH_TX,
+              row.id,
+              `Pelunasan faktur ${existingInvoice.invoiceNumber} dibatalkan`
+            );
+          }
+        }
+
+        // Faktur yang tadinya LUNAS lalu dikembalikan ke status lain: pelunasan
+        // kasnya ditarik kembali (jurnal dibalik + baris kas dihapus) agar kas di
+        // buku kas dan di jurnal tidak berbeda.
+        if (existingInvoice.status === InvoiceStatus.PAID && status !== 'PAID') {
+          const settlementRows = await tx.cashTransaction.findMany({
+            where: {
+              workspaceId: auth.workspace.id,
+              invoiceId: existingInvoice.id,
+              category: INVOICE_SETTLEMENT_CATEGORY,
+            },
+            select: { id: true },
+          });
+          for (const row of settlementRows) {
+            await reverseJournalBySourceInTx(
+              tx,
+              auth.workspace.id,
+              auth.user.id,
+              JournalSource.CASH_TX,
+              row.id,
+              `Pelunasan faktur ${existingInvoice.invoiceNumber} dibatalkan`
+            );
+            await tx.cashTransaction.delete({ where: { id: row.id } });
+          }
         }
 
         const updated = await tx.invoice.findUnique({ where: { id: invoiceId } });
@@ -227,6 +342,9 @@ export const PUT = withTenantGuard(
         invoice: decryptFields(updatedInvoice, ['clientEmail', 'clientPhone']),
       });
     } catch (err: any) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+        return NextResponse.json({ message: err.message }, { status: 400 });
+      }
       return NextResponse.json({ message: publicApiError('Status invoice gagal diperbarui. Coba lagi beberapa saat.') }, { status: 400 });
     }
   },

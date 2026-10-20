@@ -44,6 +44,7 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
 import ModernAICopilotView from './ModernAICopilotView';
+import AccountingTab from '../finance/accounting/AccountingTab';
 
 interface FinanceDashboardProps {
   workspaceId: string;
@@ -72,7 +73,7 @@ export default function FinanceDashboard({
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab');
-      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'ai-lead'].includes(tabParam)) {
+      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'ai-lead'].includes(tabParam)) {
         setActiveNav(tabParam);
       }
     }
@@ -475,6 +476,10 @@ export default function FinanceDashboard({
     { id: 'obligations', label: 'Kewajiban & Hutang (AP)', icon: Clock },
     { id: 'reconciliation', label: 'Rekonsiliasi Bank', icon: Building2 },
     { id: 'tax', label: 'Pajak UMKM PP 55', icon: ShieldCheck },
+    // Modul Laporan Keuangan (double-entry). Terpisah dari "Buku Kas" karena
+    // Buku Kas menampilkan arus kas mentah, sedangkan di sini semua angka
+    // berasal dari jurnal yang sudah diposting.
+    { id: 'laporan', label: 'Laporan Keuangan', icon: Layers },
   ];
 
   return (
@@ -603,6 +608,7 @@ export default function FinanceDashboard({
               {activeNav === 'obligations' && 'Kewajiban & Hutang (AP)'}
               {activeNav === 'reconciliation' && 'Rekonsiliasi Mutasi Bank'}
               {activeNav === 'tax' && 'Pajak UMKM PP 55/2022'}
+              {activeNav === 'laporan' && 'Laporan Keuangan (Double-Entry)'}
               {activeNav === 'ai-lead' && 'AI Finance Lead Specialist'}
             </h1>
 
@@ -1406,7 +1412,14 @@ export default function FinanceDashboard({
           </main>
         )}
 
-        {/* 🤖 TAB 7: AI FINANCE LEAD ASSISTANT */}
+        {/* 📊 TAB 7: LAPORAN KEUANGAN (DOUBLE-ENTRY) */}
+        {activeNav === 'laporan' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
+            <AccountingTab workspaceId={workspaceId} />
+          </main>
+        )}
+
+        {/* 🤖 TAB 8: AI FINANCE LEAD ASSISTANT */}
         {activeNav === 'ai-lead' && (
           <main className="flex-1 overflow-hidden flex flex-col h-[calc(100vh-56px)]">
             <ModernAICopilotView

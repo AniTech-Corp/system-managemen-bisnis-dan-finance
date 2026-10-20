@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
-import { TransactionType } from '@prisma/client';
+import { JournalSource, JournalStatus, TransactionType } from '@prisma/client';
 import { resolveDateRange, calculateMoM } from '@/lib/time-series-engine';
 import { publicApiError } from '@/lib/api-error';
 import { createApprovalRequest } from '@/lib/security-guardrail';
 import { invalidateContextCache } from '@/lib/ai-brain/context-engine';
 import { invalidateDashboardInsightCache } from '@/lib/ai-brain/dashboard-insight';
+import { postCashTransaction } from '@/lib/accounting/posting';
+import { JournalValidationError, reverseJournalInTx } from '@/lib/accounting/journal-service';
+import { PeriodClosedError } from '@/lib/accounting/period';
 
 // V4f, 8 Sep 2026 (validasi ringan input keuangan -- kasus Pak Fajrul): DIDUPLIKASI
 // inline persis sama di kas/invoices/route.ts (bukan diekstrak ke lib terpisah) --
@@ -248,21 +251,68 @@ export const POST = withTenantGuard(
           return NextResponse.json({ message: 'Tidak ada baris transaksi yang valid dalam batch.' }, { status: 400 });
         }
 
-        const created = await prisma.cashTransaction.createMany({
-          data: validRows,
-        });
+        // Modul akuntansi (bila aktif) ikut menjurnal setiap baris dalam SATU
+        // transaksi database. Kalau ada baris yang kategorinya belum dipetakan,
+        // seluruh impor dibatalkan -- supaya tidak ada transaksi kas tanpa jurnal.
+        const accountingEnabled = Boolean(
+          await prisma.accountingSetting.findFirst({
+            where: { workspaceId: auth.workspace.id, isEnabled: true },
+            select: { id: true },
+          })
+        );
+
+        if (!accountingEnabled) {
+          const created = await prisma.cashTransaction.createMany({ data: validRows });
+
+          invalidateContextCache(auth.workspace.id);
+          void invalidateDashboardInsightCache(auth.workspace.id);
+
+          return NextResponse.json({
+            success: true,
+            message: `${created.count} transaksi kas berhasil diimpor ke database.`,
+            count: created.count,
+          });
+        }
+
+        const createdCount = await prisma.$transaction(
+          async (tx) => {
+            let count = 0;
+            for (const row of validRows) {
+              const created = await tx.cashTransaction.create({ data: row });
+              await postCashTransaction(tx, {
+                workspaceId: auth.workspace.id,
+                userId: auth.user.id,
+                transaction: created,
+              });
+              count += 1;
+            }
+            return count;
+          },
+          // Impor mutasi bank bisa ratusan baris; tiap baris membuat jurnal
+          // sendiri, jadi timeout default 5 detik terlalu pendek.
+          { timeout: 120_000 }
+        );
 
         invalidateContextCache(auth.workspace.id);
         void invalidateDashboardInsightCache(auth.workspace.id);
 
         return NextResponse.json({
           success: true,
-          message: `${created.count} transaksi kas berhasil diimpor ke database.`,
-          count: created.count,
+          message: `${createdCount} transaksi kas berhasil diimpor dan dijurnal.`,
+          count: createdCount,
         });
       }
 
-      const { type, category, amount, description, paymentMethod = 'TRANSFER_BANK', transactionDate, sourceFileId } = body;
+      const {
+        type,
+        category,
+        amount,
+        description,
+        paymentMethod = 'TRANSFER_BANK',
+        transactionDate,
+        sourceFileId,
+        invoiceId,
+      } = body;
 
       if (!type || !category || !amount || !description) {
         return NextResponse.json({ message: 'Type (INCOME/EXPENSE), kategori, nominal, dan deskripsi wajib diisi.' }, { status: 400 });
@@ -281,18 +331,71 @@ export const POST = withTenantGuard(
         }
       }
 
-      const transaction = await prisma.cashTransaction.create({
-        data: {
+      const transaction = await prisma.$transaction(async (tx) => {
+        // Tautan opsional ke faktur: uang masuk ini melunasi piutang, bukan
+        // menambah pendapatan baru. Nominal harus sama dengan total faktur --
+        // pembayaran sebagian belum didukung supaya saldo piutang tidak ambigu.
+        let linkedInvoice: { id: string; invoiceNumber: string } | null = null;
+        if (invoiceId) {
+          if (type !== 'INCOME') {
+            throw new JournalValidationError('Faktur hanya bisa ditautkan ke transaksi pemasukan.');
+          }
+
+          const invoice = await tx.invoice.findFirst({
+            where: { id: String(invoiceId), workspaceId: auth.workspace.id },
+            select: { id: true, invoiceNumber: true, status: true, totalAmount: true },
+          });
+          if (!invoice) throw new JournalValidationError('Faktur tidak ditemukan.');
+          if (invoice.status === 'CANCELLED') {
+            throw new JournalValidationError('Faktur ini sudah dibatalkan.');
+          }
+          if (invoice.status === 'PAID') {
+            throw new JournalValidationError(
+              `Faktur ${invoice.invoiceNumber} sudah lunas. Pilih faktur lain atau hapus pelunasan sebelumnya.`
+            );
+          }
+          if (Math.abs(Number(invoice.totalAmount) - Number(amount)) > 0.005) {
+            throw new JournalValidationError(
+              `Nominal harus sama dengan total faktur ${invoice.invoiceNumber} (Rp ${Number(invoice.totalAmount).toLocaleString('id-ID')}).`
+            );
+          }
+          linkedInvoice = { id: invoice.id, invoiceNumber: invoice.invoiceNumber };
+        }
+
+        const created = await tx.cashTransaction.create({
+          data: {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            sourceFileId: typeof sourceFileId === 'string' ? sourceFileId : null,
+            type: type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE,
+            category,
+            amount: Number(amount),
+            description,
+            paymentMethod,
+            transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+            invoiceId: linkedInvoice?.id ?? null,
+          },
+        });
+
+        // Jurnal otomatis (no-op bila modul akuntansi belum diaktifkan).
+        await postCashTransaction(tx, {
           workspaceId: auth.workspace.id,
           userId: auth.user.id,
-          sourceFileId: typeof sourceFileId === 'string' ? sourceFileId : null,
-          type: type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE,
-          category,
-          amount: Number(amount),
-          description,
-          paymentMethod,
-          transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
-        },
+          transaction: created,
+        });
+
+        // Faktur ikut lunas, supaya daftar piutang dan jurnal tidak berbeda.
+        if (linkedInvoice) {
+          await tx.invoice.update({
+            where: { id: linkedInvoice.id },
+            data: {
+              status: 'PAID',
+              paidAt: transactionDate ? new Date(transactionDate) : new Date(),
+            },
+          });
+        }
+
+        return created;
       });
 
       invalidateContextCache(auth.workspace.id);
@@ -304,6 +407,9 @@ export const POST = withTenantGuard(
         transaction,
       });
     } catch (err: any) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+        return NextResponse.json({ message: err.message }, { status: 400 });
+      }
       return NextResponse.json({ message: publicApiError('Transaksi kas gagal disimpan. Periksa data dan coba lagi.') }, { status: 400 });
     }
   },
@@ -341,21 +447,87 @@ export const DELETE = withTenantGuard(
         return NextResponse.json({ message: 'Parameter id transaksi atau all=true wajib disertakan.' }, { status: 400 });
       }
 
-      await prisma.cashTransaction.delete({
-        where: {
-          id,
-          workspaceId: auth.workspace.id,
-        },
+      // Kalau modul akuntansi aktif, transaksi kas ini punya jurnal otomatis yang
+      // sudah diposting. Jurnal posted TIDAK boleh hilang begitu saja, jadi kita
+      // balik dulu jurnalnya (jejak audit tetap ada) baru hapus baris kasnya.
+      // Bila periode sudah ditutup, penghapusan ditolak dengan pesan jelas.
+      const result = await prisma.$transaction(async (tx) => {
+        const existing = await tx.cashTransaction.findFirst({
+          where: { id, workspaceId: auth.workspace.id },
+          select: { id: true, invoiceId: true, obligationId: true },
+        });
+        if (!existing) return { deleted: false, reversed: false };
+
+        const journal = await tx.journalEntry.findFirst({
+          where: {
+            workspaceId: auth.workspace.id,
+            source: JournalSource.CASH_TX,
+            sourceId: existing.id,
+            status: JournalStatus.POSTED,
+          },
+          select: { id: true, reversedBy: true },
+        });
+
+        let reversed = false;
+        if (journal && !journal.reversedBy) {
+          await reverseJournalInTx(
+            tx,
+            auth.workspace.id,
+            journal.id,
+            auth.user.id,
+            'Transaksi kas dihapus'
+          );
+          reversed = true;
+        }
+
+        await tx.cashTransaction.delete({ where: { id: existing.id, workspaceId: auth.workspace.id } });
+
+        // Kalau transaksi ini adalah pelunasan faktur/kewajiban, kembalikan
+        // dokumennya ke status belum lunas supaya tidak ada piutang/utang yang
+        // "hilang" tanpa jejak.
+        if (existing.invoiceId) {
+          const remaining = await tx.cashTransaction.count({
+            where: { workspaceId: auth.workspace.id, invoiceId: existing.invoiceId },
+          });
+          if (remaining === 0) {
+            await tx.invoice.update({
+              where: { id: existing.invoiceId },
+              data: { status: 'UNPAID', paidAt: null },
+            });
+          }
+        }
+        if (existing.obligationId) {
+          const remaining = await tx.cashTransaction.count({
+            where: { workspaceId: auth.workspace.id, obligationId: existing.obligationId },
+          });
+          if (remaining === 0) {
+            await tx.scheduledObligation.update({
+              where: { id: existing.obligationId },
+              data: { status: 'PENDING', paidAt: null, paymentMethod: null },
+            });
+          }
+        }
+
+        return { deleted: true, reversed };
       });
+
+      if (!result.deleted) {
+        return NextResponse.json({ message: 'Transaksi kas tidak ditemukan.' }, { status: 404 });
+      }
 
       invalidateContextCache(auth.workspace.id);
       void invalidateDashboardInsightCache(auth.workspace.id);
 
       return NextResponse.json({
         success: true,
-        message: 'Transaksi berhasil dihapus.',
+        message: result.reversed
+          ? 'Transaksi dihapus dan jurnalnya sudah dibalik agar pembukuan tetap seimbang.'
+          : 'Transaksi berhasil dihapus.',
       });
     } catch (err: any) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+        return NextResponse.json({ message: err.message }, { status: 400 });
+      }
       return NextResponse.json({ message: publicApiError('Transaksi kas gagal dihapus. Coba lagi beberapa saat.') }, { status: 500 });
     }
   },

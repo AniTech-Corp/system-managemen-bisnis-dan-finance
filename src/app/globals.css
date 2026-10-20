@@ -867,3 +867,40 @@
 
 
 
+
+/* ============================================================
+   CETAK LAPORAN KEUANGAN (Fase 1 modul akuntansi)
+   Semua laporan bisa disimpan sebagai PDF lewat Ctrl/Cmd+P.
+   Hanya area .klir-print-area yang tercetak; sisanya disembunyikan.
+   ============================================================ */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  .klir-no-print {
+    display: none !important;
+  }
+  .klir-print-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .klir-print-header {
+    display: block !important;
+  }
+  .klir-print-area table {
+    page-break-inside: auto;
+  }
+  .klir-print-area tr {
+    page-break-inside: avoid;
+  }
+  @page {
+    size: A4 portrait;
+    margin: 14mm;
+  }
+}
+.klir-print-header {
+  display: none;
+}

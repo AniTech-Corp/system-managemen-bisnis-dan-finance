@@ -66,6 +66,7 @@ import {
   Target,
   CalendarPlus,
   Trash2,
+  Ban,
   Sparkles,
   Upload,
   Printer,
@@ -454,6 +455,10 @@ export default function FinanceModuleView({
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Penjualan Produk / Jasa');
   const [notes, setNotes] = useState('');
+  // Opsional: pemasukan ini melunasi faktur tertentu. Kalau dipilih, backend
+  // menjurnal sebagai pelunasan PIUTANG (bukan pendapatan baru) dan menandai
+  // fakturnya lunas.
+  const [txInvoiceId, setTxInvoiceId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -602,6 +607,9 @@ export default function FinanceModuleView({
   const [obligName, setObligName] = useState('');
   const [obligAmount, setObligAmount] = useState('');
   const [obligDueDate, setObligDueDate] = useState('');
+  // Opsional: tanggal beban diakui (mis. tagihan bulan lalu baru dicatat
+  // sekarang). Kosong = hari ini.
+  const [obligAccrualDate, setObligAccrualDate] = useState('');
   const [isObligSubmitting, setIsObligSubmitting] = useState(false);
   const [deletingObligId, setDeletingObligId] = useState<string | null>(null);
 
@@ -625,6 +633,9 @@ export default function FinanceModuleView({
   const [newInvoiceItemQty, setNewInvoiceItemQty] = useState('1');
   const [newInvoiceTaxRate, setNewInvoiceTaxRate] = useState('0');
   const [newInvoiceDueDate, setNewInvoiceDueDate] = useState('');
+  // Tanggal bisnis faktur = tanggal pengakuan pendapatan (basis akrual).
+  // Dikosongkan = hari ini.
+  const [newInvoiceIssueDate, setNewInvoiceIssueDate] = useState('');
   const [newInvoiceNotes, setNewInvoiceNotes] = useState('');
   const [isInvoiceSubmitting, setIsInvoiceSubmitting] = useState(false);
   // Per-baris loading state saat menandai invoice LUNAS (meniru pola deletingId/deletingObligId).
@@ -1340,6 +1351,7 @@ export default function FinanceModuleView({
           category,
           amount: numAmount,
           description: notes.trim() || (txType === 'INCOME' ? 'Pemasukan Kas Baru' : 'Pengeluaran Kas Baru'),
+          ...(txType === 'INCOME' && txInvoiceId ? { invoiceId: txInvoiceId } : {}),
           workspaceId,
         }),
       });
@@ -1351,6 +1363,7 @@ export default function FinanceModuleView({
 
       setAmount('');
       setNotes('');
+      setTxInvoiceId('');
       setToastMsg(`Transaksi ${txType === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'} Rp ${numAmount.toLocaleString('id-ID')} berhasil dicatat.`);
       setTimeout(() => setToastMsg(null), 4000);
 
@@ -1432,6 +1445,7 @@ export default function FinanceModuleView({
           dueDate: obligDueDate,
           amount: numAmount,
           category: obligCategory || 'Operasional & Utilitas',
+          ...(obligAccrualDate ? { accrualDate: obligAccrualDate } : {}),
           workspaceId,
         }),
       });
@@ -1445,6 +1459,7 @@ export default function FinanceModuleView({
       setObligName('');
       setObligAmount('');
       setObligDueDate('');
+      setObligAccrualDate('');
       setObligCategory('Operasional & Utilitas');
       setToastMsg(`Kewajiban "${savedName}" berhasil dicatat.`);
       setTimeout(() => setToastMsg(null), 4000);
@@ -1460,11 +1475,55 @@ export default function FinanceModuleView({
     }
   };
 
-  // Hapus / tandai lunas kewajiban terjadwal -- meniru handleDeleteTransaction persis:
+  // Tandai lunas / batalkan kewajiban -- PATCH status, backend yang membuat
+  // jurnal pelunasan (Dr Utang / Cr Kas) atau jurnal pembalik akrual.
+  const handleObligationStatus = async (
+    obligId: string,
+    obligLabel: string,
+    status: 'PAID' | 'CANCELLED'
+  ) => {
+    const confirmed = window.confirm(
+      status === 'PAID'
+        ? `Tandai kewajiban "${obligLabel}" sebagai lunas? Kas akan dicatat keluar dan utang berkurang.`
+        : `Batalkan kewajiban "${obligLabel}"? Beban yang sudah diakui akan dibalik lewat jurnal pembalik.`
+    );
+    if (!confirmed) return;
+
+    setDeletingObligId(obligId);
+    try {
+      const res = await fetch('/api/v1/kas/obligations', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(workspaceId ? { 'x-workspace-id': workspaceId } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id: obligId, status }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Gagal memperbarui kewajiban.');
+
+      setToastMsg(
+        status === 'PAID'
+          ? `Kewajiban "${obligLabel}" ditandai lunas.`
+          : `Kewajiban "${obligLabel}" dibatalkan dan bebannya dibalik.`
+      );
+      setTimeout(() => setToastMsg(null), 4000);
+      await loadRealData();
+      window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+    } catch (err: any) {
+      setToastMsg(err.message || 'Gagal memperbarui kewajiban, coba lagi.');
+      setTimeout(() => setToastMsg(null), 4000);
+    } finally {
+      setDeletingObligId(null);
+    }
+  };
+
+  // Hapus kewajiban terjadwal -- meniru handleDeleteTransaction persis:
   // state per-item deletingObligId, window.confirm dengan pesan spesifik, fetch DELETE
   // ke '/api/v1/kas/obligations?id=', toast sukses/gagal, loadRealData() setelah sukses.
   const handleDeleteObligation = async (obligId: string, obligLabel: string) => {
-    const confirmed = window.confirm(`Tandai lunas / hapus kewajiban "${obligLabel}"? Tindakan ini tidak bisa dibatalkan.`);
+    const confirmed = window.confirm(`Hapus kewajiban "${obligLabel}"? Jurnal akrualnya akan dibalik lebih dulu.`);
     if (!confirmed) return;
     setDeletingObligId(obligId);
     try {
@@ -1474,13 +1533,16 @@ export default function FinanceModuleView({
         headers: workspaceId ? { 'x-workspace-id': workspaceId } : {},
         credentials: 'include',
       });
-      if (!res.ok) throw new Error('Gagal menghapus kewajiban');
-      setToastMsg('Kewajiban berhasil ditandai lunas / dihapus.');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Gagal menghapus kewajiban');
+      }
+      setToastMsg('Kewajiban berhasil dihapus dan jurnalnya dibalik.');
       setTimeout(() => setToastMsg(null), 4000);
       await loadRealData();
       window.dispatchEvent(new CustomEvent('klir-kas-updated'));
-    } catch (err) {
-      setToastMsg('Gagal menghapus kewajiban, coba lagi.');
+    } catch (err: any) {
+      setToastMsg(err.message || 'Gagal menghapus kewajiban, coba lagi.');
       setTimeout(() => setToastMsg(null), 4000);
     } finally {
       setDeletingObligId(null);
@@ -1578,6 +1640,7 @@ export default function FinanceModuleView({
           clientPhone: newInvoicePhone.trim() || undefined,
           items: [{ name: itemName, price: itemPrice, qty: itemQty }],
           taxRate: parseFloat(newInvoiceTaxRate) || 0,
+          issueDate: newInvoiceIssueDate || undefined,
           dueDate: newInvoiceDueDate || undefined,
           notes: newInvoiceNotes.trim() || undefined,
         }),
@@ -1596,6 +1659,7 @@ export default function FinanceModuleView({
       setNewInvoiceItemPrice('');
       setNewInvoiceItemQty('1');
       setNewInvoiceTaxRate('0');
+      setNewInvoiceIssueDate('');
       setNewInvoiceDueDate('');
       setNewInvoiceNotes('');
       setNewInvoiceOpen(false);
@@ -3646,6 +3710,39 @@ export default function FinanceModuleView({
                     </select>
                   </div>
 
+                  {calcTab === 'IN' && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-slate-700 font-semibold text-xs">Lunasi faktur (opsional)</label>
+                      <select
+                        value={txInvoiceId}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setTxInvoiceId(id);
+                          const inv = invoices.find((i) => i.id === id);
+                          if (inv) {
+                            // Nominal wajib sama dengan total faktur (v1 belum
+                            // mendukung pembayaran sebagian), jadi isi otomatis.
+                            setAmount(String(inv.amount));
+                            setCategory('Pelunasan Piutang Invoice');
+                          }
+                        }}
+                        className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg px-3.5 py-2 text-slate-900 text-xs font-medium focus:outline-none transition-all cursor-pointer"
+                      >
+                        <option value="">— Bukan pelunasan faktur —</option>
+                        {invoices
+                          .filter((i) => i.status !== 'PAID' && i.status !== 'CANCELLED')
+                          .map((i) => (
+                            <option key={i.id} value={i.id}>
+                              {i.invoiceNumber} · {i.clientName} · Rp {Number(i.amount).toLocaleString('id-ID')}
+                            </option>
+                          ))}
+                      </select>
+                      <span className="text-[10.5px] text-slate-400 leading-snug">
+                        Uang masuk mengurangi piutang, bukan menambah pendapatan lagi. Nominal harus sama dengan total faktur.
+                      </span>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-1.5">
                     <label className="text-slate-700 font-semibold text-xs">Catatan (opsional)</label>
                     <input
@@ -4060,6 +4157,15 @@ export default function FinanceModuleView({
                   onChange={(e) => setNewInvoicePhone(e.target.value)}
                   placeholder="0812xxxxxxxx"
                   className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE]"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-medium text-slate-500">Tanggal faktur (opsional)</span>
+                <input
+                  type="date"
+                  value={newInvoiceIssueDate}
+                  onChange={(e) => setNewInvoiceIssueDate(e.target.value)}
+                  className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE] [color-scheme:light]"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
@@ -4592,7 +4698,7 @@ export default function FinanceModuleView({
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_130px_auto] gap-2 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_118px_130px_auto] gap-2 items-end">
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-slate-500 font-medium">Nominal tagihan *</label>
                   <div className="relative flex items-center">
@@ -4606,6 +4712,16 @@ export default function FinanceModuleView({
                       className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg pl-7 pr-2.5 py-2 text-slate-900 font-mono text-[11.5px] font-semibold placeholder-[#5C6474] focus:outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-slate-500 font-medium">Pengakuan beban</label>
+                  <input
+                    type="date"
+                    value={obligAccrualDate}
+                    onChange={(e) => setObligAccrualDate(e.target.value)}
+                    title="Tanggal beban diakui di laporan. Kosongkan untuk hari ini."
+                    className="w-full bg-white border-slate-300 border-0 ring-1 ring-white/10 focus:ring-1 focus:ring-[#F2A83B] rounded-lg px-2.5 py-2 text-slate-900 text-[11.5px] focus:outline-none transition-all [color-scheme:light]"
+                  />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-slate-500 font-medium">Jatuh tempo *</label>
@@ -4677,16 +4793,37 @@ export default function FinanceModuleView({
                       <span className="font-mono text-[12.5px] font-bold text-slate-700 [font-variant-numeric:tabular-nums] whitespace-nowrap">
                         Rp {d.amount.toLocaleString('id-ID')}
                       </span>
-                      {/* Hapus / tandai lunas */}
-                      <button
-                        onClick={() => handleDeleteObligation(d.id, d.name)}
-                        disabled={deletingObligId === d.id}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-500/10 shrink-0 disabled:opacity-40 border-0 cursor-pointer"
-                        aria-label="Hapus / tandai lunas kewajiban"
-                        title="Hapus / tandai lunas kewajiban"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" />
-                      </button>
+                      {/* Aksi: lunasi (buat jurnal pelunasan), batalkan (balik
+                          akrual), atau hapus permanen. */}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          onClick={() => handleObligationStatus(d.id, d.name, 'PAID')}
+                          disabled={deletingObligId === d.id}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-emerald-500/10 disabled:opacity-40 border-0 cursor-pointer"
+                          aria-label="Tandai lunas"
+                          title="Tandai lunas (catat kas keluar & lunasi utang)"
+                        >
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        </button>
+                        <button
+                          onClick={() => handleObligationStatus(d.id, d.name, 'CANCELLED')}
+                          disabled={deletingObligId === d.id}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-amber-500/10 disabled:opacity-40 border-0 cursor-pointer"
+                          aria-label="Batalkan kewajiban"
+                          title="Batalkan kewajiban (balik jurnal beban)"
+                        >
+                          <Ban className="w-3.5 h-3.5 text-[#F2A83B]" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteObligation(d.id, d.name)}
+                          disabled={deletingObligId === d.id}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-500/10 shrink-0 disabled:opacity-40 border-0 cursor-pointer"
+                          aria-label="Hapus kewajiban"
+                          title="Hapus kewajiban & balik jurnalnya"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
