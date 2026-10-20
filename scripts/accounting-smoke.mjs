@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 158 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 166 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -881,6 +881,68 @@ ok(
 
 const paidPayrollAgain = await api('/api/v1/kerja/payroll', { method: 'PUT', body: { payrollId } });
 ok('pembayaran gaji ganda ditolak', paidPayrollAgain.status === 400, paidPayrollAgain.json?.message?.slice(0, 70));
+
+/* 18e. UMUR PIUTANG/UTANG + RINGKASAN PPN */
+
+// Faktur ketiga sengaja masih UNPAID (pelunasan manualnya dihapus di 18b).
+// Per 10 Desember faktur itu terlambat 10 hari.
+const agingAr = await api('/api/v1/accounting/reports/aging?type=AR&asOf=2026-12-10');
+const agingArData = agingAr.json?.data?.current;
+ok(
+  'umur piutang: faktur terbuka terdaftar',
+  agingAr.status === 200 && (agingArData?.rows ?? []).some((r) => r.id === invoice3Id),
+  `${agingArData?.rows?.length ?? 0} dokumen`
+);
+ok(
+  'umur piutang: total cocok dengan saldo buku besar',
+  Number(agingArData?.difference) === 0,
+  `dokumen=${agingArData?.total} buku=${agingArData?.ledgerBalance} selisih=${agingArData?.difference}`
+);
+ok(
+  'umur piutang: faktur 10 hari terlambat masuk kelompok 1-30 hari',
+  (agingArData?.buckets ?? []).find((b) => b.key === 'd1_30')?.count === 1 &&
+    Number((agingArData?.buckets ?? []).find((b) => b.key === 'd1_30')?.amount) === 4_000_000,
+  (agingArData?.buckets ?? []).map((b) => `${b.key}=${b.amount}`).join(' ')
+);
+
+const agingObligation = await api('/api/v1/kas/obligations', {
+  method: 'POST',
+  body: {
+    name: 'Utang Uji Umur',
+    dueDate: '2026-11-25',
+    amount: 2_000_000,
+    category: 'Operasional Kantor',
+    accrualDate: '2026-11-15',
+  },
+});
+const agingObligationId = agingObligation.json?.obligation?.id;
+ok('kewajiban uji umur tercatat', Boolean(agingObligationId), agingObligation.json?.journalNumber ?? agingObligation.json?.message);
+
+const agingAp = await api('/api/v1/accounting/reports/aging?type=AP&asOf=2026-12-10');
+const agingApData = agingAp.json?.data?.current;
+ok(
+  'umur utang: kewajiban terbuka terdaftar',
+  agingAp.status === 200 && (agingApData?.rows ?? []).some((r) => r.id === agingObligationId),
+  `${agingApData?.rows?.length ?? 0} dokumen`
+);
+ok(
+  'umur utang: total cocok dengan saldo buku besar',
+  Number(agingApData?.difference) === 0,
+  `dokumen=${agingApData?.total} buku=${agingApData?.ledgerBalance} selisih=${agingApData?.difference}`
+);
+ok(
+  'umur utang: kewajiban 15 hari terlambat masuk kelompok 1-30 hari',
+  (agingApData?.buckets ?? []).find((b) => b.key === 'd1_30')?.count === 1,
+  (agingApData?.buckets ?? []).map((b) => `${b.key}=${b.amount}`).join(' ')
+);
+
+const taxReport = await api('/api/v1/accounting/reports/tax?period=2026-11');
+const taxData = taxReport.json?.data?.current;
+ok(
+  'ringkasan PPN: non-PKP tanpa transaksi PPN',
+  taxReport.status === 200 && taxData?.isPkp === false && Number(taxData?.outputTax) === 0 && Number(taxData?.netPayable) === 0,
+  `pkp=${taxData?.isPkp} keluaran=${taxData?.outputTax}`
+);
 
 /* 19. TUTUP TAHUN BUKU (jurnal penutup) */
 

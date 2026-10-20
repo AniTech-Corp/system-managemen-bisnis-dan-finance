@@ -4,19 +4,30 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   BookOpen,
+  Clock,
   Coins,
   FileSpreadsheet,
   Layers,
   ListTree,
   Loader2,
   PieChart,
+  Receipt,
   Scale,
   Settings,
   TrendingUp,
   Wand2,
 } from 'lucide-react';
 import { apiGet, currentPeriodKey } from './client';
-import { BalanceSheetView, CashFlowView, EquityView, IncomeStatementView, SummaryView, TrialBalanceView } from './ReportViews';
+import {
+  AgingView,
+  BalanceSheetView,
+  CashFlowView,
+  EquityView,
+  IncomeStatementView,
+  SummaryView,
+  TaxView,
+  TrialBalanceView,
+} from './ReportViews';
 import { LedgerView } from './LedgerView';
 import { JournalView } from './JournalView';
 import { OpeningBalanceView } from './OpeningBalanceWizard';
@@ -41,6 +52,8 @@ type ViewId =
   | 'cashflow'
   | 'equity'
   | 'trial'
+  | 'aging'
+  | 'tax'
   | 'ledger'
   | 'journals'
   | 'opening'
@@ -53,6 +66,8 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'cashflow', label: 'Arus Kas', icon: Coins },
   { id: 'equity', label: 'Perubahan Ekuitas', icon: PieChart },
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
+  { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
+  { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'ledger', label: 'Buku Besar', icon: BookOpen },
   { id: 'journals', label: 'Jurnal Umum', icon: FileSpreadsheet },
   { id: 'opening', label: 'Saldo Awal', icon: Wand2 },
@@ -177,6 +192,8 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {view === 'cashflow' && <CashFlowView {...reportProps} />}
           {view === 'equity' && <EquityView {...reportProps} />}
           {view === 'trial' && <TrialBalanceView {...reportProps} />}
+          {view === 'aging' && <AgingView {...reportProps} />}
+          {view === 'tax' && <TaxView {...reportProps} />}
           {view === 'ledger' && <LedgerView {...reportProps} />}
           {view === 'journals' && (
             <JournalView {...reportProps} canPost={can.post} canDraft={can.draft} />

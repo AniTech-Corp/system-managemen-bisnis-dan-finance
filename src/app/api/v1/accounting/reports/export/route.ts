@@ -12,6 +12,7 @@ import {
   getIncomeStatement,
   getTrialBalance,
 } from '@/lib/accounting/reports';
+import { getAgingReport, getTaxSummary } from '@/lib/accounting/aux-reports';
 
 function num(value: unknown): number {
   const n = Number(value ?? 0);
@@ -34,7 +35,7 @@ export const GET = withTenantGuard(
         endDate: sp.get('endDate'),
       });
 
-      const [income, balance, cashFlow, equity, trial, entries] = await Promise.all([
+      const [income, balance, cashFlow, equity, trial, entries, agingAr, agingAp, tax] = await Promise.all([
         getIncomeStatement(workspaceId, range),
         getBalanceSheet(workspaceId, range.endDate, setting?.fiscalYearStartMonth ?? 1),
         getCashFlowStatement(workspaceId, range),
@@ -50,6 +51,9 @@ export const GET = withTenantGuard(
           take: 5000,
           include: { lines: { orderBy: { lineNo: 'asc' }, include: { account: { select: { code: true, name: true } } } } },
         }),
+        getAgingReport(workspaceId, 'AR', range.endDate),
+        getAgingReport(workspaceId, 'AP', range.endDate),
+        getTaxSummary(workspaceId, range, setting?.taxProfile ?? 'UMKM_NON_PKP'),
       ]);
 
       const workbook = new ExcelJS.Workbook();
@@ -184,6 +188,50 @@ export const GET = withTenantGuard(
       je.getColumn(7).numFmt = '#,##0';
       je.getColumn(5).width = 34;
       je.getColumn(3).width = 34;
+
+      /* ── Umur Piutang & Utang ── */
+      for (const report of [agingAr, agingAp]) {
+        const isAr = report.type === 'AR';
+        const sheet = workbook.addWorksheet(isAr ? 'Umur Piutang' : 'Umur Utang');
+        headerRow(
+          sheet,
+          isAr ? 'Umur Piutang (AR)' : 'Umur Utang (AP)',
+          `Per tanggal ${range.endDate.toISOString().slice(0, 10)} — saldo buku besar ${num(report.ledgerBalance)}`
+        );
+        sheet.addRow([]);
+        sheet.addRow([isAr ? 'No. Faktur' : 'Kewajiban', isAr ? 'Pelanggan' : 'Nama', 'Jatuh tempo', 'Terlambat (hari)', 'Nilai']);
+        sheet.getRow(4).font = { bold: true };
+        for (const row of report.rows) {
+          sheet.addRow([
+            row.reference,
+            row.partner,
+            row.dueDate.toISOString().slice(0, 10),
+            row.daysOverdue,
+            num(row.amount),
+          ]);
+        }
+        sheet.addRow(['', '', '', 'TOTAL', num(report.total)]).font = { bold: true };
+        sheet.addRow(['', '', '', 'Saldo buku besar', num(report.ledgerBalance)]);
+        sheet.addRow(['', '', '', 'Selisih', num(report.difference)]);
+        sheet.getColumn(2).width = 30;
+        sheet.getColumn(5).numFmt = '#,##0';
+      }
+
+      /* ── Ringkasan PPN ── */
+      const taxSheet = workbook.addWorksheet('PPN');
+      headerRow(taxSheet, 'Ringkasan PPN', range.label);
+      taxSheet.addRow([]);
+      taxSheet.addRow(['Komponen', 'Jumlah']);
+      taxSheet.getRow(4).font = { bold: true };
+      taxSheet.addRow(['PPN Keluaran (2-1310)', num(tax.outputTax)]);
+      taxSheet.addRow(['PPN Masukan (1-1600)', num(tax.inputTax)]);
+      taxSheet.addRow(['PPN kurang/(lebih) bayar', num(tax.netPayable)]).font = { bold: true };
+      for (const w of tax.withholding) {
+        if (num(w.amount) === 0) continue;
+        taxSheet.addRow([`${w.name} (${w.code})`, num(w.amount)]);
+      }
+      taxSheet.getColumn(1).width = 34;
+      taxSheet.getColumn(2).numFmt = '#,##0';
 
       const buffer = await workbook.xlsx.writeBuffer();
       const fileName = `laporan-keuangan-${range.periodKey ?? range.endDate.toISOString().slice(0, 10)}.xlsx`;

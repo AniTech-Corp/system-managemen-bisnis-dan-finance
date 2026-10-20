@@ -11,6 +11,7 @@ import {
   getLedger,
   getTrialBalance,
 } from '@/lib/accounting/reports';
+import { getAgingReport, getTaxSummary, type AgingType } from '@/lib/accounting/aux-reports';
 
 const SUPPORTED = new Set([
   'income-statement',
@@ -19,6 +20,8 @@ const SUPPORTED = new Set([
   'equity',
   'trial-balance',
   'ledger',
+  'aging',
+  'tax',
 ]);
 
 export const GET = withTenantGuard(
@@ -114,6 +117,30 @@ export const GET = withTenantGuard(
           const accountId = sp.get('accountId');
           if (!accountId) return badRequest('Parameter accountId wajib untuk laporan buku besar.');
           const current = await getLedger(workspaceId, accountId, range);
+          return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
+        }
+
+        case 'aging': {
+          const rawType = (sp.get('type') || 'AR').toUpperCase();
+          if (rawType !== 'AR' && rawType !== 'AP') {
+            return badRequest('Parameter type harus AR atau AP.');
+          }
+          const asOfRaw = sp.get('asOf');
+          let asOf = range.endDate;
+          if (asOfRaw) {
+            asOf = new Date(`${asOfRaw}T23:59:59+07:00`);
+            if (Number.isNaN(asOf.getTime())) return badRequest('Tanggal potong (asOf) tidak valid.');
+          }
+          const current = await getAgingReport(workspaceId, rawType as AgingType, asOf);
+          return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
+        }
+
+        case 'tax': {
+          const current = await getTaxSummary(
+            workspaceId,
+            range,
+            setting?.taxProfile ?? 'UMKM_NON_PKP'
+          );
           return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
         }
 

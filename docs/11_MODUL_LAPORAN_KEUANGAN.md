@@ -210,12 +210,13 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 | `/periods/{id}/reopen` | POST | Buka kembali + alasan (tercatat di `activity_events`) |
 | `/opening-balance` | GET, POST | Baca / isi saldo awal |
 | `/category-mapping` | GET, PUT | Lihat / simpan pemetaan kategori |
-| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger` |
+| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax` |
 | `/reports/summary` | GET | KPI + rasio + peringatan |
 | `/reports/export` | GET | Unduh satu berkas Excel berisi semua laporan |
 
 Parameter laporan: `period=YYYY-MM`, atau `startDate` + `endDate`.
 Pembanding: `comparative=none|prev_month|prev_year|ytd`.
+Khusus aging: `type=AR|AP` dan `asOf=YYYY-MM-DD` (default akhir periode).
 
 Contoh:
 
@@ -359,6 +360,31 @@ justru menambah dan Neraca tidak akan balance. Aturan ini ada di fungsi
 supaya akun kontra (Akumulasi Penyusutan, Diskon Penjualan) muncul di sisi yang
 benar. Total debit harus sama dengan total kredit.
 
+**Umur Piutang/Utang (aging)** — laporan pendukung, bukan pengganti laporan utama
+
+```
+Baris   = faktur UNPAID/OVERDUE (AR) atau kewajiban PENDING (AP)
+          yang tanggal terbitnya <= tanggal potong
+Umur    = tanggal potong - tanggal jatuh tempo (hari)
+Kelompok= belum jatuh tempo, 1-30, 31-60, 61-90, >90 hari
+Kontrol = total dokumen dibandingkan saldo buku besar 1-1300 / 2-1100
+```
+
+Selisih ditampilkan apa adanya. Penyebab yang wajar: saldo awal piutang/utang,
+jurnal manual, atau pelunasan yang dicatat tanpa menautkan dokumen.
+
+**Ringkasan PPN** — per periode, dari jurnal
+
+```
+PPN Keluaran   = kredit - debit akun 2-1310
+PPN Masukan    = debit - kredit akun 1-1600
+Kurang bayar   = PPN Keluaran - PPN Masukan
+PPh dipotong   = saldo kredit 2-1320 (PPh 21) dan 2-1330 (PPh Final UMKM)
+```
+
+Untuk profil non-PKP angkanya nol; kalau tetap ada jurnal PPN, laporan memberi
+peringatan agar diperiksa.
+
 ---
 
 ## 6. Bagan akun bawaan
@@ -427,13 +453,14 @@ src/lib/accounting/coa-seed.ts          ← template 58 akun + fungsi setup
 src/lib/accounting/account-tree.ts      ← pembentuk pohon, anti-siklus, pencarian induk
 src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
-src/lib/accounting/reports.ts           ← mesin 6 laporan
+src/lib/accounting/reports.ts           ← mesin 6 laporan utama
+src/lib/accounting/aux-reports.ts       ← umur piutang/utang + ringkasan PPN
 src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 158 pemeriksaan end-to-end (butuh server + DB kosong)
+scripts/accounting-smoke.mjs            ← 166 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -452,6 +479,10 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 | Multi-mata uang aktif (kolom `currency` + `exchange_rate` sudah ada, kurs belum dikelola) | Fase 3 |
 | Laporan terjadwal (email otomatis tiap awal bulan) | Fase 3 |
 | Pembayaran sebagian faktur/kewajiban (v1: pelunasan harus penuh) | Fase 3 |
+
+Rencana lengkap sampai fase akhir (termasuk persediaan/HPP, PDF server-side,
+pembayaran sebagian, multi-mata uang, dan pengerasan produksi) ada di
+`docs/12_ROADMAP_LAPORAN_KEUANGAN.md`.
 
 Jurnal penutup tahun **sudah otomatis** (tombol "Tutup Tahun" di kartu Periode,
 atau `POST /periods/{id}/close-year`). Selama tombol itu belum ditekan, laba
