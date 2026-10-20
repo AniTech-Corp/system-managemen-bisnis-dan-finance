@@ -88,6 +88,8 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '2-1310', name: 'PPN Keluaran', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
   { code: '2-1320', name: 'PPh 21', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
   { code: '2-1330', name: 'PPh Final UMKM', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
+  { code: '2-1340', name: 'Utang BPJS', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
+  { code: '2-1350', name: 'Utang Karyawan (potongan lain)', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000', isSystem: true },
   { code: '2-1400', name: 'Utang Bank Jangka Pendek', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },
   { code: '2-1500', name: 'Beban Masih Harus Dibayar', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },
   { code: '2-1900', name: 'Liabilitas Jangka Pendek Lain-lain', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },

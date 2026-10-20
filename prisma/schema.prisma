@@ -318,34 +318,38 @@ enum TransactionType {
 }
 
 model CashTransaction {
-  id              String          @id @default(uuid()) @db.Uuid
-  workspaceId     String          @map("workspace_id") @db.Uuid
-  userId          String?         @map("user_id") @db.Uuid
-  sourceFileId    String?         @map("source_file_id") @db.Uuid
+  id                  String          @id @default(uuid()) @db.Uuid
+  workspaceId         String          @map("workspace_id") @db.Uuid
+  userId              String?         @map("user_id") @db.Uuid
+  sourceFileId        String?         @map("source_file_id") @db.Uuid
   // Faktur yang dilunasi transaksi ini (kalau ada). Dipakai jurnal otomatis untuk
   // memilih akun lawan: pelunasan faktur mengurangi PIUTANG, bukan menambah
   // pendapatan lagi -- kalau tidak, pendapatan faktur terhitung dua kali.
-  invoiceId       String?         @map("invoice_id") @db.Uuid
+  invoiceId           String?         @map("invoice_id") @db.Uuid
   // Kewajiban yang dibayar transaksi ini (kalau ada). Jurnalnya melunasi UTANG,
   // bukan menambah beban lagi -- bebannya sudah diakui saat kewajiban dicatat.
-  obligationId    String?         @map("obligation_id") @db.Uuid
+  obligationId        String?         @map("obligation_id") @db.Uuid
   // Slip gaji yang dibayar transaksi ini (kalau ada). Sama seperti kewajiban:
   // bebannya sudah diakui saat slip dibuat, jadi pembayaran hanya melunasi utang.
-  payrollId       String?         @map("payroll_id") @db.Uuid
-  type            TransactionType
-  category        String          @db.VarChar(100)
-  amount          Float
-  description     String
-  transactionDate DateTime        @default(now()) @map("transaction_date")
-  paymentMethod   String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
-  receiptUrl      String?         @map("receipt_url")
-  createdAt       DateTime        @default(now()) @map("created_at")
+  payrollId           String?         @map("payroll_id") @db.Uuid
+  // Kalau diisi, baris kas ini MELUNASI liabilitas tersebut (mis. setor PPh 21
+  // ke 2-1320 atau BPJS ke 2-1340), bukan menambah beban baru.
+  settlementAccountId String?         @map("settlement_account_id") @db.Uuid
+  type                TransactionType
+  category            String          @db.VarChar(100)
+  amount              Float
+  description         String
+  transactionDate     DateTime        @default(now()) @map("transaction_date")
+  paymentMethod       String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
+  receiptUrl          String?         @map("receipt_url")
+  createdAt           DateTime        @default(now()) @map("created_at")
 
-  workspace  Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user       User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  invoice    Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  obligation ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
-  payroll    EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
+  workspace         Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user              User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invoice           Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  obligation        ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
+  payroll           EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
+  settlementAccount Account?             @relation("CashSettlementAccount", fields: [settlementAccountId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, type])
   @@index([workspaceId, transactionDate])
@@ -353,6 +357,7 @@ model CashTransaction {
   @@index([workspaceId, invoiceId])
   @@index([workspaceId, obligationId])
   @@index([workspaceId, payrollId])
+  @@index([workspaceId, settlementAccountId])
   @@map("cash_transactions")
 }
 
@@ -667,19 +672,27 @@ model AttendanceRecord {
 }
 
 model EmployeePayroll {
-  id           String    @id @default(uuid()) @db.Uuid
-  workspaceId  String    @map("workspace_id") @db.Uuid
-  employeeName String    @map("employee_name") @db.VarChar(100)
-  role         String    @default("Staf Operasional") @db.VarChar(100)
-  basicSalary  Float     @map("basic_salary")
-  allowance    Float     @default(0)
-  overtime     Float     @default(0)
-  deductions   Float     @default(0)
-  netSalary    Float     @map("net_salary")
-  monthYear    String    @map("month_year") @db.VarChar(50)
-  isPaid       Boolean   @default(false) @map("is_paid")
-  paidAt       DateTime? @map("paid_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  workspaceId     String    @map("workspace_id") @db.Uuid
+  employeeName    String    @map("employee_name") @db.VarChar(100)
+  role            String    @default("Staf Operasional") @db.VarChar(100)
+  basicSalary     Float     @map("basic_salary")
+  allowance       Float     @default(0)
+  overtime        Float     @default(0)
+  // `deductions` = TOTAL potongan karyawan (pph21 + bpjsEmployee + other),
+  // dipertahankan agar data & tampilan lama tetap konsisten.
+  deductions      Float     @default(0)
+  // Rincian potongan (Fase 3.3). PPh 21 & BPJS diinput manual dari aplikasi
+  // payroll resmi -- sistem tidak menghitung tarif pajak.
+  pph21           Float     @default(0)
+  bpjsEmployee    Float     @default(0) @map("bpjs_employee")
+  bpjsEmployer    Float     @default(0) @map("bpjs_employer")
+  otherDeductions Float     @default(0) @map("other_deductions")
+  netSalary       Float     @map("net_salary")
+  monthYear       String    @map("month_year") @db.VarChar(50)
+  isPaid          Boolean   @default(false) @map("is_paid")
+  paidAt          DateTime? @map("paid_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
   workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   cashTransactions CashTransaction[]
@@ -1082,13 +1095,14 @@ model Account {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  workspace    Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  parent       Account?             @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
-  children     Account[]            @relation("AccountTree")
-  lines        JournalLine[]
-  cashAccounts CashAccount[]
-  categoryMaps CategoryAccountMap[]
-  budgets      Budget[]
+  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent          Account?             @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children        Account[]            @relation("AccountTree")
+  lines           JournalLine[]
+  cashAccounts    CashAccount[]
+  categoryMaps    CategoryAccountMap[]
+  budgets         Budget[]
+  cashSettlements CashTransaction[]    @relation("CashSettlementAccount")
 
   @@unique([workspaceId, code])
   @@index([workspaceId, type])

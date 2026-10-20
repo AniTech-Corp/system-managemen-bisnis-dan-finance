@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 182 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 196 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -881,6 +881,124 @@ ok(
 
 const paidPayrollAgain = await api('/api/v1/kerja/payroll', { method: 'PUT', body: { payrollId } });
 ok('pembayaran gaji ganda ditolak', paidPayrollAgain.status === 400, paidPayrollAgain.json?.message?.slice(0, 70));
+
+/* 18d-2. PAYROLL: PPh 21 & BPJS (input manual) + setoran kewajiban */
+
+const payroll2 = await api('/api/v1/kerja/payroll', {
+  method: 'POST',
+  body: {
+    employeeName: 'Staf Uji Pajak',
+    role: 'Staf Operasional',
+    basicSalary: 8_000_000,
+    allowance: 1_000_000,
+    overtime: 500_000,
+    pph21: 250_000,
+    bpjsEmployee: 190_000,
+    bpjsEmployer: 380_000,
+    otherDeductions: 60_000,
+    monthYear: 'November 2026',
+    accrualDate: '2026-11-20',
+  },
+});
+const payroll2Id = payroll2.json?.payroll?.id;
+ok(
+  'slip gaji dengan PPh 21 & BPJS dibuat',
+  payroll2.status === 200 && Boolean(payroll2Id) && Boolean(payroll2.json?.journalNumber),
+  `${payroll2.json?.journalNumber ?? payroll2.json?.message?.slice(0, 60)}`
+);
+ok(
+  'gaji bersih = bruto - PPh 21 - BPJS karyawan - potongan lain (9.000.000)',
+  Number(payroll2.json?.payroll?.netSalary) === 9_000_000 &&
+    Number(payroll2.json?.payroll?.deductions) === 500_000,
+  `net=${payroll2.json?.payroll?.netSalary}`
+);
+
+const novPayrollTax = await api('/api/v1/accounting/journals?period=2026-11&limit=200');
+const payrollTaxJournal = (novPayrollTax.json?.data ?? []).find(
+  (j) => j.source === 'PAYROLL' && j.sourceId === payroll2Id
+);
+const taxLine = (code) => payrollTaxJournal?.lines?.find((l) => l.account.code === code);
+ok(
+  'jurnal gaji: Dr Beban Gaji = bruto + BPJS pemberi kerja (9.880.000)',
+  Number(taxLine('6-1100')?.debit) === 9_880_000,
+  `debit=${taxLine('6-1100')?.debit}`
+);
+ok(
+  'jurnal gaji: Cr Utang Gaji 9.000.000 + Cr PPh 21 250.000',
+  Number(taxLine('2-1200')?.credit) === 9_000_000 && Number(taxLine('2-1320')?.credit) === 250_000
+);
+ok(
+  'jurnal gaji: Cr Utang BPJS 570.000 + Cr potongan lain 60.000',
+  Number(taxLine('2-1340')?.credit) === 570_000 && Number(taxLine('2-1350')?.credit) === 60_000,
+  (payrollTaxJournal?.lines ?? []).map((l) => `${l.account.code} K${l.credit}`).join(' | ')
+);
+ok(
+  'BPJS pemberi kerja menambah beban tanpa mengurangi gaji bersih',
+  Number((await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses) ===
+    opexBeforePayroll + 6_500_000 + 9_880_000
+);
+
+const taxDue = await api('/api/v1/kerja/payroll/taxes');
+ok(
+  'kewajiban PPh 21 & BPJS terbaca dari buku besar',
+  Number(taxDue.json?.data?.pph21?.outstanding) === 250_000 &&
+    Number(taxDue.json?.data?.bpjs?.outstanding) === 570_000 &&
+    Number(taxDue.json?.data?.other?.outstanding) === 60_000,
+  `PPh=${taxDue.json?.data?.pph21?.outstanding} BPJS=${taxDue.json?.data?.bpjs?.outstanding}`
+);
+
+const overRemit = await api('/api/v1/kerja/payroll/taxes', {
+  method: 'POST',
+  body: { type: 'BPJS', amount: 1_000_000, paymentDate: '2026-11-30' },
+});
+ok('setoran melebihi kewajiban ditolak', overRemit.status === 400, overRemit.json?.message?.slice(0, 80));
+
+const remitPph = await api('/api/v1/kerja/payroll/taxes', {
+  method: 'POST',
+  body: { type: 'PPH21', paymentDate: '2026-11-30' },
+});
+ok('setoran PPh 21 tercatat', remitPph.status === 200 && Boolean(remitPph.json?.journalNumber), remitPph.json?.message?.slice(0, 70));
+
+const novAfterRemit = await api('/api/v1/accounting/journals?period=2026-11&limit=200');
+const remitJournal = (novAfterRemit.json?.data ?? []).find(
+  (j) => j.source === 'CASH_TX' && Number(j.totalDebit) === 250_000 && j.lines?.some((l) => l.account.code === '2-1320')
+);
+ok(
+  'jurnal setoran PPh 21: Dr PPh 21 / Cr Kas',
+  Number(remitJournal?.lines?.find((l) => l.account.code === '2-1320')?.debit) === 250_000 &&
+    Number(remitJournal?.lines?.find((l) => l.account.code === '1-1210')?.credit) === 250_000,
+  (remitJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const remitBpjs = await api('/api/v1/kerja/payroll/taxes', {
+  method: 'POST',
+  body: { type: 'BPJS', paymentDate: '2026-11-30' },
+});
+ok('setoran BPJS tercatat', remitBpjs.status === 200 && Boolean(remitBpjs.json?.journalNumber));
+
+const taxAfter = await api('/api/v1/kerja/payroll/taxes');
+ok(
+  'kewajiban PPh 21 & BPJS nol setelah disetor',
+  Number(taxAfter.json?.data?.pph21?.outstanding) === 0 && Number(taxAfter.json?.data?.bpjs?.outstanding) === 0,
+  `PPh=${taxAfter.json?.data?.pph21?.outstanding} BPJS=${taxAfter.json?.data?.bpjs?.outstanding}`
+);
+ok(
+  'setoran pajak TIDAK menambah beban baru',
+  Number((await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses) ===
+    opexBeforePayroll + 6_500_000 + 9_880_000
+);
+
+const invalidPayroll = await api('/api/v1/kerja/payroll', {
+  method: 'POST',
+  body: {
+    employeeName: 'Staf Salah Input',
+    basicSalary: 1_000_000,
+    pph21: 2_000_000,
+    monthYear: 'November 2026',
+    accrualDate: '2026-11-20',
+  },
+});
+ok('potongan melebihi gaji bruto ditolak', invalidPayroll.status === 400, invalidPayroll.json?.message?.slice(0, 80));
 
 /* 18e. UMUR PIUTANG/UTANG + RINGKASAN PPN */
 

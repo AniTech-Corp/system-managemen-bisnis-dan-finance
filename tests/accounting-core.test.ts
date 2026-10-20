@@ -454,3 +454,49 @@ describe('anggaran (budget)', () => {
     assert.throws(() => parseMonthly([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'abc']), /tidak valid/);
   });
 });
+
+/* ── payroll (PPh 21 & BPJS) ───────────────────────────────────────────── */
+
+describe('payroll: perhitungan slip gaji', () => {
+  test('bruto, potongan, gaji bersih, dan biaya pemberi kerja', async () => {
+    const { computePayroll } = await import('../src/lib/accounting/payroll');
+    const result = computePayroll({
+      basicSalary: 8_000_000,
+      allowance: 1_000_000,
+      overtime: 500_000,
+      pph21: 250_000,
+      bpjsEmployee: 190_000,
+      bpjsEmployer: 380_000,
+      otherDeductions: 60_000,
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.value.gross, 9_500_000);
+    assert.equal(result.value.deductions, 500_000);
+    assert.equal(result.value.net, 9_000_000);
+    assert.equal(result.value.employerCost, 9_880_000, 'BPJS pemberi kerja menambah beban');
+  });
+
+  test('BPJS pemberi kerja tidak memotong gaji bersih', async () => {
+    const { computePayroll } = await import('../src/lib/accounting/payroll');
+    const result = computePayroll({ basicSalary: 5_000_000, bpjsEmployer: 400_000 });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.value.net, 5_000_000);
+    assert.equal(result.value.employerCost, 5_400_000);
+  });
+
+  test('potongan melebihi bruto ditolak', async () => {
+    const { computePayroll } = await import('../src/lib/accounting/payroll');
+    const result = computePayroll({ basicSalary: 1_000_000, pph21: 1_500_000 });
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.match(result.error, /melebihi gaji bruto/);
+  });
+
+  test('angka negatif / bukan angka ditolak', async () => {
+    const { computePayroll } = await import('../src/lib/accounting/payroll');
+    assert.equal(computePayroll({ basicSalary: -1 }).ok, false);
+    assert.equal(computePayroll({ basicSalary: 1_000_000, bpjsEmployee: Number.NaN }).ok, false);
+  });
+});

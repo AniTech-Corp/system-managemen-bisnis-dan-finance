@@ -2,6 +2,7 @@ import {
   AccountType,
   CashAccountType,
   JournalSource,
+  NormalBalance,
   Prisma,
   TransactionType,
   type Account,
@@ -42,6 +43,7 @@ export interface PostingContext {
     | 'invoiceId'
     | 'obligationId'
     | 'payrollId'
+    | 'settlementAccountId'
   >;
 }
 
@@ -162,6 +164,9 @@ const PPN_OUTPUT_ACCOUNT_CODE = '2-1310'; // PPN Keluaran
 const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100'; // Pendapatan Jasa
 const SALARY_EXPENSE_ACCOUNT_CODE = '6-1100'; // Beban Gaji & Tunjangan
 const SALARY_PAYABLE_ACCOUNT_CODE = '2-1200'; // Utang Gaji
+const PPH21_PAYABLE_ACCOUNT_CODE = '2-1320'; // PPh 21
+const BPJS_PAYABLE_ACCOUNT_CODE = '2-1340'; // Utang BPJS
+const OTHER_PAYROLL_PAYABLE_ACCOUNT_CODE = '2-1350'; // Utang Karyawan (potongan lain)
 const FALLBACK_INCOME_ACCOUNT_CODE = '4-1900'; // Pendapatan Lain-lain
 const FALLBACK_EXPENSE_ACCOUNT_CODE = '6-9000'; // Beban Lain-lain
 
@@ -396,6 +401,34 @@ export async function postCashTransaction(
   const cashAccount = await resolveCashAccount(tx, ctx.workspaceId, transaction.paymentMethod);
   const amount = toMoney(transaction.amount);
 
+  // Setoran liabilitas (PPh 21, BPJS, potongan karyawan): uang keluar melunasi
+  // utang yang sudah diakui, BUKAN menambah beban baru.
+  if (transaction.settlementAccountId) {
+    return createJournalInTx(tx, {
+      workspaceId: ctx.workspaceId,
+      userId: ctx.userId,
+      entryDate: transaction.transactionDate,
+      description: transaction.description || 'Setoran kewajiban',
+      source: JournalSource.CASH_TX,
+      sourceId: transaction.id,
+      lines: [
+        {
+          accountId: transaction.settlementAccountId,
+          debit: amount,
+          credit: 0,
+          description: 'Pelunasan kewajiban',
+        },
+        {
+          accountId: cashAccount.account.id,
+          cashAccountId: cashAccount.id,
+          debit: 0,
+          credit: amount,
+        },
+      ],
+      postImmediately: true,
+    });
+  }
+
   // Pelunasan faktur: uang masuk TIDAK menambah pendapatan lagi, tetapi
   // mengurangi piutang yang sudah diakui saat faktur diterbitkan.
   if (transaction.invoiceId && transaction.type === TransactionType.INCOME) {
@@ -488,23 +521,68 @@ export async function postCashTransaction(
 /* ─────────────────── GAJI (PAYROLL) ─────────────────── */
 
 /**
+ * Pastikan akun liabilitas payroll ada. Workspace lama mungkin disiapkan
+ * sebelum akun BPJS/potongan lain ditambahkan, jadi akun dibuat otomatis
+ * (idempoten) alih-alih menggagalkan pembuatan slip.
+ */
+async function ensurePayrollPayableAccount(
+  tx: Prisma.TransactionClient,
+  workspaceId: string,
+  code: string,
+  name: string
+): Promise<string> {
+  const existing = await tx.account.findFirst({ where: { workspaceId, code }, select: { id: true } });
+  if (existing) return existing.id;
+
+  const parent = await tx.account.findFirst({ where: { workspaceId, code: '2-1000' }, select: { id: true } });
+  const created = await tx.account.create({
+    data: {
+      workspaceId,
+      code,
+      name,
+      type: AccountType.LIABILITY,
+      normalBalance: NormalBalance.CREDIT,
+      parentId: parent?.id ?? null,
+      isSystem: true,
+    },
+    select: { id: true },
+  });
+  return created.id;
+}
+
+/**
  * Jurnal saat slip gaji dibuat (basis akrual):
  *
- *   Dr  Beban Gaji & Tunjangan (6-1100)
- *       Cr  Utang Gaji (2-1200)
+ *   Dr  Beban Gaji & Tunjangan (6-1100)   bruto + BPJS pemberi kerja
+ *       Cr  Utang Gaji (2-1200)           gaji bersih
+ *       Cr  PPh 21 (2-1320)               potongan PPh 21
+ *       Cr  Utang BPJS (2-1340)           BPJS karyawan + pemberi kerja
+ *       Cr  Utang Karyawan (2-1350)       potongan lain
  *
  * Pembayaran gaji nanti hanya memindahkan utang menjadi kas, jadi beban tidak
- * dihitung dua kali.
- *
- * Catatan v1: `deductions` pada slip dianggap sudah disetor di luar sistem, jadi
- * yang diakui adalah `netSalary` (jumlah yang benar-benar dibayarkan).
+ * dihitung dua kali. PPh/BPJS disetor terpisah lewat endpoint payroll/taxes.
  */
 export async function postPayrollAccruedInTx(
   tx: Prisma.TransactionClient,
   ctx: {
     workspaceId: string;
     userId: string;
-    payroll: Pick<EmployeePayroll, 'id' | 'employeeName' | 'netSalary' | 'monthYear' | 'createdAt'>;
+    payroll: Pick<
+      EmployeePayroll,
+      | 'id'
+      | 'employeeName'
+      | 'basicSalary'
+      | 'allowance'
+      | 'overtime'
+      | 'deductions'
+      | 'pph21'
+      | 'bpjsEmployee'
+      | 'bpjsEmployer'
+      | 'otherDeductions'
+      | 'netSalary'
+      | 'monthYear'
+      | 'createdAt'
+    >;
     /** Tanggal pengakuan beban. Default: saat slip dibuat. */
     entryDate?: Date;
   }
@@ -512,21 +590,65 @@ export async function postPayrollAccruedInTx(
   const setting = await getAccountingSetting(tx, ctx.workspaceId);
   if (!setting?.isEnabled) return null;
 
-  const amount = toMoney(ctx.payroll.netSalary);
+  const p = ctx.payroll;
+  const gross = toMoney(p.basicSalary).plus(p.allowance).plus(p.overtime);
+  const net = toMoney(p.netSalary);
+  const pph21 = toMoney(p.pph21);
+  const bpjsEmployee = toMoney(p.bpjsEmployee);
+  const bpjsEmployer = toMoney(p.bpjsEmployer);
+
+  // Sisa potongan (termasuk data lama yang hanya punya `deductions`) masuk
+  // Utang Karyawan. Dihitung sebagai selisih agar jurnal DIJAMIN balance
+  // dengan `netSalary` yang tersimpan, apa pun data historisnya.
+  const other = gross.minus(net).minus(pph21).minus(bpjsEmployee);
+  if (other.isNegative()) {
+    throw new JournalValidationError(
+      'Potongan slip gaji tidak konsisten (melebihi bruto). Periksa PPh 21, BPJS, dan potongan lain.'
+    );
+  }
+
   const expenseId = await resolveAccountIdByCode(tx, ctx.workspaceId, SALARY_EXPENSE_ACCOUNT_CODE);
   const payableId = await resolveAccountIdByCode(tx, ctx.workspaceId, SALARY_PAYABLE_ACCOUNT_CODE);
+
+  const lines: JournalLineInput[] = [
+    {
+      accountId: expenseId,
+      debit: gross.plus(bpjsEmployer),
+      credit: 0,
+      description: 'Beban gaji',
+    },
+    { accountId: payableId, debit: 0, credit: net, description: 'Utang gaji' },
+  ];
+
+  if (!pph21.isZero()) {
+    const pphId = await ensurePayrollPayableAccount(tx, ctx.workspaceId, PPH21_PAYABLE_ACCOUNT_CODE, 'PPh 21');
+    lines.push({ accountId: pphId, debit: 0, credit: pph21, description: 'PPh 21 karyawan' });
+  }
+
+  const bpjsTotal = bpjsEmployee.plus(bpjsEmployer);
+  if (!bpjsTotal.isZero()) {
+    const bpjsId = await ensurePayrollPayableAccount(tx, ctx.workspaceId, BPJS_PAYABLE_ACCOUNT_CODE, 'Utang BPJS');
+    lines.push({ accountId: bpjsId, debit: 0, credit: bpjsTotal, description: 'BPJS karyawan + pemberi kerja' });
+  }
+
+  if (!other.isZero()) {
+    const otherId = await ensurePayrollPayableAccount(
+      tx,
+      ctx.workspaceId,
+      OTHER_PAYROLL_PAYABLE_ACCOUNT_CODE,
+      'Utang Karyawan (potongan lain)'
+    );
+    lines.push({ accountId: otherId, debit: 0, credit: other, description: 'Potongan lain' });
+  }
 
   return createJournalInTx(tx, {
     workspaceId: ctx.workspaceId,
     userId: ctx.userId,
-    entryDate: ctx.entryDate ?? ctx.payroll.createdAt,
-    description: `Gaji ${ctx.payroll.employeeName} — ${ctx.payroll.monthYear}`,
+    entryDate: ctx.entryDate ?? p.createdAt,
+    description: `Gaji ${p.employeeName} — ${p.monthYear}`,
     source: JournalSource.PAYROLL,
-    sourceId: ctx.payroll.id,
-    lines: [
-      { accountId: expenseId, debit: amount, credit: 0, description: 'Beban gaji' },
-      { accountId: payableId, debit: 0, credit: amount, description: 'Utang gaji' },
-    ],
+    sourceId: p.id,
+    lines,
     postImmediately: true,
   });
 }
@@ -629,6 +751,8 @@ export async function recordCashTransaction(
     invoiceId?: string | null;
     obligationId?: string | null;
     payrollId?: string | null;
+    /** Isi bila baris kas ini melunasi liabilitas tertentu (PPh 21/BPJS). */
+    settlementAccountId?: string | null;
     autoMapFallback?: boolean;
   }
 ): Promise<{ transaction: CashTransaction; journal: JournalWithLines | null; warning?: string }> {
@@ -660,6 +784,7 @@ export async function recordCashTransaction(
       invoiceId: ctx.invoiceId ?? null,
       obligationId: ctx.obligationId ?? null,
       payrollId: ctx.payrollId ?? null,
+      settlementAccountId: ctx.settlementAccountId ?? null,
     },
   });
 

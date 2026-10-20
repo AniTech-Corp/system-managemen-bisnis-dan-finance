@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Banknote,
   BarChart3,
   BookOpen,
   Clock,
@@ -34,6 +35,7 @@ import { BudgetView } from './BudgetView';
 import { JournalView } from './JournalView';
 import { OpeningBalanceView } from './OpeningBalanceWizard';
 import { AccountingSettingsView } from './AccountingSettings';
+import { PayrollView } from './PayrollView';
 
 interface PermissionsResponse {
   role: string;
@@ -57,6 +59,7 @@ type ViewId =
   | 'aging'
   | 'tax'
   | 'budget'
+  | 'payroll'
   | 'ledger'
   | 'journals'
   | 'opening'
@@ -72,6 +75,7 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'budget', label: 'Anggaran', icon: Target },
+  { id: 'payroll', label: 'Gaji & Pajak', icon: Banknote },
   { id: 'ledger', label: 'Buku Besar', icon: BookOpen },
   { id: 'journals', label: 'Jurnal Umum', icon: FileSpreadsheet },
   { id: 'opening', label: 'Saldo Awal', icon: Wand2 },
@@ -208,6 +212,9 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
               canEdit={can.manageSettings}
               fiscalStartMonth={fiscalStartMonth}
             />
+          )}
+          {view === 'payroll' && (
+            <PayrollView canManage={['OWNER', 'ADMIN', 'MANAGER'].includes(permissions.role)} />
           )}
           {view === 'ledger' && <LedgerView {...reportProps} />}
           {view === 'journals' && (

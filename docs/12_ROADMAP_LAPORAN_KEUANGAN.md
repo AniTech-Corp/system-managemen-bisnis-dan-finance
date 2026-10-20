@@ -5,9 +5,10 @@ selesai**, apa yang **berikutnya**, urutan pengerjaan, kriteria diterima, dan
 risiko yang harus diputuskan sebelum mulai. Dokumen modul yang sudah berjalan
 ada di `docs/11_MODUL_LAPORAN_KEUANGAN.md`.
 
-Status terakhir: **Fase 0–2.6 selesai**, termasuk laporan pendukung (umur
-piutang/utang, ringkasan PPN) dan anggaran. Konsinyasi sudah menjadi utang
-usaha. 182 pemeriksaan smoke + 62 unit test hijau.
+Status terakhir: **Fase 0–3.3 selesai**, termasuk laporan pendukung (umur
+piutang/utang, ringkasan PPN), anggaran, dan pajak payroll (PPh 21 & BPJS input
+manual). Konsinyasi sudah menjadi utang usaha. 196 pemeriksaan smoke + 66 unit
+test hijau.
 
 ---
 
@@ -30,7 +31,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
    lama, lewat `toMoney()`.
 6. **Setiap perubahan pada `reports.ts`, `posting.ts`, `journal-service.ts`,
    `period-actions.ts`, `account-tree.ts`, atau `aux-reports.ts` wajib menjaga
-   `npm test` (59) dan `node scripts/accounting-smoke.mjs` (166) tetap hijau.
+   `npm test` (66) dan `node scripts/accounting-smoke.mjs` (196) tetap hijau.
 
 ---
 
@@ -38,17 +39,18 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 
 | Fase | Isi | Bukti |
 | --- | --- | --- |
-| 0 | Skema akuntansi (8 enum, 9 model), CoA 58 akun, pengaturan, periode | `prisma/schema.prisma`, `coa-seed.ts` |
+| 0 | Skema akuntansi (8 enum, 9 model), CoA 60 akun, pengaturan, periode | `prisma/schema.prisma`, `coa-seed.ts` |
 | 1 | 7 laporan utama, jurnal manual, buku besar, saldo awal, ekspor Excel, cetak | `reports.ts`, UI tab `laporan` |
 | 2 | Integrasi piutang (AR), utang (AP Opsi A), tutup tahun, hierarki CoA | `posting.ts`, `period-actions.ts` |
 | 2.5 | Pintu tunggal kas: payroll, inventori, booking, workflow, AI, impor rekening koran | `recordCashTransaction()` |
 | 2.5 | Laporan umur piutang/utang + ringkasan PPN | `aux-reports.ts`, tab Umur & PPN |
 | 2.5 | Konsinyasi menjadi utang usaha (bukan pengurangan kas) | `consignment-engine.ts` |
 | 2.6 | Anggaran tahunan + realisasi vs anggaran | `budgets.ts`, tab Anggaran |
+| 3.3 | PPh 21 & BPJS pada slip gaji + setoran kewajiban | `payroll.ts`, tab Gaji & Pajak |
 
 Yang **belum** dari cita-cita "lengkap": HPP persediaan, pembayaran sebagian,
-pajak payroll rinci, multi-mata uang, PDF server-side, rekonsiliasi bank, dan
-pengerasan produksi. Itu isi fase berikutnya.
+multi-mata uang, PDF server-side, rekonsiliasi bank, dan pengerasan produksi.
+Itu isi fase berikutnya.
 
 ---
 
@@ -226,55 +228,69 @@ model PaymentAllocation {
 
 ---
 
-## 5. Fase 3.3 — Pajak payroll (PPh 21 & BPJS)
+## 5. Fase 3.3 — Pajak payroll (PPh 21 & BPJS) ✅ SELESAI
 
-Sekarang `deductions` masih satu angka gabungan; belum ada PPh 21, BPJS
-karyawan/pemberi kerja, atau bukti potong.
+**Keputusan.** Input manual (opsi 1). Sistem **tidak** menghitung tarif pajak;
+PPh 21 dan BPJS diisi dari aplikasi payroll resmi, lalu dijurnal dan dipantau
+sampai disetor. Mesin TER (PP 58/2023) sengaja tidak dibangun di v1.
 
-**Skema tambahan pada `EmployeePayroll`.**
+**Skema `EmployeePayroll` (Float, mengikuti modul payroll yang ada).**
 
 ```prisma
-grossSalary      Decimal @db.Decimal(18,2) @map("gross_salary")
-pph21            Decimal @default(0) @db.Decimal(18,2)
-bpjsEmployee     Decimal @default(0) @map("bpjs_employee") @db.Decimal(18,2)
-bpjsEmployer     Decimal @default(0) @map("bpjs_employer") @db.Decimal(18,2)
-otherDeductions  Decimal @default(0) @map("other_deductions") @db.Decimal(18,2)
-netSalary        Decimal @db.Decimal(18,2) @map("net_salary")
+pph21            Float @default(0)
+bpjsEmployee     Float @default(0) @map("bpjs_employee")
+bpjsEmployer     Float @default(0) @map("bpjs_employer")
+otherDeductions  Float @default(0) @map("other_deductions")
+// `deductions` tetap TOTAL potongan = pph21 + bpjsEmployee + otherDeductions
 ```
+
+`grossSalary` tidak disimpan — bruto dihitung dari
+`basicSalary + allowance + overtime` agar tidak ada dua angka yang bisa
+berbeda. Perhitungan murni ada di `src/lib/accounting/payroll.ts`
+(`computePayroll`), dipakai server dan UI.
 
 **Jurnal saat slip.**
 
 ```
-Dr 6-1100 Beban Gaji            (gross + bpjsEmployer)
-    Cr 2-1200 Utang Gaji        (net)
+Dr 6-1100 Beban Gaji            (bruto + BPJS pemberi kerja)
+    Cr 2-1200 Utang Gaji        (gaji bersih)
     Cr 2-1320 PPh 21            (pph21)
-    Cr 2-1330 Utang BPJS        (bpjsEmployee + bpjsEmployer)
+    Cr 2-1340 Utang BPJS        (bpjsEmployee + bpjsEmployer)
+    Cr 2-1350 Utang Karyawan    (potongan lain)
 ```
+
+Sisa potongan dihitung sebagai selisih agar jurnal dijamin balance dengan
+`netSalary` yang tersimpan, termasuk slip lama yang hanya punya `deductions`.
 
 **Jurnal saat bayar & setor.**
 
 ```
 Bayar gaji   Dr 2-1200 / Cr Kas
 Setor PPh    Dr 2-1320 / Cr Kas
-Setor BPJS   Dr 2-1330 / Cr Kas
+Setor BPJS   Dr 2-1340 / Cr Kas
+Potongan lain Dr 2-1350 / Cr Kas
 ```
 
-**Perhitungan.** Jangan menulis mesin pajak sendiri di v1. Dua pilihan:
+Setoran memakai `CashTransaction.settlementAccountId`: kas keluar melunasi
+liabilitas, bukan menambah beban. Endpoint: `GET/POST /api/v1/kerja/payroll/taxes`.
 
-1. **Input manual** (disarankan untuk v1): staf mengisi PPh 21 & BPJS dari
-   aplikasi payroll resmi; sistem hanya menjurnal dan menyimpan bukti.
-2. **Kalkulasi TER** (PP 58/2023) untuk PPh 21: tarif efektif bulanan berdasarkan
-   PTKP + kategori TER. Butuh tabel resmi dan pengujian per kategori.
+**UI.** Tab **Gaji & Pajak** (`PayrollView.tsx`): buat slip dengan rincian
+potongan, pratinjau bruto/bersih/biaya perusahaan, daftar slip, tombol bayar,
+serta kartu saldo PPh 21/BPJS/potongan lain dengan tombol "Setor penuh".
 
-**Kriteria diterima.**
+**Kriteria diterima — terpenuhi.**
 
-- Gross = net + PPh 21 + BPJS karyawan + potongan lain.
-- Beban gaji di Laba Rugi = gross + BPJS pemberi kerja (sekali per slip).
-- Utang PPh/BPJS nol setelah disetor.
+- Bruto = gaji bersih + PPh 21 + BPJS karyawan + potongan lain.
+- Beban gaji di Laba Rugi = bruto + BPJS pemberi kerja (sekali per slip).
+- BPJS pemberi kerja tidak mengurangi gaji bersih.
+- Utang PPh/BPJS nol setelah disetor; setoran tidak menambah beban.
 - Slip yang sudah dibayar tidak bisa dibayar ulang.
-- Ringkasan PPN/PPh menampilkan saldo utang pajak per akun.
+- Potongan melebihi bruto ditolak.
 
-**Estimasi.** 3–5 hari (input manual) atau 7–10 hari (kalkulasi TER).
+**Bukti.** 14 pemeriksaan smoke baru (total 196) + 4 unit test `computePayroll`.
+
+**Sisa untuk fase lanjutan.** Bukti potong 1721-A1, rekap PPh per karyawan,
+dan kalkulasi TER otomatis belum dibuat.
 
 ---
 
@@ -384,8 +400,8 @@ Wajib sebelum dipakai bisnis nyata.
 | Urutan | Fase | Alasan |
 | --- | --- | --- |
 | ~~1~~ | ~~2.6 Anggaran~~ | Selesai |
-| 1 | 3.3 Payroll (input manual) | Menutup celah pajak tanpa mesin pajak yang rawan |
-| 3 | 3.1 Persediaan & HPP | Dampak terbesar ke akurasi laba; butuh keputusan metode |
+| ~~1~~ | ~~3.3 Payroll (input manual)~~ | Selesai |
+| 1 | 3.1 Persediaan & HPP | Dampak terbesar ke akurasi laba; butuh keputusan metode |
 | 4 | 3.2 Pembayaran sebagian | Dibutuhkan setelah volume transaksi naik |
 | 5 | 3.7 Pengerasan produksi | Sebelum go-live serius |
 | 6 | 3.6 Rekonsiliasi bank | Mengurangi kerja manual staf keuangan |

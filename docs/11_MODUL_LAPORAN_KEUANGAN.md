@@ -258,16 +258,38 @@ membalik jurnal akrual lewat jurnal pembalik. Kewajiban yang sudah `PAID` harus
 dikembalikan ke `PENDING` dulu sebelum dibatalkan atau dihapus.
 
 **Gaji (payroll).** Membuat slip gaji `POST /api/v1/kerja/payroll` mengakui
-bebannya lebih dulu:
+bebannya lebih dulu, lengkap dengan rincian potongan:
 
 ```
-Dr  Beban Gaji & Tunjangan (6-1100)
-    Cr  Utang Gaji (2-1200)
+Dr  Beban Gaji & Tunjangan (6-1100)   bruto + BPJS pemberi kerja
+    Cr  Utang Gaji (2-1200)           gaji bersih
+    Cr  PPh 21 (2-1320)               PPh 21 karyawan
+    Cr  Utang BPJS (2-1340)           BPJS karyawan + pemberi kerja
+    Cr  Utang Karyawan (2-1350)       potongan lain
 ```
+
+PPh 21 dan BPJS **diisi manual** dari aplikasi payroll resmi — sistem tidak
+menghitung tarif pajak. `deductions` menyimpan total potongan
+(`pph21 + bpjsEmployee + otherDeductions`) agar data lama tetap terbaca.
+Perhitungan slip ada di `src/lib/accounting/payroll.ts`.
 
 Membayar slip (`PUT` yang sama) mencatat kas keluar dan melunasi utang
 (`Dr Utang Gaji / Cr Kas`), jadi beban tidak dihitung dua kali. Menghapus baris
 kas pembayaran gaji mengembalikan slip ke status belum dibayar.
+
+PPh/BPJS yang sudah dipotong disetor terpisah lewat
+`GET/POST /api/v1/kerja/payroll/taxes`. Setoran memakai
+`CashTransaction.settlementAccountId`, sehingga jurnalnya melunasi liabilitas,
+bukan menambah beban:
+
+```
+Setor PPh 21   Dr 2-1320 / Cr Kas
+Setor BPJS     Dr 2-1340 / Cr Kas
+Potongan lain  Dr 2-1350 / Cr Kas
+```
+
+Tab **Gaji & Pajak** menyediakan form slip, pratinjau bruto/bersih/biaya
+perusahaan, tombol bayar, dan kartu saldo kewajiban dengan tombol "Setor penuh".
 
 **Kas manual & impor rekening koran.** `POST /api/v1/kas/transactions` dan
 impor mutasi bank (`/workspace-files/{id}/import-ledger`) menjurnal setiap baris.
@@ -418,7 +440,7 @@ membuat jurnal** — kalau ada jurnal baru setelah menyimpan, itu bug.
 
 ## 6. Bagan akun bawaan
 
-58 akun, format kode `X-XXXX`:
+60 akun, format kode `X-XXXX`:
 
 ```
 1-xxxx  Aset           (1-1xx lancar, 1-2xx tetap)
@@ -436,7 +458,7 @@ struktur — cukup aktifkan akunnya.
 
 Akun sistem (tidak bisa dihapus, hanya bisa dinonaktifkan):
 `1-1110`, `1-1210`, `1-1300`, `1-1400`, `1-1600`, `1-2400`, `2-1100`, `2-1200`,
-`2-1300`, `2-1310`, `2-1320`, `2-1330`, `3-1100`, `3-1200`, `3-2000`, `3-3000`,
+`2-1300`, `2-1310`, `2-1320`, `2-1330`, `2-1340`, `2-1350`, `3-1100`, `3-1200`, `3-2000`, `3-3000`,
 `4-1100`, `4-1200`, `5-1100`, `6-1100`, `6-1800`, `7-1000`.
 
 ### Hierarki akun
@@ -478,7 +500,7 @@ memakai aturan lama dan setengah aturan baru.
 prisma/schema.prisma                    ← bagian "MODUL LAPORAN KEUANGAN"
 src/lib/accounting/money.ts             ← Decimal, anti pembulatan biner
 src/lib/accounting/period.ts            ← batas bulan WIB, resolusi rentang laporan
-src/lib/accounting/coa-seed.ts          ← template 58 akun + fungsi setup
+src/lib/accounting/coa-seed.ts          ← template 60 akun + fungsi setup
 src/lib/accounting/account-tree.ts      ← pembentuk pohon, anti-siklus, pencarian induk
 src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
@@ -491,7 +513,7 @@ src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input + realisasi)
 tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 182 pemeriksaan end-to-end (butuh server + DB kosong)
+scripts/accounting-smoke.mjs            ← 196 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -503,7 +525,7 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 
 | Item | Rencana |
 | --- | --- |
-| Rincian PPh 21 & BPJS pada slip gaji (sekarang potongan masih gabungan) | Fase 2 |
+| Bukti potong 1721-A1 & kalkulasi TER otomatis (rincian PPh/BPJS sudah ada) | Fase lanjutan |
 | Persediaan & HPP barang (kartu stok, metode FIFO/rata-rata) | Fase 3 |
 | Laporan PDF server-side (sekarang: cetak dari browser / Ekspor Excel) | Fase 3 |
 | Multi-mata uang aktif (kolom `currency` + `exchange_rate` sudah ada, kurs belum dikelola) | Fase 3 |

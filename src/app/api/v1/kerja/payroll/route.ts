@@ -4,6 +4,7 @@ import { withTenantGuard } from '@/lib/tenant-guard';
 import { TransactionType } from '@prisma/client';
 import { publicApiError } from '@/lib/api-error';
 import { postPayrollAccruedInTx, recordCashTransaction } from '@/lib/accounting/posting';
+import { computePayroll } from '@/lib/accounting/payroll';
 
 // GET: Ambil daftar slip gaji karyawan
 export const GET = withTenantGuard(
@@ -25,6 +26,9 @@ export const GET = withTenantGuard(
           totalPayrollAmount,
           paidCount,
           unpaidCount: payrolls.length - paidCount,
+          totalPph21: payrolls.reduce((acc, curr) => acc + (curr.pph21 ?? 0), 0),
+          totalBpjsEmployee: payrolls.reduce((acc, curr) => acc + (curr.bpjsEmployee ?? 0), 0),
+          totalBpjsEmployer: payrolls.reduce((acc, curr) => acc + (curr.bpjsEmployer ?? 0), 0),
         },
         payrolls,
       });
@@ -39,26 +43,47 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
+      const body = await req.json();
       const {
         employeeName,
         role = 'Staf Operasional',
         basicSalary,
         allowance = 0,
         overtime = 0,
-        deductions = 0,
+        deductions,
+        pph21,
+        bpjsEmployee,
+        bpjsEmployer,
+        otherDeductions,
         monthYear = 'Agustus 2026',
         accrualDate,
-      } = await req.json();
+      } = body;
 
       if (!employeeName || !basicSalary) {
         return NextResponse.json({ message: 'Nama staf dan gaji pokok wajib diisi.' }, { status: 400 });
       }
 
-      const basic = Number(basicSalary) || 0;
-      const allow = Number(allowance) || 0;
-      const ot = Number(overtime) || 0;
-      const deduct = Number(deductions) || 0;
-      const netSalary = Math.max(basic + allow + ot - deduct, 0);
+      // Kompatibilitas: data/klien lama hanya mengirim `deductions` (total).
+      // Kalau rincian baru tidak dikirim, seluruh potongan dianggap "potongan
+      // lain" sehingga slip lama tetap bisa dibuat dan jurnalnya balance.
+      const hasBreakdown =
+        pph21 !== undefined || bpjsEmployee !== undefined || bpjsEmployer !== undefined || otherDeductions !== undefined;
+      const legacyDeductions = Number(deductions) || 0;
+
+      const calculated = computePayroll({
+        basicSalary: Number(basicSalary) || 0,
+        allowance: Number(allowance) || 0,
+        overtime: Number(overtime) || 0,
+        pph21: hasBreakdown ? Number(pph21) || 0 : 0,
+        bpjsEmployee: hasBreakdown ? Number(bpjsEmployee) || 0 : 0,
+        bpjsEmployer: hasBreakdown ? Number(bpjsEmployer) || 0 : 0,
+        otherDeductions: hasBreakdown ? Number(otherDeductions) || 0 : legacyDeductions,
+      });
+      if (!calculated.ok) {
+        return NextResponse.json({ message: calculated.error }, { status: 400 });
+      }
+      const pay = calculated.value;
+      const netSalary = pay.net;
 
       // Opsional: tanggal pengakuan beban gaji (mis. mencatat slip bulan lalu).
       let entryDate: Date | undefined;
@@ -75,10 +100,14 @@ export const POST = withTenantGuard(
             workspaceId: auth.workspace.id,
             employeeName: employeeName.trim(),
             role: role.trim(),
-            basicSalary: basic,
-            allowance: allow,
-            overtime: ot,
-            deductions: deduct,
+            basicSalary: Number(basicSalary) || 0,
+            allowance: Number(allowance) || 0,
+            overtime: Number(overtime) || 0,
+            deductions: pay.deductions,
+            pph21: pay.pph21,
+            bpjsEmployee: pay.bpjsEmployee,
+            bpjsEmployer: pay.bpjsEmployer,
+            otherDeductions: pay.otherDeductions,
             netSalary,
             monthYear,
             isPaid: false,
