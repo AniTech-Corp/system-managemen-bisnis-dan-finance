@@ -572,6 +572,49 @@ async function resolveJournalUserId(
  * layar Pemetaan Kategori untuk dibetulkan. Tanpa opsi ini, kategori yang belum
  * dipetakan tetap ditolak (perilaku form manual).
  */
+/**
+ * Pastikan sebuah kategori punya pemetaan akun. Kalau belum ada, buat pemetaan
+ * ke akun cadangan (`fallbackAccountCode`) supaya transaksi otomatis tidak
+ * gagal saat modul akuntansi aktif. Pemetaan yang dibuat bisa dibetulkan owner
+ * di layar Pemetaan Kategori.
+ *
+ * Mengembalikan `created: false` bila modul akuntansi belum aktif (tidak perlu
+ * mengotori pemetaan).
+ */
+export async function ensureCategoryMappingInTx(
+  tx: Prisma.TransactionClient,
+  ctx: {
+    workspaceId: string;
+    category: string;
+    type: AccountType;
+    fallbackAccountCode: string;
+  }
+): Promise<{ created: boolean; warning?: string }> {
+  const category = ctx.category.trim().slice(0, 100);
+  if (!category) return { created: false };
+
+  const setting = await getAccountingSetting(tx, ctx.workspaceId);
+  if (!setting?.isEnabled) return { created: false };
+
+  const existing = await tx.categoryAccountMap.findUnique({
+    where: {
+      workspaceId_category_type: { workspaceId: ctx.workspaceId, category, type: ctx.type },
+    },
+    select: { id: true },
+  });
+  if (existing) return { created: false };
+
+  const accountId = await resolveAccountIdByCode(tx, ctx.workspaceId, ctx.fallbackAccountCode);
+  await tx.categoryAccountMap.create({
+    data: { workspaceId: ctx.workspaceId, category, type: ctx.type, accountId },
+  });
+
+  return {
+    created: true,
+    warning: `Kategori "${category}" belum dipetakan; sementara dicatat ke ${ctx.fallbackAccountCode}. Lengkapi di Pengaturan → Pemetaan Kategori.`,
+  };
+}
+
 export async function recordCashTransaction(
   tx: Prisma.TransactionClient,
   ctx: {
@@ -593,24 +636,15 @@ export async function recordCashTransaction(
   let warning: string | undefined;
 
   if (ctx.autoMapFallback) {
-    const setting = await getAccountingSetting(tx, ctx.workspaceId);
-    if (setting?.isEnabled) {
-      const accountType = ctx.type === TransactionType.INCOME ? AccountType.REVENUE : AccountType.EXPENSE;
-      const existing = await tx.categoryAccountMap.findUnique({
-        where: { workspaceId_category_type: { workspaceId: ctx.workspaceId, category, type: accountType } },
-        select: { id: true },
-      });
-
-      if (!existing) {
-        const fallbackCode =
-          accountType === AccountType.REVENUE ? FALLBACK_INCOME_ACCOUNT_CODE : FALLBACK_EXPENSE_ACCOUNT_CODE;
-        const accountId = await resolveAccountIdByCode(tx, ctx.workspaceId, fallbackCode);
-        await tx.categoryAccountMap.create({
-          data: { workspaceId: ctx.workspaceId, category, type: accountType, accountId },
-        });
-        warning = `Kategori "${category}" belum dipetakan; sementara dicatat ke ${fallbackCode}. Lengkapi di Pengaturan → Pemetaan Kategori.`;
-      }
-    }
+    const accountType = ctx.type === TransactionType.INCOME ? AccountType.REVENUE : AccountType.EXPENSE;
+    const mapped = await ensureCategoryMappingInTx(tx, {
+      workspaceId: ctx.workspaceId,
+      category,
+      type: accountType,
+      fallbackAccountCode:
+        accountType === AccountType.REVENUE ? FALLBACK_INCOME_ACCOUNT_CODE : FALLBACK_EXPENSE_ACCOUNT_CODE,
+    });
+    warning = mapped.warning;
   }
 
   const created = await tx.cashTransaction.create({

@@ -280,7 +280,21 @@ Kategori yang belum dipetakan dari modul otomatis tidak menggagalkan transaksi:
 sistem memetakannya sementara ke `4-1900`/`6-9000` dan pemetaan itu muncul di
 layar Pemetaan Kategori untuk dibetulkan.
 
-Belum terintegrasi: persediaan/HPP (jurnal HPP & nilai persediaan).
+**Konsinyasi.** Saat barang titip-jual laku, sistem membuat kewajiban (utang
+usaha) ke supplier sebesar `qty x costPrice`, dengan jurnal:
+
+```
+Dr  HPP Konsinyasi (5-1100)
+    Cr  Utang Usaha (2-1100)
+```
+
+Kas **tidak** berkurang saat barang laku; kas baru keluar ketika utang itu
+dibayar lewat alur "bayar kewajiban" (`Dr Utang Usaha / Cr Kas`). Kewajiban juga
+muncul di laporan umur utang. Kategori `HPP Konsinyasi` dipetakan otomatis ke
+`5-1100` saat setup, dan tetap bisa diubah di Pemetaan Kategori.
+
+Belum terintegrasi: persediaan/HPP untuk barang milik sendiri (jurnal HPP &
+nilai persediaan).
 
 ### Cara sistem memilih rekening kas/bank
 

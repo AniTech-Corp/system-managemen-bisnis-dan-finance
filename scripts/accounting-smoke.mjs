@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 166 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 173 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -942,6 +942,98 @@ ok(
   'ringkasan PPN: non-PKP tanpa transaksi PPN',
   taxReport.status === 200 && taxData?.isPkp === false && Number(taxData?.outputTax) === 0 && Number(taxData?.netPayable) === 0,
   `pkp=${taxData?.isPkp} keluaran=${taxData?.outputTax}`
+);
+
+/* 18f. KONSINYASI -> UTANG USAHA (kas tidak berkurang saat barang laku) */
+
+const consProduct = await api('/api/v1/inventory/products', {
+  method: 'POST',
+  body: {
+    name: 'Kaos Konsinyasi Uji',
+    sku: 'KONS-UJI-1',
+    costPrice: 40_000,
+    sellPrice: 75_000,
+    openingStock: 10,
+    supplierName: 'CV Titip Jual',
+  },
+});
+const consProductId = consProduct.json?.product?.id;
+ok('produk konsinyasi dibuat', Boolean(consProductId), consProduct.json?.message?.slice(0, 60));
+
+const consTag = await api('/api/v1/inventory/consignment', {
+  method: 'PATCH',
+  body: { productId: consProductId, ownershipType: 'CONSIGNED' },
+});
+ok(
+  'produk ditandai CONSIGNED',
+  consTag.status === 200 && consTag.json?.product?.ownershipType === 'CONSIGNED',
+  `ownershipType=${consTag.json?.product?.ownershipType}`
+);
+
+const cashBeforeCons = Number(
+  (await api('/api/v1/accounting/reports/cash-flow?period=2026-11')).json?.data?.current?.totals?.closingCash
+);
+const apBeforeCons = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-11')).json?.data?.current?.liabilities ?? []).find(
+    (a) => a.code === '2-1100'
+  )?.amount ?? 0
+);
+
+const consSale = await api('/api/v1/inventory/sales', {
+  method: 'POST',
+  body: {
+    items: [{ productId: consProductId, qty: 2, unitPrice: 75_000 }],
+    paymentMethod: 'TUNAI',
+    customerName: 'Pembeli Konsinyasi',
+    transactionDate: '2026-11-18',
+  },
+});
+const consObligationId = consSale.json?.sale?.consignmentLiability?.obligationIds?.[0];
+ok(
+  'penjualan konsinyasi mencatat kewajiban 80.000 (2 x 40.000)',
+  consSale.status === 201 &&
+    Number(consSale.json?.sale?.consignmentLiability?.amount) === 80_000 &&
+    Boolean(consObligationId),
+  `amount=${consSale.json?.sale?.consignmentLiability?.amount}`
+);
+
+const obligationsAfterCons = await api('/api/v1/kas/obligations');
+const consObligation = (obligationsAfterCons.json?.all ?? []).find((o) => o.id === consObligationId);
+ok(
+  'kewajiban konsinyasi berstatus PENDING (utang usaha)',
+  consObligation?.status === 'PENDING' && Number(consObligation?.amount) === 80_000,
+  `status=${consObligation?.status}`
+);
+
+const novCons = await api('/api/v1/accounting/journals?period=2026-11&limit=300');
+const consJournal = (novCons.json?.data ?? []).find(
+  (j) => j.source === 'OBLIGATION' && j.sourceId === consObligationId
+);
+ok(
+  'jurnal konsinyasi: Dr HPP / Cr Utang Usaha',
+  Number(consJournal?.lines?.find((l) => l.account.code === '5-1100')?.debit) === 80_000 &&
+    Number(consJournal?.lines?.find((l) => l.account.code === '2-1100')?.credit) === 80_000,
+  (consJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const cashAfterCons = Number(
+  (await api('/api/v1/accounting/reports/cash-flow?period=2026-11')).json?.data?.current?.totals?.closingCash
+);
+ok(
+  'kas hanya bertambah harga jual (tidak dipotong HPP konsinyasi)',
+  cashAfterCons === cashBeforeCons + 150_000,
+  `sebelum=${cashBeforeCons} sesudah=${cashAfterCons}`
+);
+
+const apAfterCons = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-11')).json?.data?.current?.liabilities ?? []).find(
+    (a) => a.code === '2-1100'
+  )?.amount ?? 0
+);
+ok(
+  'utang usaha di neraca bertambah 80.000',
+  apAfterCons === apBeforeCons + 80_000,
+  `sebelum=${apBeforeCons} sesudah=${apAfterCons}`
 );
 
 /* 19. TUTUP TAHUN BUKU (jurnal penutup) */

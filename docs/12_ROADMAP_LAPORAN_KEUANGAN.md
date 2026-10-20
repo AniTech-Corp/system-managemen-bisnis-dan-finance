@@ -117,8 +117,7 @@ terjual.
    audit) atau FIFO. FIFO butuh layer per pembelian dan lebih rawan salah.
 2. **Sumber HPP:** `Product.costPrice` (sekarang) atau biaya rata-rata per
    gudang setelah pembelian.
-3. **Konsinyasi:** baris kas konsinyasi saat ini mengurangi kas padahal uang
-   belum keluar. Perlu dipisah menjadi utang usaha, bukan kas.
+3. **Konsinyasi:** sudah dipisah menjadi utang usaha (selesai).
 
 **Skema.**
 
@@ -400,9 +399,10 @@ Fase 3.7 bisa dimajukan bila sistem langsung dipakai untuk pembukuan nyata.
    Tanpa keputusan ini Fase 3.1 tidak bisa dimulai.
 2. **PPh 21 dihitung sistem atau diinput** — menentukan apakah perlu tabel TER
    resmi dan pengujian pajak.
-3. **Konsinyasi** — sekarang baris kas mengurangi kas padahal uang belum keluar.
-   Perlu diputuskan: tetap seperti sekarang (sederhana, tidak akurat) atau
-   diubah menjadi utang usaha (akurat, mengubah alur).
+3. ~~**Konsinyasi** — baris kas mengurangi kas padahal uang belum keluar.~~
+   **Sudah diputuskan & dikerjakan:** konsinyasi kini menjadi utang usaha
+   (`ScheduledObligation`) dengan jurnal `Dr HPP / Cr Utang Usaha`; kas baru
+   keluar saat utang dibayar.
 4. **Kebijakan lebih bayar** — ditolak atau menjadi uang muka pelanggan.
 5. **Multi-mata uang** — hanya kerjakan bila ada kebutuhan nyata; biayanya besar.
 6. **Migrasi produksi** — jangan menunda; `db push` tidak punya rollback.

@@ -49,6 +49,8 @@ export const DEFAULT_CATEGORY_MAPPINGS: Array<{
   { category: 'Gaji Staf & Honor Tim', type: AccountType.EXPENSE, accountCode: '6-1100' },
   { category: 'Beban Gaji & Upah Karyawan', type: AccountType.EXPENSE, accountCode: '6-1100' },
   { category: 'Pembelian Stok/Purchasing', type: AccountType.EXPENSE, accountCode: '5-1100' },
+  // Barang titip-jual yang laku: HPP bertambah, lawannya Utang Usaha.
+  { category: 'HPP Konsinyasi', type: AccountType.EXPENSE, accountCode: '5-1100' },
   { category: 'Operasional', type: AccountType.EXPENSE, accountCode: '6-9000' },
   { category: 'Penjualan Stok/Kasir', type: AccountType.REVENUE, accountCode: '4-1200' },
   { category: 'Deposit Reservasi Booking', type: AccountType.REVENUE, accountCode: '4-1100' },
