@@ -132,6 +132,7 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '6-2100', name: 'Beban Asuransi', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
   { code: '6-2200', name: 'Beban Pajak & Retribusi', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
   { code: '6-9000', name: 'Beban Lain-lain', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
+  { code: '6-9100', name: 'Selisih Persediaan', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000', isSystem: true },
 
   // ── PAJAK PENGHASILAN ───────────────────────────────────────────────────
   { code: '7-1000', name: 'Beban Pajak Penghasilan', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, isSystem: true },

@@ -5,10 +5,10 @@ selesai**, apa yang **berikutnya**, urutan pengerjaan, kriteria diterima, dan
 risiko yang harus diputuskan sebelum mulai. Dokumen modul yang sudah berjalan
 ada di `docs/11_MODUL_LAPORAN_KEUANGAN.md`.
 
-Status terakhir: **Fase 0–3.3 selesai**, termasuk laporan pendukung (umur
-piutang/utang, ringkasan PPN), anggaran, dan pajak payroll (PPh 21 & BPJS input
-manual). Konsinyasi sudah menjadi utang usaha. 196 pemeriksaan smoke + 66 unit
-test hijau.
+Status terakhir: **Fase 0–3.3 dan 3.1 selesai**, termasuk laporan pendukung
+(umur piutang/utang, ringkasan PPN), anggaran, pajak payroll (PPh 21 & BPJS input
+manual), serta persediaan & HPP rata-rata bergerak. Konsinyasi sudah menjadi
+utang usaha. 217 pemeriksaan smoke + 72 unit test hijau.
 
 ---
 
@@ -31,7 +31,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
    lama, lewat `toMoney()`.
 6. **Setiap perubahan pada `reports.ts`, `posting.ts`, `journal-service.ts`,
    `period-actions.ts`, `account-tree.ts`, atau `aux-reports.ts` wajib menjaga
-   `npm test` (66) dan `node scripts/accounting-smoke.mjs` (196) tetap hijau.
+   `npm test` (72) dan `node scripts/accounting-smoke.mjs` (217) tetap hijau.
 
 ---
 
@@ -39,7 +39,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 
 | Fase | Isi | Bukti |
 | --- | --- | --- |
-| 0 | Skema akuntansi (8 enum, 9 model), CoA 60 akun, pengaturan, periode | `prisma/schema.prisma`, `coa-seed.ts` |
+| 0 | Skema akuntansi (8 enum, 9 model), CoA 61 akun, pengaturan, periode | `prisma/schema.prisma`, `coa-seed.ts` |
 | 1 | 7 laporan utama, jurnal manual, buku besar, saldo awal, ekspor Excel, cetak | `reports.ts`, UI tab `laporan` |
 | 2 | Integrasi piutang (AR), utang (AP Opsi A), tutup tahun, hierarki CoA | `posting.ts`, `period-actions.ts` |
 | 2.5 | Pintu tunggal kas: payroll, inventori, booking, workflow, AI, impor rekening koran | `recordCashTransaction()` |
@@ -47,10 +47,11 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 | 2.5 | Konsinyasi menjadi utang usaha (bukan pengurangan kas) | `consignment-engine.ts` |
 | 2.6 | Anggaran tahunan + realisasi vs anggaran | `budgets.ts`, tab Anggaran |
 | 3.3 | PPh 21 & BPJS pada slip gaji + setoran kewajiban | `payroll.ts`, tab Gaji & Pajak |
+| 3.1 | Persediaan & HPP rata-rata bergerak + kartu stok & kontrol akun 1-1400 | `inventory.ts`, `inventory-report.ts`, tab Persediaan |
 
-Yang **belum** dari cita-cita "lengkap": HPP persediaan, pembayaran sebagian,
-multi-mata uang, PDF server-side, rekonsiliasi bank, dan pengerasan produksi.
-Itu isi fase berikutnya.
+Yang **belum** dari cita-cita "lengkap": pembayaran sebagian, multi-mata uang,
+PDF server-side, rekonsiliasi bank, dan pengerasan produksi. Itu isi fase
+berikutnya.
 
 ---
 
@@ -110,77 +111,82 @@ per kelompok, dan peringatan bila realisasi > 100% sebelum tahun berjalan.
 
 ---
 
-## 3. Fase 3.1 — Persediaan & HPP
+## 3. Fase 3.1 — Persediaan & HPP ✅ SELESAI
 
-Ini fase terbesar dan paling berisiko. Sekarang pembelian stok langsung menjadi
-beban (`5-1100`), sehingga laba bisa turun di bulan pembelian walau barang belum
-terjual.
+Sebelum fase ini, pembelian stok langsung menjadi beban sehingga laba turun di
+bulan pembelian walau barang belum terjual.
 
-**Keputusan yang harus diambil lebih dulu.**
+**Keputusan yang diambil.**
 
-1. **Metode penilaian:** rata-rata bergerak (disarankan, sederhana & tahan
-   audit) atau FIFO. FIFO butuh layer per pembelian dan lebih rawan salah.
-2. **Sumber HPP:** `Product.costPrice` (sekarang) atau biaya rata-rata per
-   gudang setelah pembelian.
-3. **Konsinyasi:** sudah dipisah menjadi utang usaha (selesai).
+1. **Metode penilaian: rata-rata bergerak** (bukan FIFO). Tidak perlu tabel layer.
+2. **Sumber HPP:** nilai buku produk (`products.inventory_value`), bukan
+   `costPrice` saja. Harga rata-rata diturunkan dari nilai/qty.
+3. **Konsinyasi** tetap terpisah (utang usaha, selesai di fase sebelumnya).
 
-**Skema.**
+**Skema.** Tidak ada tabel baru. `Product` hanya menambah satu kolom:
 
 ```prisma
-model InventoryLayer {          // hanya bila memilih FIFO
-  id           String   @id @default(uuid()) @db.Uuid
-  workspaceId  String   @map("workspace_id") @db.Uuid
-  productId    String   @map("product_id") @db.Uuid
-  receivedAt   DateTime @map("received_at")
-  qtyRemaining Decimal  @db.Decimal(18,3) @map("qty_remaining")
-  unitCost     Decimal  @db.Decimal(18,2) @map("unit_cost")
-  sourceType   String   @map("source_type")
-  sourceId     String?  @map("source_id") @db.Uuid
-  @@index([workspaceId, productId, receivedAt])
-  @@map("inventory_layers")
-}
-
-model ProductCost {             // rata-rata bergerak
-  productId  String  @id @db.Uuid
-  workspaceId String @map("workspace_id") @db.Uuid
-  avgCost    Decimal @db.Decimal(18,2) @map("avg_cost")
-  qtyOnHand  Decimal @db.Decimal(18,3) @map("qty_on_hand")
-  @@unique([workspaceId, productId])
-  @@map("product_costs")
-}
+inventoryValue Float @default(0) @map("inventory_value")
 ```
+
+Alasan tidak memakai `ProductCost` terpisah: `currentStock` dan `costPrice` sudah
+ada di `Product`, dan nilai buku harus diperbarui dalam transaksi yang sama agar
+tidak pernah berbeda dari kartu stok. Yang disimpan adalah **nilai**, bukan hanya
+rata-rata, sehingga `nilai sisa = nilai sebelumnya − HPP` selalu tepat (bebas
+selisih pembulatan).
+
+Helper murni: `src/lib/accounting/inventory.ts` (`applyIncomingStock`,
+`applyOutgoingStock`, `averageUnitCost`, `isInventoryValued`).
 
 **Alur jurnal.**
 
 ```
-Pembelian stok      Dr 1-1400 Persediaan        / Cr Kas atau 2-1100 Utang
-Penjualan barang    Dr Kas/Piutang              / Cr 4-1200 Pendapatan
-                    Dr 5-1100 HPP               / Cr 1-1400 Persediaan
-Retur penjualan     Dr 4-2000 Retur Penjualan   / Cr Kas/Piutang
-                    Dr 1-1400 Persediaan        / Cr 5-1100 HPP
-Stok opname kurang  Dr 6-9100 Selisih Persediaan/ Cr 1-1400
+Pembelian stok        Dr 1-1400 Persediaan            / Cr Kas
+Penjualan barang      Dr Kas/Piutang                  / Cr Pendapatan
+                      Dr 5-1100 HPP                   / Cr 1-1400 Persediaan
+Retur dari pelanggan  Dr 1-1400 Persediaan            / Cr 5-1100 HPP
+Retur ke supplier     Dr 6-9100 Selisih Persediaan    / Cr 1-1400
+Stok opname lebih     Dr 1-1400 Persediaan            / Cr 6-9100
+Stok opname kurang    Dr 6-9100 Selisih Persediaan    / Cr 1-1400
 ```
+
+- `recordCashTransaction` menerima `debitAccountCode` supaya pembelian mendebit
+  aset, bukan akun kategori beban (tetap satu pintu kas, satu jurnal).
+- Jurnal persediaan non-kas memakai `source = INVENTORY` (enum baru) dengan
+  `sourceId` dokumen sumber, sehingga constraint unik tetap mencegah jurnal dobel.
+- Akun baru `6-9100 Selisih Persediaan`; dibuat otomatis bila workspace lama
+  belum menyiapkan ulang bagan akun.
+- `sale.cogs` dikembalikan di response penjualan untuk UI & pengujian.
 
 **API & UI.**
 
-- `POST /inventory/purchase-orders` → ganti pemetaan kategori ke akun
-  `1-1400`, bukan `5-1100`.
-- `POST /inventory/sales` → tambah jurnal HPP otomatis per item (satu jurnal
-  `CASH_TX` + satu jurnal `COGS` dengan `source = ADJUSTMENT` atau sumber baru
-  `INVENTORY`).
-- Laporan "Kartu Stok" (mutasi per produk) dan "Nilai Persediaan" (neraca
-  pendukung) dengan kontrol saldo `1-1400`.
-- Peringatan bila qty minus atau biaya rata-rata nol.
+- `POST /inventory/purchase-orders` → `Dr 1-1400`; rata-rata & nilai buku
+  diperbarui atomik bersama stok.
+- `POST /inventory/sales` → tambah jurnal HPP per penjualan (barang titip jual
+  dikecualikan).
+- `POST /inventory/returns` & `/inventory/stock-adjustments` → menyesuaikan nilai
+  buku dan menjurnal selisihnya.
+- Laporan `GET /accounting/reports/inventory` (nilai persediaan + kartu stok)
+  dan tab **Persediaan** (`InventoryView.tsx`).
 
-**Kriteria diterima.**
+**Kriteria diterima — terpenuhi.**
 
-- Saldo `1-1400` = total nilai stok dari kartu stok (selisih 0).
+- Saldo `1-1400` = total nilai stok dari kartu stok (selisih 0 di pengujian).
 - Menjual 1 item: pendapatan naik, HPP naik, persediaan turun sebesar biaya.
-- Laba kotor tidak berubah bila harga jual & biaya tetap.
+- Laba kotor sesuai (pendapatan − HPP); penjualan tidak menambah beban operasional.
 - Neraca tetap balance setelah pembelian, penjualan, retur, dan opname.
-- Smoke menambah minimal 15 pemeriksaan baru.
+- 21 pemeriksaan smoke baru (total 217) + 6 unit test rata-rata bergerak.
 
-**Estimasi.** 5–8 hari. Risiko tinggi (butuh keputusan metode).
+**Batasan yang diketahui.**
+
+- `StockMovement` tidak punya tanggal bisnis, jadi Kartu Stok memakai bulan
+  pencatatan (`created_at`), sementara jurnal memakai `transactionDate`.
+- Perubahan `costPrice`/`inventoryValue` manual tidak membuat jurnal; laporan
+  menampilkan selisih terhadap `1-1400` sebagai peringatan.
+- Retur ke supplier dicatat sebagai selisih persediaan; penggantian/refund supplier
+  dicatat manual.
+
+**Estimasi awal.** 5–8 hari (risiko tinggi karena menyentuh semua alur stok).
 
 ---
 
@@ -401,7 +407,7 @@ Wajib sebelum dipakai bisnis nyata.
 | --- | --- | --- |
 | ~~1~~ | ~~2.6 Anggaran~~ | Selesai |
 | ~~1~~ | ~~3.3 Payroll (input manual)~~ | Selesai |
-| 1 | 3.1 Persediaan & HPP | Dampak terbesar ke akurasi laba; butuh keputusan metode |
+| ~~1~~ | ~~3.1 Persediaan & HPP~~ | Selesai |
 | 4 | 3.2 Pembayaran sebagian | Dibutuhkan setelah volume transaksi naik |
 | 5 | 3.7 Pengerasan produksi | Sebelum go-live serius |
 | 6 | 3.6 Rekonsiliasi bank | Mengurangi kerja manual staf keuangan |
@@ -414,10 +420,10 @@ Fase 3.7 bisa dimajukan bila sistem langsung dipakai untuk pembukuan nyata.
 
 ## 11. Risiko & keputusan yang harus diambil
 
-1. **Metode persediaan** (rata-rata vs FIFO) — menentukan skema dan laporan.
-   Tanpa keputusan ini Fase 3.1 tidak bisa dimulai.
-2. **PPh 21 dihitung sistem atau diinput** — menentukan apakah perlu tabel TER
-   resmi dan pengujian pajak.
+1. ~~**Metode persediaan** (rata-rata vs FIFO).~~ **Sudah diputuskan &
+   dikerjakan:** rata-rata bergerak dengan nilai buku di `products.inventory_value`.
+2. ~~**PPh 21 dihitung sistem atau diinput.**~~ **Sudah diputuskan & dikerjakan:**
+   input manual (PPh 21 & BPJS dari aplikasi payroll resmi), tanpa mesin TER.
 3. ~~**Konsinyasi** — baris kas mengurangi kas padahal uang belum keluar.~~
    **Sudah diputuskan & dikerjakan:** konsinyasi kini menjadi utang usaha
    (`ScheduledObligation`) dengan jurnal `Dr HPP / Cr Utang Usaha`; kas baru

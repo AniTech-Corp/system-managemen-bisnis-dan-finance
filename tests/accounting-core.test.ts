@@ -500,3 +500,63 @@ describe('payroll: perhitungan slip gaji', () => {
     assert.equal(computePayroll({ basicSalary: 1_000_000, bpjsEmployee: Number.NaN }).ok, false);
   });
 });
+
+/* ── persediaan: rata-rata bergerak ────────────────────────────────────── */
+
+describe('persediaan: rata-rata bergerak', () => {
+  test('harga rata-rata setelah dua pembelian berbobot', async () => {
+    const { applyIncomingStock, averageUnitCost } = await import('../src/lib/accounting/inventory');
+    const first = applyIncomingStock({ qtyOnHand: 0, value: 0 }, 10, 10_000);
+    assert.equal(first.qtyOnHand, 10);
+    assert.equal(first.value, 100_000);
+    assert.equal(averageUnitCost(first), 10_000);
+
+    const second = applyIncomingStock(first, 10, 14_000);
+    assert.equal(second.qtyOnHand, 20);
+    assert.equal(second.value, 240_000);
+    assert.equal(averageUnitCost(second), 12_000);
+  });
+
+  test('HPP keluar memakai rata-rata dan menyisakan nilai buku yang konsisten', async () => {
+    const { applyOutgoingStock } = await import('../src/lib/accounting/inventory');
+    const issue = applyOutgoingStock({ qtyOnHand: 7, value: 7_500 }, 1);
+    assert.equal(issue.qty, 1);
+    assert.equal(issue.amount, 1_071.43);
+    assert.equal(issue.remainingValue, 6_428.57);
+    assert.equal(issue.unitCost, 1_071.43);
+  });
+
+  test('pengeluaran tidak pernah membuat nilai buku negatif', async () => {
+    const { applyOutgoingStock } = await import('../src/lib/accounting/inventory');
+    const issue = applyOutgoingStock({ qtyOnHand: 2, value: 20_000 }, 5);
+    assert.equal(issue.qty, 2, 'qty dipotong ke stok tersedia');
+    assert.equal(issue.amount, 20_000);
+    assert.equal(issue.remainingValue, 0);
+  });
+
+  test('stok kosong / nol tidak menghasilkan HPP', async () => {
+    const { applyOutgoingStock } = await import('../src/lib/accounting/inventory');
+    const issue = applyOutgoingStock({ qtyOnHand: 0, value: 0 }, 3);
+    assert.equal(issue.qty, 0);
+    assert.equal(issue.amount, 0);
+    assert.equal(issue.remainingValue, 0);
+  });
+
+  test('barang titip jual tidak dinilai sebagai persediaan sendiri', async () => {
+    const { isInventoryValued } = await import('../src/lib/accounting/inventory');
+    assert.equal(isInventoryValued('OWNED'), true);
+    assert.equal(isInventoryValued(null), true);
+    assert.equal(isInventoryValued(undefined), true);
+    assert.equal(isInventoryValued('CONSIGNED'), false);
+  });
+
+  test('nilai buku bertahan saat barang masuk memakai rata-rata berjalan', async () => {
+    const { applyIncomingStock, averageUnitCost } = await import('../src/lib/accounting/inventory');
+    // Retur dari pelanggan dinilai pada rata-rata saat ini -> rata-rata tidak berubah.
+    const state = { qtyOnHand: 16, value: 192_000 };
+    const next = applyIncomingStock(state, 1, averageUnitCost(state));
+    assert.equal(next.qtyOnHand, 17);
+    assert.equal(next.value, 204_000);
+    assert.equal(averageUnitCost(next), 12_000);
+  });
+});

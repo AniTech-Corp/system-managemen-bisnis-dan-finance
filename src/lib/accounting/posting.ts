@@ -45,6 +45,11 @@ export interface PostingContext {
     | 'payrollId'
     | 'settlementAccountId'
   >;
+  /**
+   * Kalau diisi, uang KELUAR didebit ke akun ini alih-alih akun kategori.
+   * Dipakai pembelian stok: `Dr 1-1400 Persediaan / Cr Kas`.
+   */
+  debitAccountCode?: string;
 }
 
 export async function getAccountingSetting(tx: Prisma.TransactionClient, workspaceId: string) {
@@ -169,6 +174,10 @@ const BPJS_PAYABLE_ACCOUNT_CODE = '2-1340'; // Utang BPJS
 const OTHER_PAYROLL_PAYABLE_ACCOUNT_CODE = '2-1350'; // Utang Karyawan (potongan lain)
 const FALLBACK_INCOME_ACCOUNT_CODE = '4-1900'; // Pendapatan Lain-lain
 const FALLBACK_EXPENSE_ACCOUNT_CODE = '6-9000'; // Beban Lain-lain
+
+const INVENTORY_ASSET_ACCOUNT_CODE = '1-1400'; // Persediaan Barang Dagang
+const COGS_ACCOUNT_CODE = '5-1100'; // HPP Barang Dagang
+const INVENTORY_DIFFERENCE_ACCOUNT_CODE = '6-9100'; // Selisih Persediaan
 
 /**
  * Kategori yang dipakai modul faktur saat mencatat pelunasan sebagai transaksi
@@ -486,6 +495,25 @@ export async function postCashTransaction(
     });
   }
 
+  // Pembelian stok: uang keluar menambah PERSEDIAAN (aset), bukan beban.
+  // Beban baru diakui saat barang terjual (lihat postInventoryJournalInTx).
+  if (ctx.debitAccountCode && transaction.type === TransactionType.EXPENSE) {
+    const assetId = await resolveAccountIdByCode(tx, ctx.workspaceId, ctx.debitAccountCode);
+    return createJournalInTx(tx, {
+      workspaceId: ctx.workspaceId,
+      userId: ctx.userId,
+      entryDate: transaction.transactionDate,
+      description: transaction.description || transaction.category,
+      source: JournalSource.CASH_TX,
+      sourceId: transaction.id,
+      lines: [
+        { accountId: assetId, debit: amount, credit: 0, description: 'Pembelian persediaan' },
+        { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: 0, credit: amount },
+      ],
+      postImmediately: true,
+    });
+  }
+
   const target = await resolveCategoryAccount(
     tx,
     ctx.workspaceId,
@@ -753,6 +781,8 @@ export async function recordCashTransaction(
     payrollId?: string | null;
     /** Isi bila baris kas ini melunasi liabilitas tertentu (PPh 21/BPJS). */
     settlementAccountId?: string | null;
+    /** Akun debit pengganti akun kategori (mis. '1-1400' untuk pembelian stok). */
+    debitAccountCode?: string;
     autoMapFallback?: boolean;
   }
 ): Promise<{ transaction: CashTransaction; journal: JournalWithLines | null; warning?: string }> {
@@ -793,7 +823,114 @@ export async function recordCashTransaction(
     workspaceId: ctx.workspaceId,
     userId: journalUserId,
     transaction: created,
+    debitAccountCode: ctx.debitAccountCode,
   });
 
   return { transaction: created, journal, warning };
+}
+
+/* ─────────────────── PERSEDIAAN (INVENTORY) ─────────────────── */
+
+/**
+ * Pastikan akun "Selisih Persediaan" ada. Workspace lama disiapkan sebelum akun
+ * ini ditambahkan; dibuat otomatis (idempoten) supaya penyesuaian stok tidak
+ * gagal hanya karena bagan akun belum disiapkan ulang.
+ */
+async function ensureInventoryDifferenceAccount(
+  tx: Prisma.TransactionClient,
+  workspaceId: string
+): Promise<string> {
+  const existing = await tx.account.findFirst({
+    where: { workspaceId, code: INVENTORY_DIFFERENCE_ACCOUNT_CODE },
+    select: { id: true },
+  });
+  if (existing) return existing.id;
+
+  const parent = await tx.account.findFirst({ where: { workspaceId, code: '6-1000' }, select: { id: true } });
+  const created = await tx.account.create({
+    data: {
+      workspaceId,
+      code: INVENTORY_DIFFERENCE_ACCOUNT_CODE,
+      name: 'Selisih Persediaan',
+      type: AccountType.EXPENSE,
+      normalBalance: NormalBalance.DEBIT,
+      parentId: parent?.id ?? null,
+      isSystem: true,
+    },
+    select: { id: true },
+  });
+  return created.id;
+}
+
+/**
+ * Jurnal persediaan yang tidak lewat kas. Satu fungsi untuk semua alur supaya
+ * aturan akunnya terkumpul di satu tempat:
+ *
+ *   Penjualan barang         Dr 5-1100 HPP              / Cr 1-1400 Persediaan
+ *   Retur dari pelanggan     Dr 1-1400 Persediaan       / Cr 5-1100 HPP
+ *   Retur ke supplier        Dr 6-9100 Selisih Persediaan / Cr 1-1400
+ *   Stok opname lebih        Dr 1-1400 Persediaan       / Cr 6-9100
+ *   Stok opname kurang       Dr 6-9100 Selisih Persediaan / Cr 1-1400
+ *
+ * `sourceId` wajib id dokumen sumber (kas untuk penjualan, movement/retur untuk
+ * lainnya) supaya constraint (workspace, source, sourceId) mencegah jurnal dobel
+ * saat endpoint dipanggil ulang.
+ */
+export async function postInventoryJournalInTx(
+  tx: Prisma.TransactionClient,
+  ctx: {
+    workspaceId: string;
+    userId: string;
+    sourceId: string;
+    amount: number | Prisma.Decimal;
+    description: string;
+    /** 'COGS' = Dr HPP / Cr Persediaan, 'RETURN_IN' = kebalikannya, dst. */
+    direction: 'COGS' | 'RETURN_IN' | 'SHRINKAGE' | 'GAIN';
+    entryDate: Date;
+  }
+): Promise<JournalWithLines | null> {
+  const setting = await getAccountingSetting(tx, ctx.workspaceId);
+  if (!setting?.isEnabled) return null;
+
+  const amount = toMoney(ctx.amount);
+  if (amount.lte(0)) return null;
+
+  const inventoryId = await resolveAccountIdByCode(tx, ctx.workspaceId, INVENTORY_ASSET_ACCOUNT_CODE);
+  const cogsId = await resolveAccountIdByCode(tx, ctx.workspaceId, COGS_ACCOUNT_CODE);
+
+  let debitId: string;
+  let creditId: string;
+  switch (ctx.direction) {
+    case 'COGS':
+      debitId = cogsId;
+      creditId = inventoryId;
+      break;
+    case 'RETURN_IN':
+      debitId = inventoryId;
+      creditId = cogsId;
+      break;
+    case 'GAIN':
+      debitId = inventoryId;
+      creditId = await ensureInventoryDifferenceAccount(tx, ctx.workspaceId);
+      break;
+    case 'SHRINKAGE':
+    default:
+      debitId = await ensureInventoryDifferenceAccount(tx, ctx.workspaceId);
+      creditId = inventoryId;
+      break;
+  }
+
+  return createJournalInTx(tx, {
+    workspaceId: ctx.workspaceId,
+    userId: ctx.userId,
+    entryDate: ctx.entryDate,
+    description: ctx.description,
+    source: JournalSource.INVENTORY,
+    sourceId: ctx.sourceId,
+    lines: [
+      { accountId: debitId, debit: amount, credit: 0 },
+      { accountId: creditId, debit: 0, credit: amount },
+    ],
+    postImmediately: true,
+  });
 }

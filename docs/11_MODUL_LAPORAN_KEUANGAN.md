@@ -167,7 +167,8 @@ menyimpan bersamaan tidak mungkin mendapat nomor yang sama.
 ### Jenis sumber jurnal (`journal_entries.source`)
 
 `MANUAL`, `CASH_TX`, `OPENING`, `ADJUSTMENT`, `CLOSING`, `REVERSAL`,
-`INVOICE`, `INVOICE_PAYMENT`, `OBLIGATION`, `OBLIGATION_PAYMENT`, `PAYROLL`.
+`INVOICE`, `INVOICE_PAYMENT`, `OBLIGATION`, `OBLIGATION_PAYMENT`, `PAYROLL`,
+`INVENTORY`.
 
 Yang sudah dipakai Fase 1: `MANUAL`, `CASH_TX`, `OPENING`, `REVERSAL`.
 Unik per `(workspace_id, source, source_id)` → dokumen sumber tidak bisa
@@ -316,8 +317,44 @@ dibayar lewat alur "bayar kewajiban" (`Dr Utang Usaha / Cr Kas`). Kewajiban juga
 muncul di laporan umur utang. Kategori `HPP Konsinyasi` dipetakan otomatis ke
 `5-1100` saat setup, dan tetap bisa diubah di Pemetaan Kategori.
 
-Belum terintegrasi: persediaan/HPP untuk barang milik sendiri (jurnal HPP &
-nilai persediaan).
+**Persediaan & HPP (barang milik sendiri).** Memakai **rata-rata bergerak**
+(*moving average*). Yang disimpan adalah **nilai buku** (`products.inventory_value`),
+bukan hanya harga rata-rata, supaya sisa nilai selalu sama dengan nilai sebelum
+dikurangi HPP — pembulatan tidak menimbulkan selisih dengan akun `1-1400`.
+
+```
+Pembelian stok        Dr 1-1400 Persediaan            / Cr Kas
+Penjualan barang      Dr Kas/Piutang                  / Cr 4-xxxx Pendapatan
+                      Dr 5-1100 HPP                   / Cr 1-1400 Persediaan
+Retur dari pelanggan  Dr 1-1400 Persediaan            / Cr 5-1100 HPP
+Retur ke supplier     Dr 6-9100 Selisih Persediaan    / Cr 1-1400
+Stok opname lebih     Dr 1-1400 Persediaan            / Cr 6-9100
+Stok opname kurang    Dr 6-9100 Selisih Persediaan    / Cr 1-1400
+```
+
+- Pembelian (`POST /inventory/purchase-orders`) mengirim `debitAccountCode:
+  '1-1400'` ke pintu kas, jadi uang keluar menambah aset — bukan beban. Beban
+  baru muncul saat barang terjual.
+- Penjualan (`POST /inventory/sales`) menambah satu jurnal `source = INVENTORY`
+  (Dr 5-1100 / Cr 1-1400) sebesar `qty x harga rata-rata`; nilai balasannya ada
+  di `sale.cogs`. Barang **titip jual** tidak masuk perhitungan ini karena HPP-nya
+  sudah diakui lewat utang konsinyasi.
+- Retur dan penyesuaian stok (`/inventory/returns`, `/inventory/stock-adjustments`)
+  ikut menyesuaikan nilai buku dan menjurnal selisihnya. Retur ke supplier dicatat
+  sebagai selisih persediaan; penggantian/refund dari supplier dicatat manual.
+- **Peringatan.** `Product.costPrice`/`inventoryValue` yang diubah manual (atau
+  stok lama yang belum dimasukkan ke Saldo Awal) tidak punya jurnal, sehingga
+  laporan Nilai Persediaan akan menampilkan **selisih** terhadap akun 1-1400.
+  Selisih itu memang ditampilkan, bukan disembunyikan.
+
+**Catatan periode.** `StockMovement` hanya punya `created_at` (tanggal
+pencatatan), tanpa tanggal bisnis. Jadi Kartu Stok memakai bulan pencatatan,
+sementara jurnal kas memakai `transactionDate`. Bila keduanya berbeda bulan,
+mutasi dan jurnal bisa tampil di periode yang berbeda.
+
+Laporan **Nilai Persediaan** & **Kartu Stok** ada di tab **Persediaan**
+(`GET /api/v1/accounting/reports/inventory`, tambahkan `productId` untuk kartu
+stok).
 
 ### Cara sistem memilih rekening kas/bank
 
@@ -336,6 +373,17 @@ arus kas per rekening jadi salah.
 ---
 
 ## 5. Rumus laporan
+
+**Nilai Persediaan** (per akhir periode). Total `products.inventory_value`
+produk milik sendiri (barang titip jual dikecualikan) dibandingkan dengan saldo
+akun `1-1400`:
+
+```
+selisih = saldo akun 1-1400 - total nilai buku produk
+```
+
+Selisih 0 berarti kartu stok dan buku besar sepakat. Peringatan muncul untuk qty
+minus, stok bernilai 0 (saldo awal belum dimasukkan), dan selisih ≠ 0.
 
 **Laba Rugi** (per periode, jurnal `CLOSING` dan `OPENING` dikecualikan)
 
@@ -440,7 +488,7 @@ membuat jurnal** — kalau ada jurnal baru setelah menyimpan, itu bug.
 
 ## 6. Bagan akun bawaan
 
-60 akun, format kode `X-XXXX`:
+61 akun, format kode `X-XXXX`:
 
 ```
 1-xxxx  Aset           (1-1xx lancar, 1-2xx tetap)
@@ -459,7 +507,7 @@ struktur — cukup aktifkan akunnya.
 Akun sistem (tidak bisa dihapus, hanya bisa dinonaktifkan):
 `1-1110`, `1-1210`, `1-1300`, `1-1400`, `1-1600`, `1-2400`, `2-1100`, `2-1200`,
 `2-1300`, `2-1310`, `2-1320`, `2-1330`, `2-1340`, `2-1350`, `3-1100`, `3-1200`, `3-2000`, `3-3000`,
-`4-1100`, `4-1200`, `5-1100`, `6-1100`, `6-1800`, `7-1000`.
+`4-1100`, `4-1200`, `5-1100`, `6-1100`, `6-1800`, `6-9100`, `7-1000`.
 
 ### Hierarki akun
 
@@ -500,20 +548,23 @@ memakai aturan lama dan setengah aturan baru.
 prisma/schema.prisma                    ← bagian "MODUL LAPORAN KEUANGAN"
 src/lib/accounting/money.ts             ← Decimal, anti pembulatan biner
 src/lib/accounting/period.ts            ← batas bulan WIB, resolusi rentang laporan
-src/lib/accounting/coa-seed.ts          ← template 60 akun + fungsi setup
+src/lib/accounting/coa-seed.ts          ← template 61 akun + fungsi setup
 src/lib/accounting/account-tree.ts      ← pembentuk pohon, anti-siklus, pencarian induk
 src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
 src/lib/accounting/reports.ts           ← mesin 6 laporan utama
 src/lib/accounting/aux-reports.ts       ← umur piutang/utang + ringkasan PPN
 src/lib/accounting/budgets.ts           ← anggaran tahunan + realisasi vs anggaran
+src/lib/accounting/payroll.ts           ← perhitungan slip gaji (PPh 21 & BPJS)
+src/lib/accounting/inventory.ts         ← rata-rata bergerak (nilai buku & HPP)
+src/lib/accounting/inventory-report.ts  ← nilai persediaan + kartu stok
 src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input + realisasi)
-tests/accounting-core.test.ts           ← 31 tes (uang, periode, agregasi, tanda akun kontra, izin)
-scripts/accounting-smoke.mjs            ← 196 pemeriksaan end-to-end (butuh server + DB kosong)
+tests/accounting-core.test.ts           ← 72 tes (uang, periode, agregasi, anggaran, payroll, persediaan)
+scripts/accounting-smoke.mjs            ← 217 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
@@ -526,7 +577,6 @@ UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab
 | Item | Rencana |
 | --- | --- |
 | Bukti potong 1721-A1 & kalkulasi TER otomatis (rincian PPh/BPJS sudah ada) | Fase lanjutan |
-| Persediaan & HPP barang (kartu stok, metode FIFO/rata-rata) | Fase 3 |
 | Laporan PDF server-side (sekarang: cetak dari browser / Ekspor Excel) | Fase 3 |
 | Multi-mata uang aktif (kolom `currency` + `exchange_rate` sudah ada, kurs belum dikelola) | Fase 3 |
 | Laporan terjadwal (email otomatis tiap awal bulan) | Fase 3 |

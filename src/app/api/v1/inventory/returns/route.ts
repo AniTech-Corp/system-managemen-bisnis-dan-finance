@@ -3,6 +3,8 @@ import { publicApiError } from '@/lib/api-error';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { StockMovementType } from '@prisma/client';
+import { postInventoryJournalInTx } from '@/lib/accounting/posting';
+import { applyIncomingStock, applyOutgoingStock, averageUnitCost, isInventoryValued } from '@/lib/accounting/inventory';
 
 // KLIR Inventory -- Retur stok (9 Sep 2026, BUILD_PLAN item konsinyasi-retur).
 // POST: catat StockReturn (arah TO_SUPPLIER = balik ke supplier, mis. rusak/salah
@@ -96,7 +98,14 @@ export const POST = withTenantGuard(
         // ikut ke-ubah padahal yang mencatat retur workspace ini.
         const product = await tx.product.findFirst({
           where: { id: productId, workspaceId },
-          select: { id: true, currentStock: true, name: true },
+          select: {
+            id: true,
+            currentStock: true,
+            name: true,
+            costPrice: true,
+            inventoryValue: true,
+            ownershipType: true,
+          },
         });
         if (!product) {
           throw new Error('Produk tidak ditemukan atau bukan milik workspace ini.');
@@ -123,13 +132,38 @@ export const POST = withTenantGuard(
           },
         });
 
-        await tx.stockMovement.create({
+        // Nilai buku ikut disesuaikan dengan rata-rata bergerak:
+        //   retur dari pelanggan -> barang masuk lagi, HPP dikembalikan (Cr 5-1100)
+        //   retur ke supplier    -> barang keluar, dicatat sebagai selisih persediaan
+        //                           (penggantian/refund supplier dicatat manual)
+        const valued = isInventoryValued(product.ownershipType);
+        const state = { qtyOnHand: product.currentStock, value: product.inventoryValue };
+        let nextValue = product.inventoryValue;
+        let journalAmount = 0;
+        let unitCost: number | null = null;
+        if (valued) {
+          if (isToSupplier) {
+            const issue = applyOutgoingStock(state, qty);
+            nextValue = issue.remainingValue;
+            journalAmount = issue.amount;
+            unitCost = issue.unitCost;
+          } else {
+            const avg = averageUnitCost(state);
+            const next = applyIncomingStock(state, qty, avg);
+            nextValue = next.value;
+            journalAmount = Math.round((next.value - state.value + Number.EPSILON) * 100) / 100;
+            unitCost = avg;
+          }
+        }
+
+        const movement = await tx.stockMovement.create({
           data: {
             workspaceId,
             productId,
             userId: auth.user.id,
             type: isToSupplier ? StockMovementType.RETURN_OUT : StockMovementType.RETURN_IN,
             qtyChange: isToSupplier ? -qty : qty,
+            unitCost,
             sourceType: 'STOCK_RETURN',
             sourceId: stockReturn.id,
             note: isToSupplier
@@ -145,10 +179,25 @@ export const POST = withTenantGuard(
           where: { id: productId },
           data: {
             currentStock: isToSupplier ? { decrement: qty } : { increment: qty },
+            inventoryValue: nextValue,
           },
         });
 
-        return { stockReturn, product: updatedProduct };
+        if (valued && journalAmount > 0) {
+          await postInventoryJournalInTx(tx, {
+            workspaceId,
+            userId: auth.user.id,
+            sourceId: stockReturn.id,
+            amount: journalAmount,
+            description: isToSupplier
+              ? `Retur ke supplier: ${product.name} x${qty}`
+              : `Retur dari pelanggan: ${product.name} x${qty}`,
+            direction: isToSupplier ? 'SHRINKAGE' : 'RETURN_IN',
+            entryDate: new Date(),
+          });
+        }
+
+        return { stockReturn, product: updatedProduct, movementId: movement.id, journalAmount };
       });
 
       return NextResponse.json({

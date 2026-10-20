@@ -768,37 +768,42 @@ model QueueTicket {
 // database produksi MASIH menunggu izin eksplisit Mecca (lihat 6 pertanyaan
 // arsitektural BUILD_PLAN), belum dijalankan oleh agent penulis skema ini.
 model Product {
-  id            String   @id @default(uuid()) @db.Uuid
-  workspaceId   String   @map("workspace_id") @db.Uuid
-  sourceFileId  String?  @map("source_file_id") @db.Uuid
-  sku           String?  @db.VarChar(100)
-  name          String   @db.VarChar(255)
-  category      String?  @db.VarChar(100)
-  unit          String   @default("pcs") @db.VarChar(50)
+  id             String   @id @default(uuid()) @db.Uuid
+  workspaceId    String   @map("workspace_id") @db.Uuid
+  sourceFileId   String?  @map("source_file_id") @db.Uuid
+  sku            String?  @db.VarChar(100)
+  name           String   @db.VarChar(255)
+  category       String?  @db.VarChar(100)
+  unit           String   @default("pcs") @db.VarChar(50)
   // "OWNED" (beli putus, default) atau "CONSIGNED" (titip jual, belum dibayar ke supplier
   // sampai laku). String bebas bukan enum, konsisten pola "unit" di atas.
-  ownershipType String   @default("OWNED") @map("ownership_type") @db.VarChar(20)
-  costPrice     Float    @default(0) @map("cost_price")
-  sellPrice     Float    @default(0) @map("sell_price")
-  currentStock  Float    @default(0) @map("current_stock")
-  minStock      Float    @default(0) @map("min_stock")
-  imageUrl      String?  @map("image_url") @db.Text
-  isActive      Boolean  @default(true) @map("is_active")
+  ownershipType  String   @default("OWNED") @map("ownership_type") @db.VarChar(20)
+  costPrice      Float    @default(0) @map("cost_price")
+  sellPrice      Float    @default(0) @map("sell_price")
+  currentStock   Float    @default(0) @map("current_stock")
+  // Nilai persediaan menurut buku (rata-rata bergerak) -- SATU-satunya angka
+  // yang dipakai laporan "Nilai Persediaan" untuk dicocokkan dengan saldo akun
+  // 1-1400. Diperbarui di alur yang sama dengan currentStock supaya nilai buku
+  // tidak pernah berbeda dari kartu stok karena pembulatan.
+  inventoryValue Float    @default(0) @map("inventory_value")
+  minStock       Float    @default(0) @map("min_stock")
+  imageUrl       String?  @map("image_url") @db.Text
+  isActive       Boolean  @default(true) @map("is_active")
   // Additive 10 Sep 2026 (Fable) -- kontrak inventory-api-schema, kontrak Distributor
   // F3b/F4. packSize/packUnit = konversi satuan dus/pcs (2026-09-10-scan-kebutuhan-
   // data-modul-7.md bagian 3.1). packSize default 1 supaya produk lama otomatis
   // "1 pack = 1 unit" (perilaku lama tidak berubah). packUnit nullable (kosong = produk
   // tidak pakai konsep pack, dijual satuan langsung). unit (kolom lama di atas) TETAP
   // jadi satuan jual/tampil, maknanya tidak berubah.
-  packSize      Int?     @default(1) @map("pack_size")
-  packUnit      String?  @map("pack_unit") @db.VarChar(50)
+  packSize       Int?     @default(1) @map("pack_size")
+  packUnit       String?  @map("pack_unit") @db.VarChar(50)
   // Soft-reference (bukan foreign key Prisma) ke SupplierScore.supplierName /
   // PurchaseOrder.supplierName -- meniru pola sourceType/sourceId di StockMovement/
   // StockReturn (match by string, bukan relasi formal). Nullable, dipakai laporan
   // konsinyasi untuk tahu titipan produk ini punya siapa (bagian 3.4 dokumen di atas).
-  supplierName  String?  @map("supplier_name") @db.VarChar(150)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  supplierName   String?  @map("supplier_name") @db.VarChar(150)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   stockMovements     StockMovement[]
@@ -1058,6 +1063,8 @@ enum JournalSource {
   ADJUSTMENT
   CLOSING
   REVERSAL
+  // Jurnal persediaan: HPP saat penjualan, retur, dan penyesuaian stok.
+  INVENTORY
 }
 
 enum JournalStatus {

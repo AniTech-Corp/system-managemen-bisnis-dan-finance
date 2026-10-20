@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 196 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 217 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -1152,6 +1152,237 @@ ok(
   'utang usaha di neraca bertambah 80.000',
   apAfterCons === apBeforeCons + 80_000,
   `sebelum=${apBeforeCons} sesudah=${apAfterCons}`
+);
+
+/* 18f-2. PERSEDIAAN & HPP (rata-rata bergerak) */
+
+// Helper: jurnal berdasarkan sumber dokumen (tanpa bergantung bulan berjalan),
+// karena pembelian/retur/penyesuaian bertanggal "sekarang" (bulan riil hari ini).
+const journalsBySource = async (source) => {
+  const res = await api(`/api/v1/accounting/journals?source=${source}&limit=200`);
+  return res.json?.data ?? [];
+};
+const lineOf = (journal, code) => journal?.lines?.find((l) => l.account.code === code);
+const inventoryValueOf = async (productId, period = '2026-12') => {
+  const res = await api(`/api/v1/accounting/reports/inventory?period=${period}`);
+  const item = (res.json?.data?.current?.items ?? []).find((row) => row.productId === productId);
+  return { report: res.json?.data?.current, item };
+};
+
+// Produk uji dibuat TANPA stok awal supaya nilai buku sepenuhnya berasal dari
+// alur yang diuji di bawah (pembelian -> penjualan -> koreksi -> retur).
+const invProduct = await api('/api/v1/inventory/products', {
+  method: 'POST',
+  body: { name: 'Kopi Uji Persediaan', sku: 'INV-UJI-1', costPrice: 0, sellPrice: 25_000, unit: 'pcs' },
+});
+const invProductId = invProduct.json?.product?.id;
+ok('produk persediaan dibuat tanpa stok awal', Boolean(invProductId), invProduct.json?.message?.slice(0, 60));
+
+// Saldo persediaan awal diambil SEBELUM pembelian pertama; laporan Neraca
+// dibuat per 2026-12 (akhir tahun buku) supaya tidak bergantung bulan riil saat
+// pembelian dicatat.
+const invAssetBefore = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.assets ?? []).find(
+    (a) => a.code === '1-1400'
+  )?.amount ?? 0
+);
+
+const po1 = await api('/api/v1/inventory/purchase-orders', {
+  method: 'POST',
+  body: { supplierName: 'Supplier Uji', paymentMethod: 'TUNAI', items: [{ productId: invProductId, qty: 10, unitCost: 10_000 }] },
+});
+ok('pembelian stok pertama tercatat', po1.status === 200 && Boolean(po1.json?.purchaseOrder?.poNumber), po1.json?.message?.slice(0, 70));
+
+const cashJournalsAfterPo = await journalsBySource('CASH_TX');
+const poJournal = cashJournalsAfterPo.find((j) => Number(lineOf(j, '1-1400')?.debit) === 100_000);
+ok(
+  'jurnal pembelian stok: Dr 1-1400 Persediaan / Cr Kas (bukan beban)',
+  Number(lineOf(poJournal, '1-1400')?.debit) === 100_000 &&
+    Number(poJournal?.totalCredit) === 100_000 &&
+    !lineOf(poJournal, '5-1100') &&
+    !lineOf(poJournal, '6-9000'),
+  (poJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const po2 = await api('/api/v1/inventory/purchase-orders', {
+  method: 'POST',
+  body: { supplierName: 'Supplier Uji', paymentMethod: 'TUNAI', items: [{ productId: invProductId, qty: 10, unitCost: 14_000 }] },
+});
+ok('pembelian stok kedua tercatat', po2.status === 200, po2.json?.message?.slice(0, 70));
+
+const invProductRow = ((await api('/api/v1/inventory/products?q=INV-UJI-1')).json?.products ?? []).find(
+  (p) => p.sku === 'INV-UJI-1'
+);
+ok(
+  'rata-rata bergerak: 20 unit senilai 240.000 -> 12.000/unit',
+  Number(invProductRow?.currentStock) === 20 && Number(invProductRow?.costPrice) === 12_000,
+  `stok=${invProductRow?.currentStock} rata=${invProductRow?.costPrice}`
+);
+
+const opexBeforeInvSale = Number(
+  (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.operatingExpenses
+);
+const incomeBeforeInvSale = (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current
+  ?.totals;
+const invSale = await api('/api/v1/inventory/sales', {
+  method: 'POST',
+  body: {
+    items: [{ productId: invProductId, qty: 4, unitPrice: 25_000 }],
+    paymentMethod: 'TUNAI',
+    customerName: 'Pembeli Uji',
+    transactionDate: '2026-11-25',
+  },
+});
+ok(
+  'penjualan barang memakai HPP rata-rata (4 x 12.000 = 48.000)',
+  invSale.status === 201 && Number(invSale.json?.sale?.cogs?.total) === 48_000,
+  `hpp=${invSale.json?.sale?.cogs?.total}`
+);
+
+const inventoryJournals = await journalsBySource('INVENTORY');
+const cogsJournal = inventoryJournals.find(
+  (j) => j.sourceId === invSale.json?.sale?.cashTransactionId
+);
+ok(
+  'jurnal HPP penjualan: Dr 5-1100 / Cr 1-1400',
+  Number(lineOf(cogsJournal, '5-1100')?.debit) === 48_000 && Number(lineOf(cogsJournal, '1-1400')?.credit) === 48_000,
+  (cogsJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const incomeAfterInvSale = (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current
+  ?.totals;
+ok(
+  'laba kotor naik 52.000 (pendapatan 100.000 - HPP 48.000)',
+  Number(incomeAfterInvSale?.revenue) - Number(incomeBeforeInvSale?.revenue) === 100_000 &&
+    Number(incomeAfterInvSale?.cogs) - Number(incomeBeforeInvSale?.cogs) === 48_000 &&
+    Number(incomeAfterInvSale?.grossProfit) - Number(incomeBeforeInvSale?.grossProfit) === 52_000,
+  `revenue=${incomeAfterInvSale?.revenue} cogs=${incomeAfterInvSale?.cogs}`
+);
+ok(
+  'penjualan barang TIDAK menambah beban operasional',
+  Number(incomeAfterInvSale?.operatingExpenses) === opexBeforeInvSale
+);
+
+const invAssetAfterSale = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.assets ?? []).find(
+    (a) => a.code === '1-1400'
+  )?.amount ?? 0
+);
+ok(
+  'persediaan di neraca naik 240.000 lalu turun 48.000 (nilai 192.000)',
+  invAssetAfterSale === invAssetBefore + 240_000 - 48_000,
+  `sebelum=${invAssetBefore} sesudah=${invAssetAfterSale}`
+);
+
+// Koreksi stok (opname): keluar & masuk, dinilai pada rata-rata berjalan.
+const adjOut = await api('/api/v1/inventory/stock-adjustments', {
+  method: 'POST',
+  body: { productId: invProductId, qtyChange: -1, reason: 'Barang rusak saat uji' },
+});
+ok('penyesuaian stok kurang tercatat', adjOut.status === 201, adjOut.json?.message?.slice(0, 60));
+
+const inventoryJournalsAfterAdj = await journalsBySource('INVENTORY');
+const adjOutJournal = inventoryJournalsAfterAdj.find(
+  (j) => Number(lineOf(j, '6-9100')?.debit) === 12_000 && Number(lineOf(j, '1-1400')?.credit) === 12_000
+);
+ok(
+  'jurnal stok kurang: Dr 6-9100 Selisih Persediaan / Cr 1-1400',
+  Boolean(adjOutJournal),
+  (adjOutJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const adjIn = await api('/api/v1/inventory/stock-adjustments', {
+  method: 'POST',
+  body: { productId: invProductId, qtyChange: 1, reason: 'Ketemu stok kelewat catat' },
+});
+const inventoryJournalsAfterAdjIn = await journalsBySource('INVENTORY');
+const adjInJournal = inventoryJournalsAfterAdjIn.find(
+  (j) => Number(lineOf(j, '1-1400')?.debit) === 12_000 && Number(lineOf(j, '6-9100')?.credit) === 12_000
+);
+ok(
+  'jurnal stok lebih: Dr 1-1400 / Cr 6-9100',
+  adjIn.status === 201 && Boolean(adjInJournal),
+  (adjInJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+// Retur: dari pelanggan mengembalikan HPP; ke supplier mengurangi persediaan.
+const retIn = await api('/api/v1/inventory/returns', {
+  method: 'POST',
+  body: { productId: invProductId, direction: 'FROM_CUSTOMER', qty: 1, reason: 'Komplain pembeli' },
+});
+const inventoryJournalsAfterRetIn = await journalsBySource('INVENTORY');
+const retInJournal = inventoryJournalsAfterRetIn.find(
+  (j) => j.sourceId === retIn.json?.stockReturn?.id && Number(lineOf(j, '1-1400')?.debit) === 12_000
+);
+ok(
+  'retur dari pelanggan: Dr 1-1400 / Cr 5-1100 (HPP dikembalikan)',
+  retIn.status === 200 && Number(lineOf(retInJournal, '5-1100')?.credit) === 12_000,
+  (retInJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const retOut = await api('/api/v1/inventory/returns', {
+  method: 'POST',
+  body: { productId: invProductId, direction: 'TO_SUPPLIER', qty: 1, reason: 'Salah kirim supplier' },
+});
+const inventoryJournalsAfterRetOut = await journalsBySource('INVENTORY');
+const retOutJournal = inventoryJournalsAfterRetOut.find(
+  (j) => j.sourceId === retOut.json?.stockReturn?.id && Number(lineOf(j, '1-1400')?.credit) === 12_000
+);
+ok(
+  'retur ke supplier: Dr 6-9100 / Cr 1-1400',
+  retOut.status === 200 && Number(lineOf(retOutJournal, '6-9100')?.debit) === 12_000,
+  (retOutJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const invFinal = await inventoryValueOf(invProductId);
+ok(
+  'nilai persediaan akhir = 16 unit x 12.000 = 192.000',
+  Number(invFinal.item?.qty) === 16 && Number(invFinal.item?.value) === 192_000,
+  `qty=${invFinal.item?.qty} nilai=${invFinal.item?.value}`
+);
+ok(
+  'laporan nilai persediaan cocok dengan saldo akun 1-1400 (selisih 0)',
+  Number(invFinal.report?.totals?.difference) === 0 &&
+    Number(invFinal.report?.totals?.ledgerValue) === Number(invFinal.report?.totals?.value),
+  `buku=${invFinal.report?.totals?.ledgerValue} kartu=${invFinal.report?.totals?.value} selisih=${invFinal.report?.totals?.difference}`
+);
+ok(
+  'tidak ada peringatan nilai persediaan pada alur normal',
+  (invFinal.report?.warnings ?? []).length === 0,
+  (invFinal.report?.warnings ?? []).join(' | ')
+);
+
+// Kartu stok memakai tanggal StockMovement (createdAt = hari pencatatan), bukan
+// transactionDate dokumen kas, jadi periode yang dipakai adalah bulan berjalan.
+const currentMonthPeriod = (() => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+})();
+const stockCard = await api(
+  `/api/v1/accounting/reports/inventory?period=${currentMonthPeriod}&productId=${invProductId}`
+);
+const cardMovements = stockCard.json?.data?.card?.movements ?? [];
+ok(
+  'kartu stok: saldo berjalan berakhir = stok produk',
+  stockCard.status === 200 &&
+    Number(stockCard.json?.data?.card?.closingQty) === 16 &&
+    Number(stockCard.json?.data?.card?.product?.qty) === 16 &&
+    cardMovements.length >= 5 &&
+    cardMovements.every((m) => Number.isFinite(Number(m.balanceQty))),
+  `saldo=${stockCard.json?.data?.card?.closingQty} stok=${stockCard.json?.data?.card?.product?.qty} mutasi=${cardMovements.length}`
+);
+
+ok(
+  'penjualan barang titip jual tidak membuat jurnal HPP persediaan',
+  !inventoryJournalsAfterRetOut.some((j) => j.sourceId === consSale.json?.sale?.cashTransactionId),
+  consSale.json?.sale?.cashTransactionId
+);
+
+const bsAfterInventory = await api('/api/v1/accounting/reports/balance-sheet?period=2026-12');
+ok(
+  'neraca tetap balance setelah pembelian, penjualan, koreksi, dan retur',
+  Number(bsAfterInventory.json?.data?.current?.totals?.difference) === 0,
+  `selisih=${bsAfterInventory.json?.data?.current?.totals?.difference}`
 );
 
 /* 18g. ANGGARAN (rencana, tidak membuat jurnal) */

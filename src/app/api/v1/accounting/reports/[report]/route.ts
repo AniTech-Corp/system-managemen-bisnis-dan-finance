@@ -13,6 +13,7 @@ import {
 } from '@/lib/accounting/reports';
 import { getAgingReport, getTaxSummary, type AgingType } from '@/lib/accounting/aux-reports';
 import { getBudgetReport } from '@/lib/accounting/budgets';
+import { getInventoryReport, getStockCard } from '@/lib/accounting/inventory-report';
 
 const SUPPORTED = new Set([
   'income-statement',
@@ -24,6 +25,7 @@ const SUPPORTED = new Set([
   'aging',
   'tax',
   'budget',
+  'inventory',
 ]);
 
 export const GET = withTenantGuard(
@@ -139,6 +141,19 @@ export const GET = withTenantGuard(
 
         case 'budget': {
           const current = await getBudgetReport(workspaceId, range, fiscalYearStartMonth);
+          return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
+        }
+
+        case 'inventory': {
+          // Tanpa productId: laporan nilai persediaan. Dengan productId: kartu stok
+          // (mutasi satu produk) untuk periode yang dipilih.
+          const productId = sp.get('productId');
+          if (productId) {
+            const card = await getStockCard(workspaceId, productId, range);
+            if (!card) return notFound('Produk tidak ditemukan atau bukan milik workspace ini.');
+            return NextResponse.json({ success: true, data: serializeReportValue({ period: range, card }) });
+          }
+          const current = await getInventoryReport(workspaceId, range);
           return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
         }
 
