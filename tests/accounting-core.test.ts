@@ -560,3 +560,89 @@ describe('persediaan: rata-rata bergerak', () => {
     assert.equal(averageUnitCost(next), 12_000);
   });
 });
+
+/* ── pembayaran sebagian & alokasi dokumen ─────────────────────────────── */
+
+describe('pembayaran sebagian: rencana settlement', () => {
+  const load = () => import('../src/lib/accounting/settlement');
+
+  test('pembayaran kurang dari total -> PARTIAL dengan sisa benar', async () => {
+    const { planDocumentSettlement } = await load();
+    const plan = planDocumentSettlement({ total: 10_000_000, paidAmount: 0, amount: 4_000_000, label: 'Faktur X' });
+    assert.ok(plan.ok);
+    if (!plan.ok) return;
+    assert.equal(plan.newStatus, 'PARTIAL');
+    assert.equal(plan.newPaid, 4_000_000);
+    assert.equal(plan.remaining, 6_000_000);
+  });
+
+  test('dua angsuran menutup sisa -> PAID hanya saat tepat habis', async () => {
+    const { planDocumentSettlement } = await load();
+    const first = planDocumentSettlement({ total: 10_000_000, paidAmount: 0, amount: 3_000_000, label: 'Faktur X' });
+    assert.ok(first.ok);
+    if (!first.ok) return;
+    const second = planDocumentSettlement({ total: 10_000_000, paidAmount: first.newPaid, amount: 7_000_000, label: 'Faktur X' });
+    assert.ok(second.ok);
+    if (!second.ok) return;
+    assert.equal(second.newStatus, 'PAID');
+    assert.equal(second.remaining, 0);
+  });
+
+  test('pembayaran melebihi sisa ditolak', async () => {
+    const { planDocumentSettlement } = await load();
+    const plan = planDocumentSettlement({ total: 10_000_000, paidAmount: 4_000_000, amount: 7_000_000, label: 'Faktur X' });
+    assert.equal(plan.ok, false);
+  });
+
+  test('dokumen yang sudah lunas ditolak', async () => {
+    const { planDocumentSettlement } = await load();
+    const plan = planDocumentSettlement({ total: 10_000_000, paidAmount: 10_000_000, amount: 1_000, label: 'Faktur X' });
+    assert.equal(plan.ok, false);
+  });
+
+  test('sisa tidak pernah negatif walau data lama dibayar penuh', async () => {
+    const { computeRemaining, statusFor } = await load();
+    assert.equal(computeRemaining(5_000_000, 6_000_000), 0);
+    assert.equal(statusFor(5_000_000, 5_000_000), 'PAID');
+    assert.equal(statusFor(5_000_000, 1_000_000), 'PARTIAL');
+  });
+});
+
+describe('pembayaran sebagian: validasi alokasi', () => {
+  const load = () => import('../src/lib/accounting/settlement');
+
+  test('alokasi split yang jumlahnya sama dengan nominal diterima', async () => {
+    const { validateAllocations } = await load();
+    const result = validateAllocations(
+      [
+        { invoiceId: 'a', amount: 2_000_000 },
+        { invoiceId: 'b', amount: 2_000_000 },
+      ],
+      4_000_000,
+      'INCOME'
+    );
+    assert.ok(result.ok);
+    if (!result.ok) return;
+    assert.equal(result.total, 4_000_000);
+    assert.equal(result.hasInvoice, true);
+    assert.equal(result.hasObligation, false);
+  });
+
+  test('jumlah alokasi tidak cocok dengan nominal kas ditolak', async () => {
+    const { validateAllocations } = await load();
+    const result = validateAllocations([{ invoiceId: 'a', amount: 3_000_000 }], 4_000_000, 'INCOME');
+    assert.equal(result.ok, false);
+  });
+
+  test('pemasukan tidak boleh dialokasikan ke kewajiban', async () => {
+    const { validateAllocations } = await load();
+    const result = validateAllocations([{ obligationId: 'o', amount: 1_000_000 }], 1_000_000, 'INCOME');
+    assert.equal(result.ok, false);
+  });
+
+  test('alokasi tanpa dokumen ditolak', async () => {
+    const { validateAllocations } = await load();
+    const result = validateAllocations([{ amount: 1_000_000 }], 1_000_000, 'EXPENSE');
+    assert.equal(result.ok, false);
+  });
+});

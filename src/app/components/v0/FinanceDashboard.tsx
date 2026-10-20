@@ -40,11 +40,18 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-
 import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
 import ModernAICopilotView from './ModernAICopilotView';
 import AccountingTab from '../finance/accounting/AccountingTab';
+
+const Chart = dynamic(() => import('react-apexcharts'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[310px] w-full items-center justify-center rounded-lg bg-slate-50">
+      <div className="text-sm text-slate-400">Memuat grafik arus kas...</div>
+    </div>
+  ),
+});
 
 interface FinanceDashboardProps {
   workspaceId: string;

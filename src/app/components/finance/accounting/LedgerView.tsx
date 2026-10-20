@@ -30,6 +30,10 @@ interface LedgerData {
   closingBalance: string;
 }
 
+interface LedgerResponse {
+  current: LedgerData;
+}
+
 export function LedgerView({
   period,
   onPeriodChange,
@@ -51,9 +55,10 @@ export function LedgerView({
     }
   }, [accounts, accountId]);
 
-  const { data, loading, error, reload } = useApi<LedgerData>(
+  const { data, loading, error, reload } = useApi<LedgerResponse>(
     accountId ? `/api/v1/accounting/reports/ledger?period=${period}&accountId=${accountId}` : null
   );
+  const ledger = data?.current;
 
   const selectable = (accounts ?? []).filter((a) => a.isPostable);
 
@@ -84,13 +89,13 @@ export function LedgerView({
       </div>
 
       <ReportShell
-        title={data ? `Buku Besar — ${data.account.code} ${data.account.name}` : 'Buku Besar'}
+        title={ledger ? `Buku Besar — ${ledger.account.code} ${ledger.account.name}` : 'Buku Besar'}
         subtitle={`Periode ${periodLabel(period)}`}
         loading={loading}
         error={error}
         onRetry={reload}
       >
-        {data && (
+        {ledger && (
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-slate-200">
@@ -108,10 +113,10 @@ export function LedgerView({
                   Saldo Awal
                 </td>
                 <td className="py-1.5 pr-3 text-right text-xs font-semibold tabular-nums text-slate-900">
-                  {formatMoney(data.openingBalance)}
+                  {formatMoney(ledger.openingBalance)}
                 </td>
               </tr>
-              {data.entries.map((e, index) => (
+              {ledger.entries.map((e, index) => (
                 <tr key={`${e.entryId}-${index}`} className="border-b border-slate-50">
                   <td className="py-1.5 pl-3 text-xs text-slate-600">{e.entryDate.slice(0, 10)}</td>
                   <td className="py-1.5 font-mono text-[11px] text-slate-500">{e.entryNumber}</td>
@@ -125,7 +130,7 @@ export function LedgerView({
                   <td className="py-1.5 pr-3 text-right text-xs tabular-nums text-slate-900">{formatMoney(e.balance)}</td>
                 </tr>
               ))}
-              {data.entries.length === 0 && (
+              {ledger.entries.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-xs text-slate-500">
                     Tidak ada mutasi pada periode ini.
@@ -137,7 +142,7 @@ export function LedgerView({
                   Saldo Akhir
                 </td>
                 <td className="py-2 pr-3 text-right text-sm font-bold tabular-nums text-slate-900">
-                  {formatMoney(data.closingBalance)}
+                  {formatMoney(ledger.closingBalance)}
                 </td>
               </tr>
             </tbody>

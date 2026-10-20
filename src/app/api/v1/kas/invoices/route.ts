@@ -7,6 +7,8 @@ import { JournalValidationError, reverseJournalBySourceInTx } from '@/lib/accoun
 import { PeriodClosedError } from '@/lib/accounting/period';
 import { encryptField, decryptFields } from '@/lib/crypto';
 import { publicApiError } from '@/lib/api-error';
+import { computeRemaining, planDocumentSettlement } from '@/lib/accounting/settlement';
+import { allocateInvoiceInTx, revertAllocationsInTx } from '@/lib/accounting/settlement-service';
 
 // V4f, 8 Sep 2026 (validasi ringan input keuangan -- kasus Pak Fajrul): cek
 // tanggal masuk akal untuk bisnis (bukan validasi generik Date.parse). DIDUPLIKASI
@@ -48,7 +50,14 @@ export const GET = withTenantGuard(
       let totalUnpaid = 0;
       for (const aggregate of statusAggregates) {
         if (aggregate.status === InvoiceStatus.PAID) totalPaid = aggregate._sum.totalAmount || 0;
-        if (aggregate.status === InvoiceStatus.UNPAID) totalUnpaid = aggregate._sum.totalAmount || 0;
+        // Belum/setengah dibayar tetap dihitung "belum tertagih" (Fase 3.2).
+        if (
+          aggregate.status === InvoiceStatus.UNPAID ||
+          aggregate.status === InvoiceStatus.OVERDUE ||
+          aggregate.status === InvoiceStatus.PARTIAL
+        ) {
+          totalUnpaid += aggregate._sum.totalAmount || 0;
+        }
       }
 
       return NextResponse.json({
@@ -230,6 +239,8 @@ export const PUT = withTenantGuard(
           data: {
             status: status as InvoiceStatus,
             paidAt: status === 'PAID' ? effectivePaymentDate : null,
+            // Status selain PAID berarti pelunasan ditarik: piutang kembali penuh.
+            paidAmount: status === 'PAID' ? existingInvoice.paidAmount : 0,
           },
         });
 
@@ -242,13 +253,27 @@ export const PUT = withTenantGuard(
         }
 
         if (shouldPostCash) {
+          // Yang dilunasi adalah SISA tagihan. Untuk faktur PARTIAL ini bukan
+          // total penuh, supaya piutang tidak berubah tanda.
+          const remaining = computeRemaining(
+            Number(existingInvoice.totalAmount),
+            Number(existingInvoice.paidAmount)
+          );
+          const plan = planDocumentSettlement({
+            total: Number(existingInvoice.totalAmount),
+            paidAmount: Number(existingInvoice.paidAmount),
+            amount: remaining,
+            label: `Faktur ${existingInvoice.invoiceNumber}`,
+          });
+          if (!plan.ok) throw new JournalValidationError(plan.error);
+
           const settlement = await tx.cashTransaction.create({
             data: {
               workspaceId: auth.workspace.id,
               userId: auth.user.id,
               type: TransactionType.INCOME,
               category: INVOICE_SETTLEMENT_CATEGORY,
-              amount: existingInvoice.totalAmount,
+              amount: plan.amount,
               description: `Pelunasan Invoice #${existingInvoice.invoiceNumber} dari ${existingInvoice.clientName}`,
               paymentMethod: 'QRIS_VIRTUAL_ACCOUNT',
               // Tanggal bisnis pelunasan, bukan waktu server -- supaya jurnalnya
@@ -258,6 +283,21 @@ export const PUT = withTenantGuard(
               // menambah pendapatan untuk kedua kalinya.
               invoiceId: existingInvoice.id,
             },
+          });
+
+          // Catat alokasinya supaya `paidAmount` dan laporan umur konsisten
+          // dengan pembayaran sebagian dari pintu kas.
+          await allocateInvoiceInTx(tx, {
+            workspaceId: auth.workspace.id,
+            cashTxId: settlement.id,
+            invoice: {
+              id: existingInvoice.id,
+              invoiceNumber: existingInvoice.invoiceNumber,
+              totalAmount: Number(existingInvoice.totalAmount),
+              paidAmount: Number(existingInvoice.paidAmount),
+            },
+            amount: plan.amount,
+            transactionDate: effectivePaymentDate,
           });
 
           await postCashTransaction(tx, {
@@ -298,7 +338,11 @@ export const PUT = withTenantGuard(
         // Faktur yang tadinya LUNAS lalu dikembalikan ke status lain: pelunasan
         // kasnya ditarik kembali (jurnal dibalik + baris kas dihapus) agar kas di
         // buku kas dan di jurnal tidak berbeda.
-        if (existingInvoice.status === InvoiceStatus.PAID && status !== 'PAID') {
+        if (
+          (existingInvoice.status === InvoiceStatus.PAID ||
+            existingInvoice.status === InvoiceStatus.PARTIAL) &&
+          status !== 'PAID'
+        ) {
           const settlementRows = await tx.cashTransaction.findMany({
             where: {
               workspaceId: auth.workspace.id,
@@ -316,6 +360,10 @@ export const PUT = withTenantGuard(
               row.id,
               `Pelunasan faktur ${existingInvoice.invoiceNumber} dibatalkan`
             );
+            await revertAllocationsInTx(tx, {
+              workspaceId: auth.workspace.id,
+              cashTxId: row.id,
+            });
             await tx.cashTransaction.delete({ where: { id: row.id } });
           }
         }

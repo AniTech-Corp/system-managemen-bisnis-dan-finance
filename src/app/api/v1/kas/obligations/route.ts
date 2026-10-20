@@ -9,6 +9,8 @@ import {
 } from '@/lib/accounting/posting';
 import { JournalValidationError, reverseJournalBySourceInTx } from '@/lib/accounting/journal-service';
 import { PeriodClosedError } from '@/lib/accounting/period';
+import { computeRemaining, planDocumentSettlement } from '@/lib/accounting/settlement';
+import { allocateObligationInTx, revertAllocationsInTx } from '@/lib/accounting/settlement-service';
 
 // Roadmap 7 Sep, item 4.8 -- widget "Kewajiban Terjadwal" di FinanceModuleView.tsx
 // (upcomingDues14/upcomingDues30) hardcode array kosong, tidak pernah fetch.
@@ -36,8 +38,12 @@ export const GET = withTenantGuard(
     try {
       const targetWsId = auth.workspace.id;
 
+      // PENDING + PARTIAL = masih ada sisa utang yang harus ditampilkan.
       const obligations = await prisma.scheduledObligation.findMany({
-        where: { workspaceId: targetWsId, status: ObligationStatus.PENDING },
+        where: {
+          workspaceId: targetWsId,
+          status: { in: [ObligationStatus.PENDING, ObligationStatus.PARTIAL] },
+        },
         orderBy: { dueDate: 'asc' },
       });
 
@@ -48,6 +54,9 @@ export const GET = withTenantGuard(
         day: o.dueDate.getDate(),
         mon: o.dueDate.toLocaleDateString('id-ID', { month: 'short' }),
         amount: o.amount,
+        // Sisa utang setelah pembayaran sebagian (Fase 3.2).
+        paidAmount: o.paidAmount,
+        remaining: computeRemaining(Number(o.amount), Number(o.paidAmount)),
         category: o.category,
         status: o.status,
         dueDate: o.dueDate.toISOString(),
@@ -136,7 +145,7 @@ export const POST = withTenantGuard(
 export const PATCH = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { id, status, paidAt, paymentMethod } = await req.json();
+      const { id, status, paidAt, paymentMethod, amount: paidAmountInput } = await req.json();
 
       if (!id || !status) {
         return NextResponse.json({ message: 'ID dan status kewajiban wajib diisi.' }, { status: 400 });
@@ -155,11 +164,26 @@ export const PATCH = withTenantGuard(
         const paymentDate = paidAt ? parseDate(paidAt, 'Tanggal pembayaran') : new Date();
         const method = paymentMethod ? String(paymentMethod).trim().slice(0, 50) : 'TRANSFER_BANK';
 
-        // PENDING -> PAID: uang keluar, utang berkurang. Beban TIDAK ditambah.
+        // PENDING/PARTIAL -> PAID: uang keluar, utang berkurang. Beban TIDAK
+        // ditambah. `amount` opsional: kosong berarti lunasi seluruh sisa,
+        // diisi berarti pembayaran sebagian (status menjadi PARTIAL).
         if (status === 'PAID' && obligation.status !== ObligationStatus.PAID) {
           if (obligation.status === ObligationStatus.CANCELLED) {
             throw new JournalValidationError('Kewajiban yang sudah dibatalkan tidak bisa dibayar.');
           }
+
+          const remaining = computeRemaining(Number(obligation.amount), Number(obligation.paidAmount));
+          const requested =
+            paidAmountInput === undefined || paidAmountInput === null
+              ? remaining
+              : Number(paidAmountInput);
+          const plan = planDocumentSettlement({
+            total: Number(obligation.amount),
+            paidAmount: Number(obligation.paidAmount),
+            amount: requested,
+            label: `Kewajiban ${obligation.name}`,
+          });
+          if (!plan.ok) throw new JournalValidationError(plan.error);
 
           const settlement = await tx.cashTransaction.create({
             data: {
@@ -167,24 +191,48 @@ export const PATCH = withTenantGuard(
               userId,
               type: TransactionType.EXPENSE,
               category: OBLIGATION_SETTLEMENT_CATEGORY,
-              amount: obligation.amount,
-              description: `Pembayaran kewajiban ${obligation.name}`,
+              amount: plan.amount,
+              description:
+                plan.newStatus === 'PAID'
+                  ? `Pembayaran kewajiban ${obligation.name}`
+                  : `Pembayaran sebagian kewajiban ${obligation.name}`,
               paymentMethod: method,
               transactionDate: paymentDate,
               obligationId: obligation.id,
             },
           });
 
-          await postCashTransaction(tx, { workspaceId, userId, transaction: settlement });
-
-          return tx.scheduledObligation.update({
-            where: { id: obligation.id },
-            data: { status: ObligationStatus.PAID, paidAt: paymentDate, paymentMethod: method },
+          await allocateObligationInTx(tx, {
+            workspaceId,
+            cashTxId: settlement.id,
+            obligation: {
+              id: obligation.id,
+              name: obligation.name,
+              amount: Number(obligation.amount),
+              paidAmount: Number(obligation.paidAmount),
+            },
+            amount: plan.amount,
+            transactionDate: paymentDate,
+            paymentMethod: method,
           });
+
+          await postCashTransaction(tx, {
+            workspaceId,
+            userId,
+            transaction: settlement,
+            payableSettlement: true,
+          });
+
+          return tx.scheduledObligation.findFirst({ where: { id: obligation.id } });
         }
 
-        // PAID -> PENDING: tarik pelunasan (jurnal dibalik, baris kas dihapus).
-        if (status === 'PENDING' && obligation.status === ObligationStatus.PAID) {
+        // PAID/PARTIAL -> PENDING: tarik pelunasan (jurnal dibalik, baris kas
+        // dihapus, alokasi dikembalikan).
+        if (
+          status === 'PENDING' &&
+          (obligation.status === ObligationStatus.PAID ||
+            obligation.status === ObligationStatus.PARTIAL)
+        ) {
           const settlements = await tx.cashTransaction.findMany({
             where: { workspaceId, obligationId: obligation.id },
             select: { id: true },
@@ -198,20 +246,29 @@ export const PATCH = withTenantGuard(
               row.id,
               `Pelunasan kewajiban ${obligation.name} dibatalkan`
             );
+            await revertAllocationsInTx(tx, { workspaceId, cashTxId: row.id });
             await tx.cashTransaction.delete({ where: { id: row.id } });
           }
 
           return tx.scheduledObligation.update({
             where: { id: obligation.id },
-            data: { status: ObligationStatus.PENDING, paidAt: null, paymentMethod: null },
+            data: {
+              status: ObligationStatus.PENDING,
+              paidAmount: 0,
+              paidAt: null,
+              paymentMethod: null,
+            },
           });
         }
 
         // -> CANCELLED: bebannya dibatalkan lewat jurnal pembalik.
         if (status === 'CANCELLED' && obligation.status !== ObligationStatus.CANCELLED) {
-          if (obligation.status === ObligationStatus.PAID) {
+          if (
+            obligation.status === ObligationStatus.PAID ||
+            obligation.status === ObligationStatus.PARTIAL
+          ) {
             throw new JournalValidationError(
-              'Kewajiban sudah dibayar. Batalkan pelunasan dulu, baru batalkan kewajibannya.'
+              'Kewajiban sudah dibayar (sebagian). Batalkan pelunasan dulu, baru batalkan kewajibannya.'
             );
           }
           await reverseJournalBySourceInTx(

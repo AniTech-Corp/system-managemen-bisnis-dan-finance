@@ -50,6 +50,13 @@ export interface PostingContext {
    * Dipakai pembelian stok: `Dr 1-1400 Persediaan / Cr Kas`.
    */
   debitAccountCode?: string;
+  /**
+   * Baris kas melunasi piutang lewat alokasi (split payment) sehingga akun
+   * `invoiceId` tunggal kosong. Jurnalnya sama: Dr Kas / Cr Piutang.
+   */
+  receivableSettlement?: boolean;
+  /** Kebalikan `receivableSettlement`: Dr Utang Usaha / Cr Kas. */
+  payableSettlement?: boolean;
 }
 
 export async function getAccountingSetting(tx: Prisma.TransactionClient, workspaceId: string) {
@@ -440,7 +447,7 @@ export async function postCashTransaction(
 
   // Pelunasan faktur: uang masuk TIDAK menambah pendapatan lagi, tetapi
   // mengurangi piutang yang sudah diakui saat faktur diterbitkan.
-  if (transaction.invoiceId && transaction.type === TransactionType.INCOME) {
+  if ((transaction.invoiceId || ctx.receivableSettlement) && transaction.type === TransactionType.INCOME) {
     const receivableId = await resolveAccountIdByCode(tx, ctx.workspaceId, RECEIVABLE_ACCOUNT_CODE);
     return createJournalInTx(tx, {
       workspaceId: ctx.workspaceId,
@@ -459,7 +466,7 @@ export async function postCashTransaction(
 
   // Pembayaran kewajiban: uang keluar TIDAK menambah beban lagi, tetapi
   // melunasi utang yang sudah diakui saat kewajiban dicatat.
-  if (transaction.obligationId && transaction.type === TransactionType.EXPENSE) {
+  if ((transaction.obligationId || ctx.payableSettlement) && transaction.type === TransactionType.EXPENSE) {
     const payableId = await resolveAccountIdByCode(tx, ctx.workspaceId, PAYABLE_ACCOUNT_CODE);
     return createJournalInTx(tx, {
       workspaceId: ctx.workspaceId,

@@ -1298,6 +1298,8 @@ export default function FinanceModuleView({
               invoiceNumber: i.invoiceNumber,
               clientName: i.clientName,
               amount: i.totalAmount,
+              // Pembayaran sebagian (Fase 3.2): sisa = total - paidAmount.
+              paidAmount: Number(i.paidAmount ?? 0),
               status: i.status,
               dueDate: i.dueDate ? new Date(i.dueDate).toLocaleDateString('id-ID') : '',
               dueDateRaw: i.dueDate ?? null,
@@ -3720,9 +3722,11 @@ export default function FinanceModuleView({
                           setTxInvoiceId(id);
                           const inv = invoices.find((i) => i.id === id);
                           if (inv) {
-                            // Nominal wajib sama dengan total faktur (v1 belum
-                            // mendukung pembayaran sebagian), jadi isi otomatis.
-                            setAmount(String(inv.amount));
+                            // Isi otomatis SISA tagihan; boleh dikurangi lagi untuk
+                            // pembayaran sebagian (Fase 3.2).
+                            const paid = Number((inv as any).paidAmount ?? 0);
+                            const remaining = Math.max(0, Number(inv.amount) - paid);
+                            setAmount(String(remaining));
                             setCategory('Pelunasan Piutang Invoice');
                           }
                         }}
@@ -3733,12 +3737,17 @@ export default function FinanceModuleView({
                           .filter((i) => i.status !== 'PAID' && i.status !== 'CANCELLED')
                           .map((i) => (
                             <option key={i.id} value={i.id}>
-                              {i.invoiceNumber} · {i.clientName} · Rp {Number(i.amount).toLocaleString('id-ID')}
+                              {i.invoiceNumber} · {i.clientName} · sisa Rp{' '}
+                              {Math.max(
+                                0,
+                                Number(i.amount) - Number((i as any).paidAmount ?? 0)
+                              ).toLocaleString('id-ID')}
                             </option>
                           ))}
                       </select>
                       <span className="text-[10.5px] text-slate-400 leading-snug">
-                        Uang masuk mengurangi piutang, bukan menambah pendapatan lagi. Nominal harus sama dengan total faktur.
+                        Uang masuk mengurangi piutang, bukan menambah pendapatan lagi. Nominal boleh kurang dari sisa
+                        (status faktur menjadi SEBAGIAN) dan otomatis lunas saat sisa tertutup.
                       </span>
                     </div>
                   )}
@@ -4270,6 +4279,9 @@ export default function FinanceModuleView({
             filteredInvoicesList.map((inv) => {
               const isOverdue = inv.status === 'OVERDUE';
               const isPaid = inv.status === 'PAID';
+              const isPartial = inv.status === 'PARTIAL';
+              const paidSoFar = Number((inv as any).paidAmount ?? 0);
+              const remainingAmount = Math.max(0, Number(inv.amount) - paidSoFar);
 
               return (
                 <div
@@ -4333,10 +4345,12 @@ export default function FinanceModuleView({
                           ? 'bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30'
                           : isPaid
                           ? 'bg-[#3FBF8F]/20 text-[#3FBF8F] border border-[#3FBF8F]/30'
+                          : isPartial
+                          ? 'bg-[#4E9BFF]/20 text-[#4E9BFF] border border-[#4E9BFF]/30'
                           : 'bg-[#F2A83B]/20 text-[#F2A83B] border border-[#F2A83B]/30'
                       }`}
                     >
-                      {isOverdue ? 'OVERDUE' : isPaid ? 'LUNAS' : 'PENDING'}
+                      {isOverdue ? 'OVERDUE' : isPaid ? 'LUNAS' : isPartial ? 'SEBAGIAN' : 'PENDING'}
                     </span>
                   </div>
 
@@ -4347,8 +4361,9 @@ export default function FinanceModuleView({
                       className={`font-mono font-bold text-[13.5px] ${
                         isOverdue ? 'text-[#EF4444]' : isPaid ? 'text-[#3FBF8F]' : 'text-slate-900'
                       }`}
+                      title={isPartial ? `Total Rp ${Number(inv.amount).toLocaleString('id-ID')} · sudah dibayar Rp ${paidSoFar.toLocaleString('id-ID')}` : undefined}
                     >
-                      Rp {inv.amount.toLocaleString('id-ID')}
+                      Rp {(isPartial ? remainingAmount : Number(inv.amount)).toLocaleString('id-ID')}
                     </span>
                   </div>
 

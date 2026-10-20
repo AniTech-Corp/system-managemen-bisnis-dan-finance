@@ -95,8 +95,10 @@ paling sering ditanyakan:
 - **Piutang** — terbitkan faktur di tab **Buku Kas & Transaksi**. Pendapatannya
   langsung masuk laporan, walau uangnya belum diterima. Saat klien membayar,
   catat pemasukan di Buku Kas lalu pilih fakturnya di kolom **"Lunasi faktur"**
-  (nominal terisi otomatis). Uang masuk itu mengurangi piutang, bukan menambah
-  pendapatan. Nominal harus sama dengan total faktur.
+  (nominal terisi otomatis = **sisa tagihan**). Uang masuk itu mengurangi
+  piutang, bukan menambah pendapatan. Nominal boleh **kurang** dari sisa
+  (pembayaran sebagian): status faktur menjadi `PARTIAL` dan otomatis `PAID`
+  saat sisanya tertutup. Kelebihan bayar ditolak (belum ada akun uang muka).
 - **Utang** — catat di kartu **Kewajiban Terjadwal**. Bebannya langsung diakui.
   Saat tagihan dibayar, klik ikon centang (**Tandai lunas**): kas keluar dan
   utang berkurang, tanpa menambah beban lagi. Ikon silang membatalkan kewajiban
@@ -157,6 +159,7 @@ Tabel baru (semua diawali penanda "Additive 19 Okt 2026" di `prisma/schema.prism
 | `accounting_settings` | Satu baris per workspace: profil pajak, bentuk badan, tanggal mulai, akun sistem. |
 | `category_account_maps` | Pemetaan kategori transaksi kas → akun CoA. |
 | `document_sequences` | Penomoran jurnal otomatis (`JE-2026-11-0001`). |
+| `payment_allocations` | Alokasi satu baris kas ke faktur/kewajiban (Fase 3.2). Menyimpan `amount` + `transaction_date`; `Invoice.paidAmount`/`ScheduledObligation.paidAmount` adalah ringkasannya. |
 
 ### Penomoran jurnal
 
@@ -212,7 +215,8 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 | `/opening-balance` | GET, POST | Baca / isi saldo awal |
 | `/category-mapping` | GET, PUT | Lihat / simpan pemetaan kategori |
 | `/budgets` | GET, PUT | Lihat / simpan anggaran tahunan per akun |
-| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget` |
+| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget`, `inventory` |
+| `/kas/transactions` | POST | Terima `invoiceId` tunggal **atau** `allocations[]` (split payment, pembayaran sebagian). |
 | `/reports/summary` | GET | KPI + rasio + peringatan |
 | `/reports/export` | GET | Unduh satu berkas Excel berisi semua laporan |
 
@@ -241,9 +245,22 @@ Dr  Piutang Usaha (1-1300)                    total
 Uang masuknya dicatat lewat **Buku Kas** dengan memilih faktur di kolom
 "Lunasi faktur" (atau mengirim `invoiceId` ke `POST /api/v1/kas/transactions`).
 Jurnalnya `Dr Kas / Cr Piutang` — bukan pendapatan baru, supaya pendapatan tidak
-terhitung dua kali. Nominal harus sama dengan total faktur (v1 belum mendukung
-pembayaran sebagian). Menghapus transaksi kas itu mengembalikan faktur ke
-`UNPAID`.
+terhitung dua kali. Sejak **Fase 3.2** nominal boleh sebagian dan satu transfer
+boleh dialokasikan ke beberapa faktur sekaligus (split payment) lewat kolom
+`allocations[]`:
+
+```json
+{ "amount": 4000000, "allocations": [
+  { "invoiceId": "…", "amount": 2000000 },
+  { "invoiceId": "…", "amount": 2000000 }
+] }
+```
+
+Jumlah alokasi **harus sama** dengan nominal transaksi (lebih/kurang bayar belum
+didukung). Setiap alokasi menulis satu baris `payment_allocations` dan
+memperbarui `Invoice.paidAmount` + status (`UNPAID` → `PARTIAL` → `PAID`).
+Menghapus transaksi kas menarik alokasinya (jurnal dibalik) dan menghitung ulang
+sisa tagihan lewat `revertAllocationsInTx`.
 
 **Utang (kewajiban terjadwal).** `POST /api/v1/kas/obligations` langsung
 mengakui bebannya (basis akrual):
@@ -254,9 +271,11 @@ Dr  Beban (sesuai kategori)   nilai kewajiban
 ```
 
 `PATCH` status `PAID` mencatat kas keluar sekaligus melunasi utang
-(`Dr Utang Usaha / Cr Kas`), jadi beban tidak dihitung dua kali. `CANCELLED`
-membalik jurnal akrual lewat jurnal pembalik. Kewajiban yang sudah `PAID` harus
-dikembalikan ke `PENDING` dulu sebelum dibatalkan atau dihapus.
+(`Dr Utang Usaha / Cr Kas`), jadi beban tidak dihitung dua kali. Field `amount`
+opsional: kosong berarti lunasi seluruh sisa, diisi berarti pembayaran sebagian
+(status `PARTIAL`, `ScheduledObligation.paidAmount` bertambah). `CANCELLED`
+membalik jurnal akrual lewat jurnal pembalik. Kewajiban yang sudah `PAID`/
+`PARTIAL` harus dikembalikan ke `PENDING` dulu sebelum dibatalkan.
 
 **Gaji (payroll).** Membuat slip gaji `POST /api/v1/kerja/payroll` mengakui
 bebannya lebih dulu, lengkap dengan rincian potongan:
@@ -448,11 +467,12 @@ benar. Total debit harus sama dengan total kredit.
 **Umur Piutang/Utang (aging)** — laporan pendukung, bukan pengganti laporan utama
 
 ```
-Baris   = faktur UNPAID/OVERDUE (AR) atau kewajiban PENDING (AP)
+Baris   = faktur UNPAID/OVERDUE/PARTIAL (AR) atau kewajiban PENDING/PARTIAL (AP)
           yang tanggal terbitnya <= tanggal potong
+Nominal = SISA tagihan = total dokumen - alokasi pembayaran s/d tanggal potong
 Umur    = tanggal potong - tanggal jatuh tempo (hari)
 Kelompok= belum jatuh tempo, 1-30, 31-60, 61-90, >90 hari
-Kontrol = total dokumen dibandingkan saldo buku besar 1-1300 / 2-1100
+Kontrol = total sisa dibandingkan saldo buku besar 1-1300 / 2-1100
 ```
 
 Selisih ditampilkan apa adanya. Penyebab yang wajar: saldo awal piutang/utang,
@@ -558,13 +578,15 @@ src/lib/accounting/budgets.ts           ← anggaran tahunan + realisasi vs angg
 src/lib/accounting/payroll.ts           ← perhitungan slip gaji (PPh 21 & BPJS)
 src/lib/accounting/inventory.ts         ← rata-rata bergerak (nilai buku & HPP)
 src/lib/accounting/inventory-report.ts  ← nilai persediaan + kartu stok
+src/lib/accounting/settlement.ts        ← validasi pembayaran sebagian & alokasi (murni)
+src/lib/accounting/settlement-service.ts ← update paidAmount/status + alokasi dalam transaksi
 src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input + realisasi)
-tests/accounting-core.test.ts           ← 72 tes (uang, periode, agregasi, anggaran, payroll, persediaan)
-scripts/accounting-smoke.mjs            ← 217 pemeriksaan end-to-end (butuh server + DB kosong)
+tests/accounting-core.test.ts           ← 81 tes (uang, periode, agregasi, anggaran, payroll, persediaan, angsuran)
+scripts/accounting-smoke.mjs            ← 237 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 
 UI dimuat dari `src/app/components/v0/FinanceDashboard.tsx` sebagai tab

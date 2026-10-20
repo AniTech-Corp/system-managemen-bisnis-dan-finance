@@ -23,7 +23,12 @@ export interface AgingRow {
   partner: string;
   dueDate: Date;
   daysOverdue: number;
+  /** Sisa tagihan/utang (total dokumen dikurangi pembayaran sampai `asOf`). */
   amount: Prisma.Decimal;
+  /** Total dokumen sebelum dikurangi pembayaran (untuk transparansi). */
+  documentAmount: Prisma.Decimal;
+  /** Pembayaran sebagian yang sudah dialokasikan sampai `asOf`. */
+  paidAmount: Prisma.Decimal;
   bucket: AgingBucketKey;
 }
 
@@ -97,38 +102,64 @@ export async function getAgingReport(
 ): Promise<AgingReport> {
   const warnings: string[] = [];
 
-  const [documents, ledgerBalance] = await Promise.all([
+  const [documents, ledgerBalance, allocationSums] = await Promise.all([
     type === 'AR'
       ? prisma.invoice.findMany({
           where: {
             workspaceId,
-            status: { in: ['UNPAID', 'OVERDUE'] },
+            // PARTIAL = sudah dibayar sebagian, sisanya masih piutang.
+            status: { in: ['UNPAID', 'OVERDUE', 'PARTIAL'] },
             issueDate: { lte: asOf },
           },
           select: { id: true, invoiceNumber: true, clientName: true, dueDate: true, totalAmount: true },
           orderBy: { dueDate: 'asc' },
         })
       : prisma.scheduledObligation.findMany({
-          where: { workspaceId, status: 'PENDING', createdAt: { lte: asOf } },
+          where: { workspaceId, status: { in: ['PENDING', 'PARTIAL'] }, createdAt: { lte: asOf } },
           select: { id: true, name: true, dueDate: true, amount: true },
           orderBy: { dueDate: 'asc' },
         }),
     ledgerBalanceFor(workspaceId, type, asOf),
+    // Sisa dihitung dari ALOKASI sampai tanggal potong, bukan hanya flag status,
+    // supaya laporan masa lalu tetap benar walau dokumen sudah lunas belakangan.
+    prisma.paymentAllocation.groupBy({
+      by: ['invoiceId', 'obligationId'],
+      where: { workspaceId, transactionDate: { lte: asOf } },
+      _sum: { amount: true },
+    }),
   ]);
 
-  const rows: AgingRow[] = documents.map((doc) => {
-    const amount = new Prisma.Decimal('totalAmount' in doc ? doc.totalAmount : doc.amount).toDecimalPlaces(2);
-    const daysOverdue = Math.max(0, daysBetween(doc.dueDate, asOf));
-    return {
-      id: doc.id,
-      reference: 'invoiceNumber' in doc ? doc.invoiceNumber : doc.name,
-      partner: 'clientName' in doc ? doc.clientName : doc.name,
-      dueDate: doc.dueDate,
-      daysOverdue,
-      amount,
-      bucket: bucketFor(daysOverdue),
-    };
-  });
+  const paidByInvoice = new Map<string, Prisma.Decimal>();
+  const paidByObligation = new Map<string, Prisma.Decimal>();
+  for (const row of allocationSums) {
+    if (row.invoiceId) paidByInvoice.set(row.invoiceId, new Prisma.Decimal(row._sum.amount ?? 0));
+    if (row.obligationId) paidByObligation.set(row.obligationId, new Prisma.Decimal(row._sum.amount ?? 0));
+  }
+
+  const rows: AgingRow[] = documents
+    .map((doc) => {
+      const documentAmount = new Prisma.Decimal(
+        'totalAmount' in doc ? doc.totalAmount : doc.amount
+      ).toDecimalPlaces(2);
+      const paidAmount = (
+        'invoiceNumber' in doc ? paidByInvoice.get(doc.id) : paidByObligation.get(doc.id)
+      ) ?? ZERO;
+      const amount = Prisma.Decimal.max(ZERO, documentAmount.minus(paidAmount)).toDecimalPlaces(2);
+      const daysOverdue = Math.max(0, daysBetween(doc.dueDate, asOf));
+      return {
+        id: doc.id,
+        reference: 'invoiceNumber' in doc ? doc.invoiceNumber : doc.name,
+        partner: 'clientName' in doc ? doc.clientName : doc.name,
+        dueDate: doc.dueDate,
+        daysOverdue,
+        amount,
+        documentAmount,
+        paidAmount,
+        bucket: bucketFor(daysOverdue),
+      };
+    })
+    // Dokumen yang sudah lunas per tanggal potong tidak lagi jadi piutang/utang.
+    .filter((row) => row.amount.gt(0.005));
 
   const buckets: AgingBucket[] = BUCKETS.map((b) => {
     const inBucket = rows.filter((r) => r.bucket === b.key);

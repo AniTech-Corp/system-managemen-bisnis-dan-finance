@@ -5,10 +5,11 @@ selesai**, apa yang **berikutnya**, urutan pengerjaan, kriteria diterima, dan
 risiko yang harus diputuskan sebelum mulai. Dokumen modul yang sudah berjalan
 ada di `docs/11_MODUL_LAPORAN_KEUANGAN.md`.
 
-Status terakhir: **Fase 0–3.3 dan 3.1 selesai**, termasuk laporan pendukung
+Status terakhir: **Fase 0–3.3, 3.1, dan 3.2 selesai**, termasuk laporan pendukung
 (umur piutang/utang, ringkasan PPN), anggaran, pajak payroll (PPh 21 & BPJS input
-manual), serta persediaan & HPP rata-rata bergerak. Konsinyasi sudah menjadi
-utang usaha. 217 pemeriksaan smoke + 72 unit test hijau.
+manual), persediaan & HPP rata-rata bergerak, serta pembayaran sebagian & alokasi
+dokumen (split payment). Konsinyasi sudah menjadi utang usaha. 237 pemeriksaan
+smoke + 81 unit test hijau.
 
 ---
 
@@ -31,7 +32,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
    lama, lewat `toMoney()`.
 6. **Setiap perubahan pada `reports.ts`, `posting.ts`, `journal-service.ts`,
    `period-actions.ts`, `account-tree.ts`, atau `aux-reports.ts` wajib menjaga
-   `npm test` (72) dan `node scripts/accounting-smoke.mjs` (217) tetap hijau.
+   `npm test` (81) dan `node scripts/accounting-smoke.mjs` (237) tetap hijau.
 
 ---
 
@@ -48,10 +49,11 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 | 2.6 | Anggaran tahunan + realisasi vs anggaran | `budgets.ts`, tab Anggaran |
 | 3.3 | PPh 21 & BPJS pada slip gaji + setoran kewajiban | `payroll.ts`, tab Gaji & Pajak |
 | 3.1 | Persediaan & HPP rata-rata bergerak + kartu stok & kontrol akun 1-1400 | `inventory.ts`, `inventory-report.ts`, tab Persediaan |
+| 3.2 | Pembayaran sebagian & alokasi dokumen (split payment, status PARTIAL) | `settlement.ts`, `settlement-service.ts`, `PaymentAllocation` |
 
-Yang **belum** dari cita-cita "lengkap": pembayaran sebagian, multi-mata uang,
-PDF server-side, rekonsiliasi bank, dan pengerasan produksi. Itu isi fase
-berikutnya.
+Yang **belum** dari cita-cita "lengkap": uang muka pelanggan (lebih bayar),
+multi-mata uang, PDF server-side, rekonsiliasi bank, dan pengerasan produksi.
+Itu isi fase berikutnya.
 
 ---
 

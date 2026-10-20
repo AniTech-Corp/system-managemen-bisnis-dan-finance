@@ -1,5 +1,5 @@
 /**
- * Smoke test end-to-end modul Laporan Keuangan — 217 pemeriksaan.
+ * Smoke test end-to-end modul Laporan Keuangan — 237 pemeriksaan.
  *
  * PRASYARAT (jangan dijalankan di database produksi):
  *   1. Server dev/produksi berjalan di http://localhost:3000
@@ -597,19 +597,21 @@ const invoice3 = await api('/api/v1/kas/invoices', {
 const invoice3Id = invoice3.json?.invoice?.id;
 ok('faktur ketiga diterbitkan (belum dibayar)', invoice3.json?.invoice?.status === 'UNPAID', invoice3.json?.invoice?.invoiceNumber);
 
+// Sejak Fase 3.2 pembayaran sebagian DIIZINKAN; yang tetap ditolak adalah
+// kelebihan bayar dari sisa tagihan (belum ada akun uang muka pelanggan).
 const wrongAmount = await api('/api/v1/kas/transactions', {
   method: 'POST',
   body: {
     type: 'INCOME',
     category: 'Penjualan Jasa',
-    amount: 3_900_000,
-    description: 'Pelunasan kurang bayar',
+    amount: 5_000_000,
+    description: 'Pelunasan melebihi tagihan',
     paymentMethod: 'Transfer Bank',
     transactionDate: '2026-11-25',
     invoiceId: invoice3Id,
   },
 });
-ok('nominal pelunasan yang tidak sama dengan faktur ditolak', wrongAmount.status === 400, wrongAmount.json?.message?.slice(0, 90));
+ok('pelunasan melebihi sisa faktur ditolak', wrongAmount.status === 400, wrongAmount.json?.message?.slice(0, 90));
 
 const wrongType = await api('/api/v1/kas/transactions', {
   method: 'POST',
@@ -1383,6 +1385,310 @@ ok(
   'neraca tetap balance setelah pembelian, penjualan, koreksi, dan retur',
   Number(bsAfterInventory.json?.data?.current?.totals?.difference) === 0,
   `selisih=${bsAfterInventory.json?.data?.current?.totals?.difference}`
+);
+
+/* 18f-3. PEMBAYARAN SEBAGIAN & ALOKASI DOKUMEN (Fase 3.2) */
+
+const invoiceById = async (id) => {
+  const list = await api('/api/v1/kas/invoices');
+  return (list.json?.invoices ?? []).find((row) => row.id === id);
+};
+const cashJournalsAll = async () => journalsBySource('CASH_TX');
+const findSettlementJournal = (journals, amount, accountCode) =>
+  journals.find(
+    (j) => Number(j.totalDebit) === amount && Number(lineOf(j, accountCode)?.credit) === amount
+  );
+
+// Faktur 10 juta: dibayar 3 kali (4 + 3 + 3) supaya status PARTIAL -> PAID teruji.
+const invPartial = await api('/api/v1/kas/invoices', {
+  method: 'POST',
+  body: {
+    clientName: 'PT Angsuran Uji',
+    items: [{ name: 'Jasa Bertahap', price: 10_000_000, qty: 1 }],
+    taxRate: 0,
+    issueDate: '2026-11-03',
+    dueDate: '2026-11-30',
+  },
+});
+const invPartialId = invPartial.json?.invoice?.id;
+ok('faktur angsuran diterbitkan', Boolean(invPartialId), invPartial.json?.invoice?.invoiceNumber);
+
+const arBeforePartial = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.assets ?? []).find(
+    (a) => a.code === '1-1300'
+  )?.amount ?? 0
+);
+const revenueBeforePartial = Number(
+  (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.revenue
+);
+
+const pay1 = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 4_000_000,
+    description: 'Angsuran 1 faktur uji',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-15',
+    invoiceId: invPartialId,
+  },
+});
+const invPartialAfter1 = await invoiceById(invPartialId);
+ok(
+  'bayar sebagian 4 juta -> status PARTIAL, sisa 6 juta',
+  pay1.status === 200 &&
+    invPartialAfter1?.status === 'PARTIAL' &&
+    Number(invPartialAfter1?.paidAmount) === 4_000_000 &&
+    Math.abs(Number(invPartialAfter1?.totalAmount) - Number(invPartialAfter1?.paidAmount) - 6_000_000) < 0.005,
+  `status=${invPartialAfter1?.status} paid=${invPartialAfter1?.paidAmount}`
+);
+
+const cashJournalsPartial = await cashJournalsAll();
+const partialJournal = findSettlementJournal(cashJournalsPartial, 4_000_000, '1-1300');
+ok(
+  'jurnal angsuran: Dr Kas 4 juta / Cr Piutang 4 juta (bukan pendapatan)',
+  Boolean(partialJournal) && !(partialJournal?.lines ?? []).some((l) => l.account.code.startsWith('4-')),
+  (partialJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const revenueAfterPartial = Number(
+  (await api('/api/v1/accounting/reports/income-statement?period=2026-11')).json?.data?.current?.totals?.revenue
+);
+ok(
+  'angsuran tidak menambah pendapatan (tanpa hitung ganda)',
+  revenueAfterPartial === revenueBeforePartial,
+  `sebelum=${revenueBeforePartial} sesudah=${revenueAfterPartial}`
+);
+
+const arAfterPartial = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.assets ?? []).find(
+    (a) => a.code === '1-1300'
+  )?.amount ?? 0
+);
+ok(
+  'piutang di neraca turun tepat 4 juta',
+  arAfterPartial === arBeforePartial - 4_000_000,
+  `sebelum=${arBeforePartial} sesudah=${arAfterPartial}`
+);
+
+const pay2 = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 3_000_000,
+    description: 'Angsuran 2 faktur uji',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-20',
+    invoiceId: invPartialId,
+  },
+});
+const invPartialAfter2 = await invoiceById(invPartialId);
+ok(
+  'angsuran kedua 3 juta -> masih PARTIAL (sisa 3 juta)',
+  pay2.status === 200 && invPartialAfter2?.status === 'PARTIAL' && Number(invPartialAfter2?.paidAmount) === 7_000_000,
+  `status=${invPartialAfter2?.status} paid=${invPartialAfter2?.paidAmount}`
+);
+
+const pay3 = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 3_000_000,
+    description: 'Angsuran 3 faktur uji',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-25',
+    invoiceId: invPartialId,
+  },
+});
+const invPartialAfter3 = await invoiceById(invPartialId);
+ok(
+  'angsuran terakhir menutup sisa -> PAID tepat di 10 juta',
+  pay3.status === 200 && invPartialAfter3?.status === 'PAID' && Number(invPartialAfter3?.paidAmount) === 10_000_000,
+  `status=${invPartialAfter3?.status} paid=${invPartialAfter3?.paidAmount}`
+);
+
+// Kelebihan bayar ditolak (belum ada akun uang muka pelanggan).
+const invOver = await api('/api/v1/kas/invoices', {
+  method: 'POST',
+  body: {
+    clientName: 'PT Lebih Bayar',
+    items: [{ name: 'Jasa Kecil', price: 2_000_000, qty: 1 }],
+    taxRate: 0,
+    issueDate: '2026-11-04',
+    dueDate: '2026-11-30',
+  },
+});
+const invOverId = invOver.json?.invoice?.id;
+const overpay = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 3_000_000,
+    description: 'Coba lebih bayar',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-16',
+    invoiceId: invOverId,
+  },
+});
+ok('kelebihan bayar dari sisa tagihan ditolak', overpay.status === 400, overpay.json?.message?.slice(0, 70));
+
+const paidAgain = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 1_000_000,
+    description: 'Bayar lagi faktur yang sudah lunas',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-26',
+    invoiceId: invPartialId,
+  },
+});
+ok('membayar faktur yang sudah lunas ditolak', paidAgain.status === 400, paidAgain.json?.message?.slice(0, 70));
+
+// Split payment: satu transfer 4 juta menutup dua faktur @2 juta.
+const invSplitA = await api('/api/v1/kas/invoices', { method: 'POST', body: { clientName: 'PT Split A', items: [{ name: 'Jasa A', price: 2_000_000, qty: 1 }], taxRate: 0, issueDate: '2026-11-05', dueDate: '2026-11-30' } });
+const invSplitB = await api('/api/v1/kas/invoices', { method: 'POST', body: { clientName: 'PT Split B', items: [{ name: 'Jasa B', price: 2_000_000, qty: 1 }], taxRate: 0, issueDate: '2026-11-05', dueDate: '2026-11-30' } });
+const invSplitAId = invSplitA.json?.invoice?.id;
+const invSplitBId = invSplitB.json?.invoice?.id;
+
+const splitPay = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 4_000_000,
+    description: 'Split payment dua faktur',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-18',
+    allocations: [
+      { invoiceId: invSplitAId, amount: 2_000_000 },
+      { invoiceId: invSplitBId, amount: 2_000_000 },
+    ],
+  },
+});
+const splitAAfter = await invoiceById(invSplitAId);
+const splitBAfter = await invoiceById(invSplitBId);
+ok(
+  'split payment: satu transfer melunasi dua faktur',
+  splitPay.status === 200 && splitAAfter?.status === 'PAID' && splitBAfter?.status === 'PAID',
+  `A=${splitAAfter?.status} B=${splitBAfter?.status}`
+);
+
+const splitJournal = (await cashJournalsAll()).find((j) => Number(j.totalDebit) === 4_000_000 && Number(lineOf(j, '1-1300')?.credit) === 4_000_000);
+ok(
+  'split payment: satu jurnal Dr Kas 4 juta / Cr Piutang 4 juta',
+  Boolean(splitJournal),
+  (splitJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const badSplit = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 4_000_000,
+    description: 'Alokasi tidak cocok nominal',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-19',
+    allocations: [{ invoiceId: invSplitAId, amount: 3_000_000 }],
+  },
+});
+ok('jumlah alokasi harus sama dengan nominal transaksi', badSplit.status === 400, badSplit.json?.message?.slice(0, 70));
+
+// Hapus baris kas angsuran -> dokumen kembali belum lunas.
+const invDelete = await api('/api/v1/kas/invoices', { method: 'POST', body: { clientName: 'PT Hapus Angsuran', items: [{ name: 'Jasa Hapus', price: 5_000_000, qty: 1 }], taxRate: 0, issueDate: '2026-11-06', dueDate: '2026-11-30' } });
+const invDeleteId = invDelete.json?.invoice?.id;
+const delPay = await api('/api/v1/kas/transactions', {
+  method: 'POST',
+  body: {
+    type: 'INCOME',
+    category: 'Pelunasan Piutang Invoice',
+    amount: 2_000_000,
+    description: 'Angsuran yang akan dihapus',
+    paymentMethod: 'Transfer Bank',
+    transactionDate: '2026-11-17',
+    invoiceId: invDeleteId,
+  },
+});
+const invDeleteAfterPay = await invoiceById(invDeleteId);
+const delRes = await api(`/api/v1/kas/transactions?id=${delPay.json?.transaction?.id}`, { method: 'DELETE' });
+const invDeleteAfterDel = await invoiceById(invDeleteId);
+ok(
+  'hapus baris kas angsuran mengembalikan faktur ke UNPAID',
+  delRes.status === 200 && invDeleteAfterPay?.status === 'PARTIAL' && invDeleteAfterDel?.status === 'UNPAID' && Number(invDeleteAfterDel?.paidAmount) === 0,
+  `hapus=${delRes.status} setelah=${invDeleteAfterDel?.status} paid=${invDeleteAfterDel?.paidAmount}`
+);
+
+const arAfterDelete = Number(
+  ((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.assets ?? []).find(
+    (a) => a.code === '1-1300'
+  )?.amount ?? 0
+);
+ok(
+  'neraca tetap balance setelah hapus angsuran',
+  Number((await api('/api/v1/accounting/reports/balance-sheet?period=2026-12')).json?.data?.current?.totals?.difference) === 0,
+  `piutang=${arAfterDelete}`
+);
+
+// AP: kewajiban 2 juta dibayar 1 juta -> PARTIAL, lalu sisa 1 juta -> PAID.
+const obPart = await api('/api/v1/kas/obligations', {
+  method: 'POST',
+  body: { name: 'Utang Angsuran Uji', dueDate: '2026-11-28', amount: 2_000_000, category: 'Operasional Kantor', accrualDate: '2026-11-10' },
+});
+const obPartId = obPart.json?.obligation?.id;
+const obPay1 = await api('/api/v1/kas/obligations', {
+  method: 'PATCH',
+  body: { id: obPartId, status: 'PAID', amount: 1_000_000, paidAt: '2026-11-21', paymentMethod: 'Transfer Bank' },
+});
+ok(
+  'bayar sebagian kewajiban 1 juta -> PARTIAL, sisa 1 juta',
+  obPay1.status === 200 &&
+    obPay1.json?.obligation?.status === 'PARTIAL' &&
+    Math.abs(Number(obPay1.json?.obligation?.amount) - Number(obPay1.json?.obligation?.paidAmount) - 1_000_000) < 0.005,
+  `status=${obPay1.json?.obligation?.status} paid=${obPay1.json?.obligation?.paidAmount}`
+);
+
+const apPartial = await api('/api/v1/accounting/reports/aging?type=AP&asOf=2026-12-10');
+const apPartialRow = (apPartial.json?.data?.current?.rows ?? []).find((r) => r.id === obPartId);
+ok(
+  'umur utang menampilkan SISA 1 juta (bukan 2 juta)',
+  Boolean(apPartialRow) && Number(apPartialRow?.amount) === 1_000_000 && Number(apPartialRow?.paidAmount) === 1_000_000,
+  `sisa=${apPartialRow?.amount} dibayar=${apPartialRow?.paidAmount}`
+);
+
+const apJournal = (await cashJournalsAll()).find((j) => Number(j.totalDebit) === 1_000_000 && Number(lineOf(j, '2-1100')?.debit) === 1_000_000);
+ok(
+  'jurnal angsuran utang: Dr Utang Usaha 1 juta / Cr Kas',
+  Boolean(apJournal),
+  (apJournal?.lines ?? []).map((l) => `${l.account.code} D${l.debit} K${l.credit}`).join(' | ')
+);
+
+const obPay2 = await api('/api/v1/kas/obligations', {
+  method: 'PATCH',
+  body: { id: obPartId, status: 'PAID', amount: 1_000_000, paidAt: '2026-11-29', paymentMethod: 'Transfer Bank' },
+});
+ok(
+  'sisa kewajiban dibayar -> PAID',
+  obPay2.status === 200 && obPay2.json?.obligation?.status === 'PAID' && Number(obPay2.json?.obligation?.paidAmount) === 2_000_000,
+  `status=${obPay2.json?.obligation?.status} paid=${obPay2.json?.obligation?.paidAmount}`
+);
+
+const apAfterPartial = await api('/api/v1/accounting/reports/aging?type=AP&asOf=2026-12-10');
+ok(
+  'umur utang: kewajiban lunas tidak lagi terdaftar',
+  !(apAfterPartial.json?.data?.current?.rows ?? []).some((r) => r.id === obPartId)
+);
+
+const bsAfterPartial = await api('/api/v1/accounting/reports/balance-sheet?period=2026-12');
+ok(
+  'neraca tetap balance setelah seluruh alur angsuran',
+  Number(bsAfterPartial.json?.data?.current?.totals?.difference) === 0,
+  `selisih=${bsAfterPartial.json?.data?.current?.totals?.difference}`
 );
 
 /* 18g. ANGGARAN (rencana, tidak membuat jurnal) */

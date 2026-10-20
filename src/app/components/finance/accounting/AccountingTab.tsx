@@ -37,7 +37,8 @@ import { JournalView } from './JournalView';
 import { OpeningBalanceView } from './OpeningBalanceWizard';
 import { AccountingSettingsView } from './AccountingSettings';
 import { PayrollView } from './PayrollView';
-import { InventoryView } from './InventoryView';
+import { InventoryReportView } from './InventoryReportView';
+import SimpleBackupRecovery from './SimpleBackupRecovery';
 
 interface PermissionsResponse {
   role: string;
@@ -66,6 +67,7 @@ type ViewId =
   | 'ledger'
   | 'journals'
   | 'opening'
+  | 'backup'
   | 'settings';
 
 const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
@@ -83,44 +85,54 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'ledger', label: 'Buku Besar', icon: BookOpen },
   { id: 'journals', label: 'Jurnal Umum', icon: FileSpreadsheet },
   { id: 'opening', label: 'Saldo Awal', icon: Wand2 },
+  { id: 'backup', label: 'Backup System', icon: BookOpen },
   { id: 'settings', label: 'Pengaturan', icon: Settings },
 ];
 
 export default function AccountingTab({ workspaceId }: { workspaceId: string }) {
   const [view, setView] = useState<ViewId>('summary');
-  const [period, setPeriod] = useState(currentPeriodKey());
+  const [period, setPeriod] = useState('');
   const [comparative, setComparative] = useState('none');
   const [permissions, setPermissions] = useState<PermissionsResponse | null>(null);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
-  // Bulan pertama tahun buku (dari Pengaturan) -- dipakai tab Anggaran supaya
-  // kolomnya dimulai dari bulan yang benar.
   const [fiscalStartMonth, setFiscalStartMonth] = useState(1);
-  // Menandai user sudah memilih periode sendiri; kalau sudah, jangan ditimpa
-  // oleh periode otomatis dari server.
   const periodTouched = useRef(false);
+  const demoUserId = 'demo-user-123';
 
   useEffect(() => {
     let alive = true;
-    apiGet<{ success: boolean; data: PermissionsResponse }>('/api/v1/accounting/permissions')
-      .then((res) => {
-        if (alive) setPermissions(res.data);
-      })
-      .catch(() => undefined);
+    periodTouched.current = false;
+    setPermissions(null);
+    setPermissionsError(null);
+    setSettingsError(null);
+    setEnabled(null);
+    setPeriod('');
 
-    apiGet<{ success: boolean; data: SettingsProbeResponse }>('/api/v1/accounting/settings')
-      .then((res) => {
-        if (!alive) return;
-        const ready = Boolean(res.data?.setting?.isEnabled) && (res.data?.accountCount ?? 0) > 0;
-        setEnabled(ready);
-        setFiscalStartMonth(res.data?.setting?.fiscalYearStartMonth ?? 1);
-        // Buka periode terakhir yang sudah ada jurnalnya (kalau ada), supaya
-        // owner langsung melihat angka alih-alih bulan berjalan yang kosong.
-        if (ready && res.data?.latestPeriodKey) {
-          setPeriod((prev) => (periodTouched.current ? prev : res.data.latestPeriodKey!));
-        }
+    apiGet<{ data: PermissionsResponse }>('/api/v1/accounting/permissions')
+      .then(({ data }) => {
+        if (alive) setPermissions(data);
       })
-      .catch(() => {
-        if (alive) setEnabled(false);
+      .catch((error: unknown) => {
+        if (!alive) return;
+        setPermissionsError(error instanceof Error ? error.message : 'Gagal memeriksa izin laporan.');
+      });
+
+    apiGet<{ data: SettingsProbeResponse }>('/api/v1/accounting/settings')
+      .then(({ data }) => {
+        if (!alive) return;
+        const ready = Boolean(data?.setting?.isEnabled) && data.accountCount > 0;
+        setEnabled(ready);
+        setFiscalStartMonth(data?.setting?.fiscalYearStartMonth ?? 1);
+        setPeriod((previous) =>
+          periodTouched.current ? previous : data?.latestPeriodKey || currentPeriodKey()
+        );
+      })
+      .catch((error: unknown) => {
+        if (!alive) return;
+        setSettingsError(error instanceof Error ? error.message : 'Gagal memuat pengaturan akuntansi.');
+        setPeriod((previous) => previous || currentPeriodKey());
       });
 
     return () => {
@@ -152,7 +164,6 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
 
   return (
     <div className="space-y-4" data-workspace={workspaceId}>
-      {/* Navigasi laporan */}
       <div className="klir-no-print flex gap-1.5 overflow-x-auto pb-1">
         {NAV.map((item) => {
           const Icon = item.icon;
@@ -161,18 +172,25 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
             <button
               key={item.id}
               onClick={() => setView(item.id)}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+              aria-current={active ? 'page' : undefined}
+              className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                 active
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <Icon className="h-3.5 w-3.5" />
+              <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               {item.label}
             </button>
           );
         })}
       </div>
+
+      {settingsError && (
+        <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+          Pengaturan akuntansi tidak dapat dimuat: {settingsError}
+        </p>
+      )}
 
       {enabled === false && view !== 'settings' && (
         <div className="klir-no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
@@ -181,16 +199,22 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           </p>
           <button
             onClick={() => setView('settings')}
-            className="rounded-lg bg-amber-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800"
+            className="min-h-10 rounded-lg bg-amber-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800"
           >
             Buka Pengaturan
           </button>
         </div>
       )}
 
-      {permissions === null && (
+      {permissionsError && (
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Gagal memeriksa hak akses: {permissionsError}
+        </p>
+      )}
+
+      {permissions === null && !permissionsError && (
         <p className="flex items-center gap-2 text-xs text-slate-500">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Memeriksa hak akses…
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Memeriksa hak akses…
         </p>
       )}
 
@@ -202,39 +226,38 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
 
       {permissions !== null && can.view && (
         <>
-          {view === 'summary' && <SummaryView {...reportProps} />}
-          {view === 'income' && <IncomeStatementView {...reportProps} />}
-          {view === 'balance' && <BalanceSheetView {...reportProps} />}
-          {view === 'cashflow' && <CashFlowView {...reportProps} />}
-          {view === 'equity' && <EquityView {...reportProps} />}
-          {view === 'trial' && <TrialBalanceView {...reportProps} />}
-          {view === 'aging' && <AgingView {...reportProps} />}
-          {view === 'tax' && <TaxView {...reportProps} />}
-          {view === 'budget' && (
-            <BudgetView
-              {...reportProps}
-              canEdit={can.manageSettings}
-              fiscalStartMonth={fiscalStartMonth}
-            />
+          {!period && view !== 'settings' && view !== 'backup' && (
+            <p className="flex items-center gap-2 text-xs text-slate-500">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Memuat periode laporan…
+            </p>
           )}
-          {view === 'inventory' && (
-            <InventoryView period={period} onPeriodChange={(value) => {
-              periodTouched.current = true;
-              setPeriod(value);
-            }} />
+          {period && view === 'summary' && <SummaryView {...reportProps} />}
+          {period && view === 'income' && <IncomeStatementView {...reportProps} />}
+          {period && view === 'balance' && <BalanceSheetView {...reportProps} />}
+          {period && view === 'cashflow' && <CashFlowView {...reportProps} />}
+          {period && view === 'equity' && <EquityView {...reportProps} />}
+          {period && view === 'trial' && <TrialBalanceView {...reportProps} />}
+          {period && view === 'aging' && <AgingView {...reportProps} />}
+          {period && view === 'tax' && <TaxView {...reportProps} />}
+          {period && view === 'budget' && (
+            <BudgetView {...reportProps} canEdit={can.manageSettings} fiscalStartMonth={fiscalStartMonth} />
+          )}
+          {period && view === 'inventory' && (
+            <InventoryReportView period={period} onPeriodChange={reportProps.onPeriodChange} />
           )}
           {view === 'payroll' && (
             <PayrollView canManage={['OWNER', 'ADMIN', 'MANAGER'].includes(permissions.role)} />
           )}
-          {view === 'ledger' && <LedgerView {...reportProps} />}
-          {view === 'journals' && (
+          {period && view === 'ledger' && <LedgerView {...reportProps} />}
+          {period && view === 'journals' && (
             <JournalView {...reportProps} canPost={can.post} canDraft={can.draft} />
           )}
           {view === 'opening' && <OpeningBalanceView />}
+          {view === 'backup' && <SimpleBackupRecovery workspaceId={workspaceId} userId={demoUserId} />}
           {view === 'settings' && (
             <div className="mx-auto max-w-3xl">
               <div className="mb-3 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-slate-400" />
+                <Layers className="h-4 w-4 text-slate-400" aria-hidden="true" />
                 <p className="text-[11px] text-slate-500">
                   Peran Anda: <strong className="text-slate-700">{permissions.role}</strong>
                 </p>

@@ -9,6 +9,12 @@ import { invalidateContextCache } from '@/lib/ai-brain/context-engine';
 import { invalidateDashboardInsightCache } from '@/lib/ai-brain/dashboard-insight';
 import { postCashTransaction } from '@/lib/accounting/posting';
 import { JournalValidationError, reverseJournalInTx } from '@/lib/accounting/journal-service';
+import { planDocumentSettlement, validateAllocations } from '@/lib/accounting/settlement';
+import {
+  allocateInvoiceInTx,
+  allocateObligationInTx,
+  revertAllocationsInTx,
+} from '@/lib/accounting/settlement-service';
 import { PeriodClosedError } from '@/lib/accounting/period';
 
 // V4f, 8 Sep 2026 (validasi ringan input keuangan -- kasus Pak Fajrul): DIDUPLIKASI
@@ -331,35 +337,129 @@ export const POST = withTenantGuard(
         }
       }
 
+      const rawAllocations = Array.isArray(body?.allocations) ? body.allocations : null;
+      if (invoiceId && rawAllocations) {
+        return NextResponse.json(
+          { message: 'Pilih salah satu: invoiceId tunggal atau daftar allocations, bukan keduanya.' },
+          { status: 400 }
+        );
+      }
+
       const transaction = await prisma.$transaction(async (tx) => {
-        // Tautan opsional ke faktur: uang masuk ini melunasi piutang, bukan
-        // menambah pendapatan baru. Nominal harus sama dengan total faktur --
-        // pembayaran sebagian belum didukung supaya saldo piutang tidak ambigu.
-        let linkedInvoice: { id: string; invoiceNumber: string } | null = null;
+        const cashType = type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE;
+        const businessDate = transactionDate ? new Date(transactionDate) : new Date();
+
+        // Rencana alokasi. Dua bentuk didukung:
+        //  - `invoiceId` tunggal (cara lama) -> satu faktur, boleh sebagian.
+        //  - `allocations[]` -> split ke beberapa faktur atau kewajiban.
+        type PlanItem =
+          | {
+              kind: 'invoice';
+              amount: number;
+              invoice: { id: string; invoiceNumber: string; totalAmount: number; paidAmount: number };
+            }
+          | {
+              kind: 'obligation';
+              amount: number;
+              obligation: { id: string; name: string; amount: number; paidAmount: number };
+            };
+        const plans: PlanItem[] = [];
+        let linkedInvoiceId: string | null = null;
+
         if (invoiceId) {
           if (type !== 'INCOME') {
             throw new JournalValidationError('Faktur hanya bisa ditautkan ke transaksi pemasukan.');
           }
-
           const invoice = await tx.invoice.findFirst({
             where: { id: String(invoiceId), workspaceId: auth.workspace.id },
-            select: { id: true, invoiceNumber: true, status: true, totalAmount: true },
+            select: { id: true, invoiceNumber: true, status: true, totalAmount: true, paidAmount: true },
           });
           if (!invoice) throw new JournalValidationError('Faktur tidak ditemukan.');
           if (invoice.status === 'CANCELLED') {
             throw new JournalValidationError('Faktur ini sudah dibatalkan.');
           }
-          if (invoice.status === 'PAID') {
-            throw new JournalValidationError(
-              `Faktur ${invoice.invoiceNumber} sudah lunas. Pilih faktur lain atau hapus pelunasan sebelumnya.`
-            );
+          // Validasi lebih awal supaya tidak ada baris kas tanpa alokasi yang sah.
+          const pre = planDocumentSettlement({
+            total: Number(invoice.totalAmount),
+            paidAmount: Number(invoice.paidAmount),
+            amount: Number(amount),
+            label: `Faktur ${invoice.invoiceNumber}`,
+          });
+          if (!pre.ok) throw new JournalValidationError(pre.error);
+          plans.push({
+            kind: 'invoice',
+            amount: pre.amount,
+            invoice: {
+              id: invoice.id,
+              invoiceNumber: invoice.invoiceNumber,
+              totalAmount: Number(invoice.totalAmount),
+              paidAmount: Number(invoice.paidAmount),
+            },
+          });
+          linkedInvoiceId = invoice.id;
+        } else if (rawAllocations) {
+          const validation = validateAllocations(
+            rawAllocations,
+            Number(amount),
+            type === 'INCOME' ? 'INCOME' : 'EXPENSE'
+          );
+          if (!validation.ok) throw new JournalValidationError(validation.error);
+
+          for (const allocation of rawAllocations) {
+            if (allocation.invoiceId) {
+              const invoice = await tx.invoice.findFirst({
+                where: { id: String(allocation.invoiceId), workspaceId: auth.workspace.id },
+                select: { id: true, invoiceNumber: true, status: true, totalAmount: true, paidAmount: true },
+              });
+              if (!invoice) throw new JournalValidationError('Faktur pada alokasi tidak ditemukan.');
+              if (invoice.status === 'CANCELLED') {
+                throw new JournalValidationError(`Faktur ${invoice.invoiceNumber} sudah dibatalkan.`);
+              }
+              const pre = planDocumentSettlement({
+                total: Number(invoice.totalAmount),
+                paidAmount: Number(invoice.paidAmount),
+                amount: Number(allocation.amount),
+                label: `Faktur ${invoice.invoiceNumber}`,
+              });
+              if (!pre.ok) throw new JournalValidationError(pre.error);
+              plans.push({
+                kind: 'invoice',
+                amount: pre.amount,
+                invoice: {
+                  id: invoice.id,
+                  invoiceNumber: invoice.invoiceNumber,
+                  totalAmount: Number(invoice.totalAmount),
+                  paidAmount: Number(invoice.paidAmount),
+                },
+              });
+            } else if (allocation.obligationId) {
+              const obligation = await tx.scheduledObligation.findFirst({
+                where: { id: String(allocation.obligationId), workspaceId: auth.workspace.id },
+                select: { id: true, name: true, status: true, amount: true, paidAmount: true },
+              });
+              if (!obligation) throw new JournalValidationError('Kewajiban pada alokasi tidak ditemukan.');
+              if (obligation.status === 'CANCELLED') {
+                throw new JournalValidationError(`Kewajiban ${obligation.name} sudah dibatalkan.`);
+              }
+              const pre = planDocumentSettlement({
+                total: Number(obligation.amount),
+                paidAmount: Number(obligation.paidAmount),
+                amount: Number(allocation.amount),
+                label: `Kewajiban ${obligation.name}`,
+              });
+              if (!pre.ok) throw new JournalValidationError(pre.error);
+              plans.push({
+                kind: 'obligation',
+                amount: pre.amount,
+                obligation: {
+                  id: obligation.id,
+                  name: obligation.name,
+                  amount: Number(obligation.amount),
+                  paidAmount: Number(obligation.paidAmount),
+                },
+              });
+            }
           }
-          if (Math.abs(Number(invoice.totalAmount) - Number(amount)) > 0.005) {
-            throw new JournalValidationError(
-              `Nominal harus sama dengan total faktur ${invoice.invoiceNumber} (Rp ${Number(invoice.totalAmount).toLocaleString('id-ID')}).`
-            );
-          }
-          linkedInvoice = { id: invoice.id, invoiceNumber: invoice.invoiceNumber };
         }
 
         const created = await tx.cashTransaction.create({
@@ -367,33 +467,48 @@ export const POST = withTenantGuard(
             workspaceId: auth.workspace.id,
             userId: auth.user.id,
             sourceFileId: typeof sourceFileId === 'string' ? sourceFileId : null,
-            type: type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE,
+            type: cashType,
             category,
             amount: Number(amount),
             description,
             paymentMethod,
-            transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
-            invoiceId: linkedInvoice?.id ?? null,
+            transactionDate: businessDate,
+            invoiceId: linkedInvoiceId,
           },
         });
 
+        // Terapkan alokasi: `paidAmount` & status dokumen ikut bergerak.
+        for (const item of plans) {
+          if (item.kind === 'invoice') {
+            await allocateInvoiceInTx(tx, {
+              workspaceId: auth.workspace.id,
+              cashTxId: created.id,
+              invoice: item.invoice,
+              amount: item.amount,
+              transactionDate: businessDate,
+            });
+          } else {
+            await allocateObligationInTx(tx, {
+              workspaceId: auth.workspace.id,
+              cashTxId: created.id,
+              obligation: item.obligation,
+              amount: item.amount,
+              transactionDate: businessDate,
+              paymentMethod,
+            });
+          }
+        }
+
         // Jurnal otomatis (no-op bila modul akuntansi belum diaktifkan).
+        // Flag settlement membuat jurnal tetap Dr Kas / Cr Piutang (atau sebaliknya)
+        // walau alokasinya split dan `invoiceId` tunggal kosong.
         await postCashTransaction(tx, {
           workspaceId: auth.workspace.id,
           userId: auth.user.id,
           transaction: created,
+          receivableSettlement: plans.some((p) => p.kind === 'invoice'),
+          payableSettlement: plans.some((p) => p.kind === 'obligation'),
         });
-
-        // Faktur ikut lunas, supaya daftar piutang dan jurnal tidak berbeda.
-        if (linkedInvoice) {
-          await tx.invoice.update({
-            where: { id: linkedInvoice.id },
-            data: {
-              status: 'PAID',
-              paidAt: transactionDate ? new Date(transactionDate) : new Date(),
-            },
-          });
-        }
 
         return created;
       });
@@ -480,30 +595,43 @@ export const DELETE = withTenantGuard(
           reversed = true;
         }
 
+        // Tarik alokasi pembayaran (termasuk pembayaran sebagian & split) lalu
+        // kembalikan `paidAmount` + status dokumen, SEBELUM baris kas dihapus.
+        await revertAllocationsInTx(tx, {
+          workspaceId: auth.workspace.id,
+          cashTxId: existing.id,
+        });
+
         await tx.cashTransaction.delete({ where: { id: existing.id, workspaceId: auth.workspace.id } });
 
-        // Kalau transaksi ini adalah pelunasan faktur/kewajiban, kembalikan
-        // dokumennya ke status belum lunas supaya tidak ada piutang/utang yang
-        // "hilang" tanpa jejak.
+        // Dokumen lama (pra-Fase 3.2) tidak punya alokasi; pakai cara hitung
+        // baris kas seperti sebelumnya. Kalau masih ada alokasi lain untuk
+        // dokumen ini, status sudah dihitung di `revertAllocationsInTx`.
         if (existing.invoiceId) {
+          const allocationCount = await tx.paymentAllocation.count({
+            where: { workspaceId: auth.workspace.id, invoiceId: existing.invoiceId },
+          });
           const remaining = await tx.cashTransaction.count({
             where: { workspaceId: auth.workspace.id, invoiceId: existing.invoiceId },
           });
-          if (remaining === 0) {
+          if (allocationCount === 0 && remaining === 0) {
             await tx.invoice.update({
               where: { id: existing.invoiceId },
-              data: { status: 'UNPAID', paidAt: null },
+              data: { status: 'UNPAID', paidAmount: 0, paidAt: null },
             });
           }
         }
         if (existing.obligationId) {
+          const allocationCount = await tx.paymentAllocation.count({
+            where: { workspaceId: auth.workspace.id, obligationId: existing.obligationId },
+          });
           const remaining = await tx.cashTransaction.count({
             where: { workspaceId: auth.workspace.id, obligationId: existing.obligationId },
           });
-          if (remaining === 0) {
+          if (allocationCount === 0 && remaining === 0) {
             await tx.scheduledObligation.update({
               where: { id: existing.obligationId },
-              data: { status: 'PENDING', paidAt: null, paymentMethod: null },
+              data: { status: 'PENDING', paidAmount: 0, paidAt: null, paymentMethod: null },
             });
           }
         }

@@ -241,14 +241,14 @@ interface SummaryData {
   latestPeriod: { year: number; month: number; status: string } | null;
 }
 
-export function SummaryView({ period, comparative, onComparativeChange }: { period: string; comparative: string; onComparativeChange: (v: string) => void }) {
+export function SummaryView({ period, onPeriodChange, comparative, onComparativeChange }: { period: string; onPeriodChange: (v: string) => void; comparative: string; onComparativeChange: (v: string) => void }) {
   const { data, loading, error, reload } = useApi<SummaryData>(`/api/v1/accounting/reports/summary?period=${period}`);
 
   return (
     <div className="space-y-4">
       <ReportToolbar
         period={period}
-        onPeriodChange={() => undefined}
+        onPeriodChange={onPeriodChange}
         comparative={comparative}
         onComparativeChange={onComparativeChange}
         onRefresh={reload}

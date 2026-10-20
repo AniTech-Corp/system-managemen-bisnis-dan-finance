@@ -34,6 +34,8 @@ model User {
   stockMovements   StockMovement[]
   purchaseOrders   PurchaseOrder[]
 
+  userBackups      Backup[]         @relation("UserBackups")
+  userAuditLogs    AuditLog[]       @relation("UserAuditLogs")
   @@map("users")
 }
 
@@ -110,7 +112,10 @@ model Workspace {
   accountingSetting   AccountingSetting?
   categoryAccountMaps CategoryAccountMap[]
   documentSequences   DocumentSequence[]
+  paymentAllocations  PaymentAllocation[]
 
+  auditLogs    AuditLog[]       @relation("WorkspaceAuditLogs")
+  backups      Backup[]         @relation("WorkspaceBackups")
   @@map("workspaces")
 }
 
@@ -344,12 +349,13 @@ model CashTransaction {
   receiptUrl          String?         @map("receipt_url")
   createdAt           DateTime        @default(now()) @map("created_at")
 
-  workspace         Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user              User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
-  invoice           Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  obligation        ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
-  payroll           EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
-  settlementAccount Account?             @relation("CashSettlementAccount", fields: [settlementAccountId], references: [id], onDelete: SetNull)
+  workspace          Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invoice            Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  obligation         ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
+  payroll            EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
+  settlementAccount  Account?             @relation("CashSettlementAccount", fields: [settlementAccountId], references: [id], onDelete: SetNull)
+  paymentAllocations PaymentAllocation[]  @relation("CashAllocations")
 
   @@index([workspaceId, type])
   @@index([workspaceId, transactionDate])
@@ -364,6 +370,8 @@ model CashTransaction {
 enum InvoiceStatus {
   DRAFT
   UNPAID
+  // Sudah dibayar sebagian (Fase 3.2). Sisa tagihan = totalAmount - paidAmount.
+  PARTIAL
   PAID
   CANCELLED
   OVERDUE
@@ -382,6 +390,8 @@ model Invoice {
   taxAmount      Float         @default(0) @map("tax_amount")
   totalAmount    Float         @map("total_amount")
   status         InvoiceStatus @default(UNPAID)
+  // Total pelunasan yang sudah dialokasikan (Fase 3.2). Sisa = totalAmount - paidAmount.
+  paidAmount     Float         @default(0) @map("paid_amount")
   // Tanggal bisnis faktur (dasar pengakuan pendapatan pada basis akrual).
   // Terpisah dari createdAt supaya staf keuangan bisa mencatat faktur bulan lalu.
   issueDate      DateTime      @default(now()) @map("issue_date")
@@ -394,10 +404,12 @@ model Invoice {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
   // Pelunasan faktur (kalau modul laporan keuangan aktif).
-  cashTransactions CashTransaction[]
+  cashTransactions   CashTransaction[]
+  // Alokasi pembayaran per baris kas (pembayaran sebagian & split).
+  paymentAllocations PaymentAllocation[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, dueDate])
@@ -470,6 +482,8 @@ model Campaign {
 // untuk KEWAJIBAN (uang keluar terjadwal) -- konsep beda, tabel terpisah.
 enum ObligationStatus {
   PENDING
+  // Sudah dibayar sebagian (Fase 3.2). Sisa utang = amount - paidAmount.
+  PARTIAL
   PAID
   CANCELLED
 }
@@ -480,6 +494,8 @@ model ScheduledObligation {
   name          String           @db.VarChar(150)
   dueDate       DateTime         @map("due_date")
   amount        Float
+  // Total pelunasan yang sudah dialokasikan (Fase 3.2). Sisa = amount - paidAmount.
+  paidAmount    Float            @default(0) @map("paid_amount")
   status        ObligationStatus @default(PENDING)
   category      String?          @db.VarChar(100)
   // Tanggal & metode pembayaran saat kewajiban dilunasi.
@@ -487,12 +503,39 @@ model ScheduledObligation {
   paymentMethod String?          @map("payment_method") @db.VarChar(50)
   createdAt     DateTime         @default(now()) @map("created_at")
 
-  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  cashTransactions CashTransaction[]
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTransactions   CashTransaction[]
+  paymentAllocations PaymentAllocation[]
 
   @@index([workspaceId, dueDate])
   @@index([workspaceId, status])
   @@map("scheduled_obligations")
+}
+
+// Additive Fase 3.2 -- Pembayaran sebagian & alokasi dokumen.
+// Satu baris kas bisa dialokasikan ke beberapa faktur/kewajiban (split payment),
+// dan satu dokumen bisa menerima banyak pembayaran. `Invoice.paidAmount` /
+// `ScheduledObligation.paidAmount` adalah ringkasan dari tabel ini.
+model PaymentAllocation {
+  id              String   @id @default(uuid()) @db.Uuid
+  workspaceId     String   @map("workspace_id") @db.Uuid
+  cashTxId        String   @map("cash_tx_id") @db.Uuid
+  invoiceId       String?  @map("invoice_id") @db.Uuid
+  obligationId    String?  @map("obligation_id") @db.Uuid
+  amount          Decimal  @db.Decimal(18, 2)
+  // Tanggal bisnis alokasi, dipakai laporan umur agar sisa tagihan tepat per tanggal.
+  transactionDate DateTime @map("transaction_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  workspace  Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTx     CashTransaction      @relation("CashAllocations", fields: [cashTxId], references: [id], onDelete: Cascade)
+  invoice    Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  obligation ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, invoiceId])
+  @@index([workspaceId, obligationId])
+  @@index([workspaceId, cashTxId])
+  @@map("payment_allocations")
 }
 
 // Roadmap 7 Sep, item 4.2/4.1 -- fondasi penyimpanan file (Pusat/Hub Upload Data,
@@ -1322,4 +1365,41 @@ model DocumentSequence {
 
   @@unique([workspaceId, key])
   @@map("document_sequences")
+}
+
+// Backup records for database/system backup operations.
+model Backup {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  backupType String   @map("backup_type")
+  data        Json
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id") @db.Uuid
+
+  workspaceBackrefs Workspace[]       @relation("WorkspaceBackups")
+  creator     User     @relation("UserBackups", fields: [createdById], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("backups")
+}
+
+// Audit log for tracking all system and accounting actions.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id") @db.Uuid
+  changes     Json?
+  metadata    Json?
+  timestamp   DateTime @default(now()) @map("timestamp")
+
+  workspace Workspace @relation("WorkspaceAuditLogs", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserAuditLogs", fields: [userId], references: [id])
+
+  @@index([workspaceId, timestamp])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }
