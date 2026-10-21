@@ -51,8 +51,8 @@ describe('consignment-engine (pure, Prisma-free)', () => {
     assert.deepEqual(result, { ownedValue: 0, consignedValue: 0, ownedQty: 0, consignedQty: 0 });
   });
 
-  test('planConsignmentSaleLiability: amount = qty x costPrice, kategori Kewajiban Konsinyasi', async () => {
-    const { planConsignmentSaleLiability, CONSIGNMENT_LIABILITY_CATEGORY } = await import(
+  test('planConsignmentSaleLiability: amount = qty x costPrice, menjadi utang usaha (bukan kas)', async () => {
+    const { planConsignmentSaleLiability, CONSIGNMENT_EXPENSE_CATEGORY } = await import(
       '../src/lib/ai-brain/consignment-engine'
     );
     const plan = planConsignmentSaleLiability({
@@ -62,6 +62,8 @@ describe('consignment-engine (pure, Prisma-free)', () => {
       productName: 'Kaos Anime Konsinyasi',
       qty: 3,
       costPrice: 40000,
+      supplierName: 'CV Titip Jual',
+      dueDate: new Date('2026-11-30'),
       sourceType: 'SALE',
       sourceId: 'sale-1',
     });
@@ -80,12 +82,15 @@ describe('consignment-engine (pure, Prisma-free)', () => {
     assert.equal(plan.productDecrement.qty, 3);
     assert.equal(plan.productDecrement.productId, 'prod-1');
 
-    // CashTransaction: EXPENSE, kategori Kewajiban Konsinyasi, amount = qty x costPrice
-    assert.equal(plan.cashTransaction.type, 'EXPENSE');
-    assert.equal(plan.cashTransaction.category, CONSIGNMENT_LIABILITY_CATEGORY);
-    assert.equal(plan.cashTransaction.amount, 120000, '3 x 40.000 = 120.000');
-    assert.equal(plan.cashTransaction.workspaceId, 'ws-1');
-    assert.match(plan.cashTransaction.description, /Kaos Anime Konsinyasi/);
+    // Utang usaha: amount = qty x costPrice, kategori HPP Konsinyasi, jatuh tempo
+    // mengikuti input, dan TIDAK ada baris kas (uang belum keluar).
+    assert.ok(!('cashTransaction' in plan), 'tidak boleh membuat baris kas');
+    assert.equal(plan.obligation.category, CONSIGNMENT_EXPENSE_CATEGORY);
+    assert.equal(plan.obligation.amount, 120000, '3 x 40.000 = 120.000');
+    assert.equal(plan.obligation.workspaceId, 'ws-1');
+    assert.equal(plan.obligation.dueDate.toISOString(), new Date('2026-11-30').toISOString());
+    assert.match(plan.obligation.name, /Kaos Anime Konsinyasi/);
+    assert.match(plan.obligation.name, /CV Titip Jual/);
   });
 
   test('planConsignmentSaleLiability: qty <= 0 -> error, tidak menghasilkan plan', async () => {

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { PurchaseOrderStatus, StockMovementType, TransactionType } from '@prisma/client';
 import { publicApiError } from '@/lib/api-error';
+import { recordCashTransaction } from '@/lib/accounting/posting';
+import { applyIncomingStock, isInventoryValued } from '@/lib/accounting/inventory';
 import {
   createSpendingApprovalRequest,
   evaluateSpendingApproval,
@@ -208,11 +210,19 @@ export const POST = withTenantGuard(
         const productIds = [...new Set(items.map((i) => i.productId))];
         const ownedProducts = await tx.product.findMany({
           where: { id: { in: productIds }, workspaceId },
-          select: { id: true },
+          select: {
+            id: true,
+            name: true,
+            currentStock: true,
+            costPrice: true,
+            inventoryValue: true,
+            ownershipType: true,
+          },
         });
         if (ownedProducts.length !== productIds.length) {
           throw new Error('Salah satu produk tidak ditemukan atau bukan milik workspace ini.');
         }
+        const productMap = new Map(ownedProducts.map((p) => [p.id, p]));
 
         const purchaseOrder = await tx.purchaseOrder.create({
           data: {
@@ -258,22 +268,52 @@ export const POST = withTenantGuard(
 
           // Atomic increment -- aman dari race condition, Postgres mengunci baris
           // saat UPDATE ... SET current_stock = current_stock + n (bukan read-then-write).
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { currentStock: { increment: item.qty } },
-          });
+          //
+          // Rata-rata bergerak: nilai buku bertambah sebesar harga beli, lalu
+          // costPrice = nilai / qty. Barang titip jual tidak dinilai (belum dibeli),
+          // jadi hanya qty-nya yang bertambah.
+          const product = productMap.get(item.productId)!;
+          if (isInventoryValued(product.ownershipType)) {
+            const next = applyIncomingStock(
+              { qtyOnHand: product.currentStock, value: product.inventoryValue },
+              item.qty,
+              item.unitCost
+            );
+            await tx.product.update({
+              where: { id: item.productId },
+              data: {
+                currentStock: { increment: item.qty },
+                inventoryValue: next.value,
+                costPrice: next.qtyOnHand > 0 ? next.value / next.qtyOnHand : item.unitCost,
+              },
+            });
+            // Simpan state baru supaya pembelian berikutnya di PO yang sama
+            // memakai rata-rata terbaru, bukan angka lama.
+            productMap.set(item.productId, {
+              ...product,
+              currentStock: next.qtyOnHand,
+              inventoryValue: next.value,
+            });
+          } else {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { currentStock: { increment: item.qty } },
+            });
+            productMap.set(item.productId, { ...product, currentStock: product.currentStock + item.qty });
+          }
         }
 
-        const cashTransaction = await tx.cashTransaction.create({
-          data: {
-            workspaceId,
-            userId: auth.user.id,
-            type: TransactionType.EXPENSE,
-            category: 'Pembelian Stok/Purchasing',
-            amount: totalAmount,
-            description: `Pembelian Stok PO #${poNumber} (${supplierName})`,
-            paymentMethod,
-          },
+        const { transaction: cashTransaction } = await recordCashTransaction(tx, {
+          workspaceId,
+          userId: auth.user.id,
+          type: TransactionType.EXPENSE,
+          category: 'Pembelian Stok/Purchasing',
+          amount: totalAmount,
+          description: `Pembelian Stok PO #${poNumber} (${supplierName})`,
+          paymentMethod,
+          // Pembelian persediaan = aset, bukan beban: Dr 1-1400 / Cr Kas.
+          debitAccountCode: '1-1400',
+          autoMapFallback: true,
         });
 
         const updatedPurchaseOrder = await tx.purchaseOrder.update({

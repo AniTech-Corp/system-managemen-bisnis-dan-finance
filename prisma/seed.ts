@@ -1,5 +1,6 @@
 import { PrismaClient, PlanType, AccessType, Role, MemoryScope, CostType } from '@prisma/client';
 import argon2 from 'argon2';
+import { seedFinance } from '../scripts/seed-finance';
 
 const prisma = new PrismaClient();
 
@@ -132,6 +133,9 @@ async function main() {
     skipDuplicates: true,
   });
   console.log('✅ 7. Workspace memory items populated.');
+
+  // 9. Seed Financial & Accounting Data (CoA, Saldo Awal, Transaksi Kas & Jurnal)
+  await seedFinance(workspace.slug);
 
   console.log('\n🎉 KLIR OS DATABASE SEEDING COMPLETED SUCCESSFULLY!');
 }

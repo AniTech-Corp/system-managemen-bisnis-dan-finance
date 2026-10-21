@@ -159,6 +159,10 @@ export const POST = withTenantGuard(
             sellPrice,
             minStock,
             currentStock: openingStock,
+            // Nilai buku awal mengikuti harga pokok x stok awal. Kalau stok ini
+            // belum masuk saldo awal akuntansi, laporan Nilai Persediaan akan
+            // menunjukkan selisih dengan akun 1-1400 (transparan, bukan disembunyikan).
+            inventoryValue: openingStock * costPrice,
             packSize,
             packUnit: packUnit || null,
             supplierName: supplierName || null,

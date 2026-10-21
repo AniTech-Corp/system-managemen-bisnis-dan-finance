@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { publicApiError } from '@/lib/api-error';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
-import { StockMovementType, TransactionType } from '@prisma/client';
+import { AccountType, StockMovementType, TransactionType } from '@prisma/client';
 import { invalidateContextCache } from '@/lib/ai-brain';
 import { isConsignedProduct, planConsignmentSaleLiability } from '@/lib/ai-brain/consignment-engine';
+import {
+  ensureCategoryMappingInTx,
+  postInventoryJournalInTx,
+  postObligationIssuedInTx,
+  recordCashTransaction,
+} from '@/lib/accounting/posting';
+import { applyOutgoingStock, isInventoryValued } from '@/lib/accounting/inventory';
 
 // KLIR Inventory -- Penjualan keluar manual / kasir (10 Sep 2026, agent
 // api-stock-ops, F3 kontrak Tingkat B). Beda dari purchase-orders (barang MASUK +
@@ -60,6 +67,17 @@ export const POST = withTenantGuard(
       // di bawah (pola isolasi tenant sama seperti productId).
       const customerIdRaw: string | undefined = body?.customerId || undefined;
 
+      // Tanggal bisnis penjualan (opsional). Dipakai untuk baris kas DAN jurnal
+      // utang konsinyasi, supaya penjualan yang dicatat mundur masuk ke periode
+      // yang benar. Default: sekarang.
+      let transactionDate = new Date();
+      if (body?.transactionDate) {
+        transactionDate = new Date(String(body.transactionDate));
+        if (Number.isNaN(transactionDate.getTime())) {
+          return NextResponse.json({ message: 'Tanggal penjualan tidak valid.' }, { status: 400 });
+        }
+      }
+
       const parsedItems = validateItems(body?.items);
       if ('error' in parsedItems) {
         return NextResponse.json({ message: parsedItems.error }, { status: 400 });
@@ -79,7 +97,15 @@ export const POST = withTenantGuard(
         const productIds = [...new Set(items.map((i) => i.productId))];
         const ownedProducts = await tx.product.findMany({
           where: { id: { in: productIds }, workspaceId, isActive: true },
-          select: { id: true, name: true, currentStock: true, costPrice: true, ownershipType: true },
+          select: {
+            id: true,
+            name: true,
+            currentStock: true,
+            costPrice: true,
+            inventoryValue: true,
+            ownershipType: true,
+            supplierName: true,
+          },
         });
         if (ownedProducts.length !== productIds.length) {
           throw new Error(
@@ -129,23 +155,58 @@ export const POST = withTenantGuard(
         const description = descriptionName
           ? `Penjualan ${itemCount} item (${descriptionName})`
           : `Penjualan ${itemCount} item`;
-        const cashTransaction = await tx.cashTransaction.create({
-          data: {
-            workspaceId,
-            userId: auth.user.id,
-            type: TransactionType.INCOME,
-            category: 'Penjualan Stok/Kasir',
-            amount: totalAmount,
-            description,
-            paymentMethod,
-          },
+        const { transaction: cashTransaction } = await recordCashTransaction(tx, {
+          workspaceId,
+          userId: auth.user.id,
+          type: TransactionType.INCOME,
+          category: 'Penjualan Stok/Kasir',
+          amount: totalAmount,
+          description,
+          paymentMethod,
+          transactionDate,
+          autoMapFallback: true,
         });
 
         const saleItems: Array<{ productId: string; name: string; qty: number; unitPrice: number; subtotal: number }> = [];
 
+        // Nilai buku per produk dipakai berurutan supaya satu penjualan dengan
+        // dua baris produk yang sama tetap memakai rata-rata yang benar.
+        const inventoryState = new Map<string, { qtyOnHand: number; value: number }>();
+        for (const product of ownedProducts) {
+          inventoryState.set(product.id, {
+            qtyOnHand: product.currentStock,
+            value: product.inventoryValue,
+          });
+        }
+        let cogsTotal = 0;
+        const cogsItems: Array<{ name: string; qty: number; unitCost: number; amount: number }> = [];
+
         for (const item of items) {
           const product = productMap.get(item.productId)!;
           const subtotal = item.qty * item.unitPrice;
+
+          // Harga pokok: rata-rata bergerak saat penjualan. Barang titip jual
+          // tidak dinilai di sini -- HPP-nya sudah diakui lewat jurnal utang
+          // konsinyasi (Dr 5-1100 / Cr 2-1100) di bawah.
+          let unitCost = product.costPrice;
+          let inventoryValueAfter: number | null = null;
+          if (isInventoryValued(product.ownershipType)) {
+            const state = inventoryState.get(item.productId) ?? {
+              qtyOnHand: product.currentStock,
+              value: product.inventoryValue,
+            };
+            const issue = applyOutgoingStock(state, item.qty);
+            inventoryState.set(item.productId, {
+              qtyOnHand: state.qtyOnHand - issue.qty,
+              value: issue.remainingValue,
+            });
+            unitCost = issue.unitCost;
+            inventoryValueAfter = issue.remainingValue;
+            if (issue.amount > 0) {
+              cogsTotal += issue.amount;
+              cogsItems.push({ name: product.name, qty: issue.qty, unitCost: issue.unitCost, amount: issue.amount });
+            }
+          }
 
           await tx.stockMovement.create({
             data: {
@@ -154,7 +215,7 @@ export const POST = withTenantGuard(
               userId: auth.user.id,
               type: StockMovementType.SALE_OUT,
               qtyChange: -item.qty,
-              unitCost: product.costPrice,
+              unitCost,
               sourceType: 'SALE',
               sourceId: cashTransaction.id,
               customerId: customerRecord?.id ?? null,
@@ -169,7 +230,10 @@ export const POST = withTenantGuard(
           // read-then-write), sama pola dengan purchase-orders/returns/route.ts.
           await tx.product.update({
             where: { id: item.productId },
-            data: { currentStock: { decrement: item.qty } },
+            data:
+              inventoryValueAfter === null
+                ? { currentStock: { decrement: item.qty } }
+                : { currentStock: { decrement: item.qty }, inventoryValue: inventoryValueAfter },
           });
 
           saleItems.push({
@@ -181,17 +245,31 @@ export const POST = withTenantGuard(
           });
         }
 
-        // Produk TITIP JUAL (ownershipType CONSIGNED): uang dari pembeli memang masuk
-        // penuh ke kas (INCOME di atas), tapi harga pokoknya (costPrice x qty) adalah
-        // utang ke supplier yang baru timbul saat barang laku. Tanpa baris ini kas
-        // toko terlihat untung penuh padahal sebagian harus disetor. Dicatat sebagai
-        // CashTransaction EXPENSE "Kewajiban Konsinyasi" memakai rencana dari
-        // planConsignmentSaleLiability (consignment-engine.ts, dibangun 9 Sep) --
-        // keputusan komando 10 Sep (Fable), mengikuti desain engine yang sudah ada,
-        // bukan desain baru. Laporan GET consignment/report tetap menghitung dari
-        // StockMovement, jadi angkanya konsisten dengan baris kas ini.
+        // HPP diakui bersamaan dengan pendapatan (Dr 5-1100 / Cr 1-1400), satu
+        // jurnal per penjualan supaya mudah ditelusuri dari dokumen kas.
+        cogsTotal = Math.round((cogsTotal + Number.EPSILON) * 100) / 100;
+        if (cogsTotal > 0) {
+          await postInventoryJournalInTx(tx, {
+            workspaceId,
+            userId: auth.user.id,
+            sourceId: cashTransaction.id,
+            amount: cogsTotal,
+            description: `HPP penjualan (${cogsItems.length} baris barang)`,
+            direction: 'COGS',
+            entryDate: transactionDate,
+          });
+        }
+
+        // Produk TITIP JUAL (ownershipType CONSIGNED): uang dari pembeli masuk penuh
+        // ke kas (INCOME di atas), tetapi harga pokoknya (costPrice x qty) BUKAN
+        // pengurang kas -- itu utang ke supplier yang baru timbul saat barang laku.
+        // Karena itu yang dibuat adalah ScheduledObligation (PENDING), bukan baris
+        // kas: kas baru berkurang saat utangnya dibayar lewat alur kewajiban biasa.
+        // Jurnalnya Dr HPP / Cr Utang Usaha, sehingga laba sudah benar tanpa
+        // mengorbankan saldo kas.
         let consignmentLiabilityAmount = 0;
         let consignmentItemCount = 0;
+        const consignmentObligationIds: string[] = [];
         for (const item of items) {
           const product = productMap.get(item.productId)!;
           if (!isConsignedProduct(product.ownershipType)) continue;
@@ -202,17 +280,55 @@ export const POST = withTenantGuard(
             productName: product.name,
             qty: item.qty,
             costPrice: product.costPrice,
-            paymentMethod,
+            supplierName: product.supplierName,
+            dueDate: transactionDate,
             sourceType: 'SALE',
             sourceId: cashTransaction.id,
           });
           if ('error' in plan) throw new Error(plan.error);
-          await tx.cashTransaction.create({ data: plan.cashTransaction });
-          consignmentLiabilityAmount += plan.cashTransaction.amount;
+
+          const obligation = await tx.scheduledObligation.create({
+            data: {
+              workspaceId,
+              name: plan.obligation.name,
+              dueDate: plan.obligation.dueDate,
+              amount: plan.obligation.amount,
+              category: plan.obligation.category,
+              status: 'PENDING',
+            },
+          });
+
+          // Modul akuntansi mungkin aktif di workspace yang dibuat sebelum
+          // kategori "HPP Konsinyasi" ada. Pastikan pemetaannya (fallback ke
+          // 5-1100) supaya penjualan tidak gagal hanya karena pemetaan.
+          await ensureCategoryMappingInTx(tx, {
+            workspaceId,
+            category: plan.obligation.category,
+            type: AccountType.EXPENSE,
+            fallbackAccountCode: '5-1100',
+          });
+
+          await postObligationIssuedInTx(tx, {
+            workspaceId,
+            userId: auth.user.id,
+            obligation,
+            entryDate: transactionDate,
+          });
+
+          consignmentLiabilityAmount += plan.obligation.amount;
           consignmentItemCount += 1;
+          consignmentObligationIds.push(obligation.id);
         }
 
-        return { cashTransaction, saleItems, consignmentLiabilityAmount, consignmentItemCount };
+        return {
+          cashTransaction,
+          saleItems,
+          cogsTotal,
+          cogsItems,
+          consignmentLiabilityAmount,
+          consignmentItemCount,
+          consignmentObligationIds,
+        };
       });
 
       // AI Brain cache workspace ini sekarang basi (stok & kas berubah) --
@@ -231,10 +347,16 @@ export const POST = withTenantGuard(
             totalAmount,
             itemCount,
             items: result.saleItems,
+            // HPP rata-rata bergerak untuk barang milik sendiri (0 untuk jasa /
+            // barang titip jual). Dipakai UI & pengujian untuk mencocokkan jurnal.
+            cogs: { total: result.cogsTotal, items: result.cogsItems },
             // Nol kalau tidak ada produk titip jual di penjualan ini.
             consignmentLiability: {
               amount: result.consignmentLiabilityAmount,
               itemCount: result.consignmentItemCount,
+              // Id kewajiban (utang usaha) yang dibuat; dipakai UI/laporan untuk
+              // menelusuri dan melunasi utang tersebut.
+              obligationIds: result.consignmentObligationIds,
             },
           },
         },

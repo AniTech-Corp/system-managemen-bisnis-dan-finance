@@ -16,6 +16,38 @@ import {
  */
 export async function GET(req: NextRequest) {
   try {
+    // Demo mode: bypass authentication, return demo user data
+    if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+      console.log('[DEMO MODE] Bypassing authentication for auth/me endpoint');
+
+      const requestedWsId = req.headers.get('x-workspace-id') || req.nextUrl.searchParams.get('workspaceId');
+      const workspaceId = requestedWsId || process.env.NEXT_PUBLIC_DEMO_WORKSPACE_ID || 'a1000000-0000-0000-0000-000000000001';
+
+      return NextResponse.json({
+        user: {
+          id: 'demo-user-id',
+          email: 'demo@klir.ai',
+          fullName: 'Demo User',
+          avatarUrl: null,
+        },
+        activeWorkspace: {
+          id: workspaceId,
+          name: 'Demo Workspace',
+          slug: 'demo-workspace',
+          ownerId: 'demo-user-id',
+        },
+        workspaces: [
+          {
+            id: workspaceId,
+            name: 'Demo Workspace',
+            slug: 'demo-workspace',
+            ownerId: 'demo-user-id',
+          },
+        ],
+        tokens: { accessToken: 'demo-token', tokenType: 'Bearer' },
+      });
+    }
+    
     const accessToken = extractTokenFromRequest(req) || req.cookies.get(ACCESS_TOKEN_COOKIE)?.value || null;
     const payload = accessToken ? verifyJwtToken(accessToken) : null;
 

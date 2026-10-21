@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { StockMovementType } from '@prisma/client';
 import { invalidateContextCache } from '@/lib/ai-brain';
+import { postInventoryJournalInTx } from '@/lib/accounting/posting';
+import { applyIncomingStock, applyOutgoingStock, averageUnitCost, isInventoryValued } from '@/lib/accounting/inventory';
 
 // KLIR Inventory -- Penyesuaian stok manual (10 Sep 2026, agent api-stock-ops, F3
 // kontrak Tingkat B). Beda dari purchase-orders/returns: penyesuaian TIDAK
@@ -50,7 +52,14 @@ export const POST = withTenantGuard(
         // ikut ke-ubah padahal yang mencatat penyesuaian workspace ini.
         const product = await tx.product.findFirst({
           where: { id: productId, workspaceId },
-          select: { id: true, name: true, currentStock: true },
+          select: {
+            id: true,
+            name: true,
+            currentStock: true,
+            costPrice: true,
+            inventoryValue: true,
+            ownershipType: true,
+          },
         });
         if (!product) {
           throw new Error('Produk tidak ditemukan atau bukan milik workspace ini.');
@@ -66,6 +75,26 @@ export const POST = withTenantGuard(
           );
         }
 
+        // Nilai buku ikut disesuaikan memakai rata-rata saat ini, lalu dijurnal
+        // ke "Selisih Persediaan" supaya saldo 1-1400 tetap cocok dengan kartu stok.
+        const valued = isInventoryValued(product.ownershipType);
+        const state = { qtyOnHand: product.currentStock, value: product.inventoryValue };
+        let nextValue = product.inventoryValue;
+        let journalAmount = 0;
+        let unitCost: number | null = null;
+        if (valued) {
+          if (isIncrease) {
+            const next = applyIncomingStock(state, qtyChange, averageUnitCost(state));
+            nextValue = next.value;
+            journalAmount = Math.round((next.value - state.value + Number.EPSILON) * 100) / 100;
+          } else {
+            const issue = applyOutgoingStock(state, Math.abs(qtyChange));
+            nextValue = issue.remainingValue;
+            journalAmount = issue.amount;
+            unitCost = issue.unitCost;
+          }
+        }
+
         const movement = await tx.stockMovement.create({
           data: {
             workspaceId,
@@ -73,6 +102,7 @@ export const POST = withTenantGuard(
             userId: auth.user.id,
             type: isIncrease ? StockMovementType.ADJUSTMENT_IN : StockMovementType.ADJUSTMENT_OUT,
             qtyChange,
+            unitCost,
             sourceType: 'manual_adjustment',
             note: note
               ? `Penyesuaian stok "${product.name}": ${reason} -- ${note}`
@@ -85,10 +115,24 @@ export const POST = withTenantGuard(
         // (bukan read-then-write), sama pola dengan purchase-orders/returns.
         const updatedProduct = await tx.product.update({
           where: { id: productId },
-          data: { currentStock: { increment: qtyChange } },
+          data: { currentStock: { increment: qtyChange }, inventoryValue: nextValue },
         });
 
-        return { movement, product: updatedProduct };
+        if (valued && journalAmount > 0) {
+          await postInventoryJournalInTx(tx, {
+            workspaceId,
+            userId: auth.user.id,
+            sourceId: movement.id,
+            amount: journalAmount,
+            description: isIncrease
+              ? `Selisih persediaan lebih: ${product.name} x${qtyChange} (${reason})`
+              : `Selisih persediaan kurang: ${product.name} x${Math.abs(qtyChange)} (${reason})`,
+            direction: isIncrease ? 'GAIN' : 'SHRINKAGE',
+            entryDate: new Date(),
+          });
+        }
+
+        return { movement, product: updatedProduct, journalAmount };
       });
 
       // AI Brain cache workspace ini sekarang basi (stok berubah) -- invalidate
@@ -108,6 +152,7 @@ export const POST = withTenantGuard(
             name: result.product.name,
             currentStock: result.product.currentStock,
           },
+          inventoryValueChange: result.journalAmount,
         },
         { status: 201 }
       );

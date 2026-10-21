@@ -81,7 +81,7 @@ export const PATCH = withTenantGuard(
       // tanpa cek ini, attacker bisa reklasifikasi produk workspace lain.
       const existing = await prisma.product.findFirst({
         where: { id: productId, workspaceId },
-        select: { id: true },
+        select: { id: true, currentStock: true, costPrice: true },
       });
       if (!existing) {
         return NextResponse.json(
@@ -90,9 +90,17 @@ export const PATCH = withTenantGuard(
         );
       }
 
+      // Barang titip jual bukan milik toko -> nilai bukunya 0. Kalau dikembalikan
+      // ke OWNED, nilai buku disetel ulang ke stok x harga pokok (selisih dengan
+      // akun 1-1400 akan muncul di laporan, jadi tidak ada angka yang hilang diam-diam).
+      const inventoryValue =
+        ownershipType === OWNERSHIP_TYPE_CONSIGNED
+          ? 0
+          : Number(existing.currentStock ?? 0) * Number(existing.costPrice ?? 0);
+
       const updateResult = await prisma.product.updateMany({
         where: { id: productId, workspaceId },
-        data: { ownershipType },
+        data: { ownershipType, inventoryValue },
       });
       if (updateResult.count !== 1) {
         return NextResponse.json(

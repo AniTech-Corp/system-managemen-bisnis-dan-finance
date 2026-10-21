@@ -40,10 +40,19 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
-
 import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
+import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
 import ModernAICopilotView from './ModernAICopilotView';
+import AccountingTab from '../finance/accounting/AccountingTab';
+
+const Chart = dynamic(() => import('react-apexcharts'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[310px] w-full items-center justify-center rounded-lg bg-slate-50">
+      <div className="text-sm text-slate-400">Memuat grafik arus kas...</div>
+    </div>
+  ),
+});
 
 interface FinanceDashboardProps {
   workspaceId: string;
@@ -72,7 +81,7 @@ export default function FinanceDashboard({
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab');
-      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'ai-lead'].includes(tabParam)) {
+      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'ai-lead'].includes(tabParam)) {
         setActiveNav(tabParam);
       }
     }
@@ -90,6 +99,11 @@ export default function FinanceDashboard({
   const [txCategory, setTxCategory] = useState<string>('Penjualan');
   const [txDesc, setTxDesc] = useState<string>('');
   const [txBank, setTxBank] = useState<string>('BCA Operasional');
+  // Divisi pemakai dana. Kosong = "Tanpa Divisi" (data lama tetap sah).
+  // Melekat pada pengeluaran sebagai `JournalLine.costCenter`, sehingga
+  // realisasi anggaran per divisi dihitung dari jurnal yang sama dengan
+  // Laba Rugi. Lihat src/lib/accounting/budget-divisions.ts.
+  const [txDivision, setTxDivision] = useState<string>('');
   const [txSaving, setTxSaving] = useState<boolean>(false);
 
   // Form states for Buat Faktur Baru
@@ -196,6 +210,7 @@ export default function FinanceDashboard({
           description: txDesc,
           transactionDate: new Date().toISOString(),
           paymentMethod: txBank,
+          division: txDivision || null,
         }),
       });
 
@@ -211,6 +226,7 @@ export default function FinanceDashboard({
       setNewTxModalOpen(false);
       setTxAmount('');
       setTxDesc('');
+      setTxDivision('');
     } catch (err) {
       console.warn('Gagal menyimpan transaksi:', err);
     } finally {
@@ -475,6 +491,10 @@ export default function FinanceDashboard({
     { id: 'obligations', label: 'Kewajiban & Hutang (AP)', icon: Clock },
     { id: 'reconciliation', label: 'Rekonsiliasi Bank', icon: Building2 },
     { id: 'tax', label: 'Pajak UMKM PP 55', icon: ShieldCheck },
+    // Modul Laporan Keuangan (double-entry). Terpisah dari "Buku Kas" karena
+    // Buku Kas menampilkan arus kas mentah, sedangkan di sini semua angka
+    // berasal dari jurnal yang sudah diposting.
+    { id: 'laporan', label: 'Laporan Keuangan', icon: Layers },
   ];
 
   return (
@@ -603,6 +623,7 @@ export default function FinanceDashboard({
               {activeNav === 'obligations' && 'Kewajiban & Hutang (AP)'}
               {activeNav === 'reconciliation' && 'Rekonsiliasi Mutasi Bank'}
               {activeNav === 'tax' && 'Pajak UMKM PP 55/2022'}
+              {activeNav === 'laporan' && 'Laporan Keuangan (Double-Entry)'}
               {activeNav === 'ai-lead' && 'AI Finance Lead Specialist'}
             </h1>
 
@@ -1406,7 +1427,14 @@ export default function FinanceDashboard({
           </main>
         )}
 
-        {/* 🤖 TAB 7: AI FINANCE LEAD ASSISTANT */}
+        {/* 📊 TAB 7: LAPORAN KEUANGAN (DOUBLE-ENTRY) */}
+        {activeNav === 'laporan' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
+            <AccountingTab workspaceId={workspaceId} />
+          </main>
+        )}
+
+        {/* 🤖 TAB 8: AI FINANCE LEAD ASSISTANT */}
         {activeNav === 'ai-lead' && (
           <main className="flex-1 overflow-hidden flex flex-col h-[calc(100vh-56px)]">
             <ModernAICopilotView
@@ -1485,6 +1513,26 @@ export default function FinanceDashboard({
                   <option value="Marketing & Iklan">Marketing & Iklan</option>
                   <option value="Operasional Umum">Operasional Umum</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">Divisi:</label>
+                <select
+                  value={txDivision}
+                  onChange={(e) => setTxDivision(e.target.value)}
+                  title="Dipakai untuk mengukur realisasi anggaran per divisi. Kosongkan bila pengeluaran tidak terkait divisi tertentu."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-900 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Tanpa Divisi</option>
+                  {DIVISIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {divisionLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Pengeluaran tanpa divisi tetap tercatat, hanya tidak dihitung ke anggaran sebuah divisi.
+                </p>
               </div>
 
               <div>

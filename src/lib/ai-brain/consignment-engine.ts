@@ -9,9 +9,10 @@
  *      di valuasi stok pemilik (beda sumber kebenaran dari CompanyHealthScore --
  *      breakdown 35/30/20/15 di sana TIDAK disentuh sama sekali oleh modul ini).
  *   2. Begitu barang CONSIGNED laku (StockMovement SALE_OUT), toko baru berutang
- *      ke supplier sebesar qty x costPrice -- itu dicatat sebagai CashTransaction
- *      kategori "Kewajiban Konsinyasi" (EXPENSE, karena dari sudut pandang toko itu
- *      kewajiban/utang yang harus dibayar ke supplier, bukan pendapatan toko).
+ *      ke supplier sebesar qty x costPrice. Utang itu dicatat sebagai
+ *      ScheduledObligation (status PENDING) dengan jurnal Dr HPP / Cr Utang Usaha.
+ *      TIDAK ada kas yang keluar saat barang laku -- kas baru keluar ketika utang
+ *      itu dibayar lewat alur "bayar kewajiban" yang sudah ada.
  *
  * SENGAJA Prisma-free (murni fungsi transformasi), sama filosofi dengan
  * bank-reconciliation.ts dan hpp-calculator.ts di folder ini -- supaya bisa dites
@@ -24,7 +25,7 @@
  * (PurchaseOrder + StockMovement + Product.currentStock + CashTransaction sekaligus):
  *   - StockMovement (type SALE_OUT, qtyChange negatif)
  *   - Product.currentStock (atomic decrement)
- *   - CashTransaction (EXPENSE, kategori Kewajiban Konsinyasi)
+ *   - ScheduledObligation (utang usaha ke supplier, belum dibayar)
  * Pemanggil (route.ts masa depan) yang bertanggung jawab membungkus 3 hasil ini
  * dalam prisma.$transaction(async (tx) => {...}) persis pola purchase-orders,
  * modul ini TIDAK menyentuh prisma sama sekali.
@@ -35,10 +36,15 @@ export const OWNERSHIP_TYPE_CONSIGNED = 'CONSIGNED' as const;
 
 export type OwnershipType = typeof OWNERSHIP_TYPE_OWNED | typeof OWNERSHIP_TYPE_CONSIGNED;
 
-/** Kategori CashTransaction baku untuk kewajiban konsinyasi -- dipakai SATU tempat
- *  ini sebagai sumber kebenaran (route.ts & test WAJIB import konstanta ini, bukan
- *  ketik ulang string-nya, supaya tidak ada 2 ejaan berbeda yang divergen diam-diam). */
-export const CONSIGNMENT_LIABILITY_CATEGORY = 'Kewajiban Konsinyasi';
+/**
+ * Kategori beban baku untuk penjualan konsinyasi. Dipakai SATU tempat ini sebagai
+ * sumber kebenaran (route.ts & test WAJIB import konstanta ini, bukan ketik ulang
+ * string-nya, supaya tidak ada 2 ejaan berbeda yang divergen diam-diam).
+ *
+ * Kategori ini dipetakan ke akun HPP (5-1100): barang titip yang laku memang
+ * menjadi harga pokok penjualan, dan lawannya Utang Usaha (2-1100).
+ */
+export const CONSIGNMENT_EXPENSE_CATEGORY = 'HPP Konsinyasi';
 
 /** Cek apakah sebuah nilai ownershipType valid ("OWNED" atau "CONSIGNED" persis --
  *  string bebas bukan enum Prisma, konsisten pola "unit" di schema, jadi validasi
@@ -118,7 +124,10 @@ export interface ConsignmentSaleInput {
   /** costPrice Product saat ini -- itu yang jadi utang ke supplier, BUKAN sellPrice
    *  (sellPrice adalah harga jual ke pembeli akhir, bukan urusan kewajiban ke supplier). */
   costPrice: number;
-  paymentMethod?: string;
+  /** Nama supplier (Product.supplierName) untuk judul kewajiban. */
+  supplierName?: string | null;
+  /** Jatuh tempo pembayaran ke supplier. Default: saat penjualan (jatuh tempo langsung). */
+  dueDate?: Date;
   /** Soft-reference opsional ke record pemicu (mis. sale/POS line item), meniru
    *  pola StockMovement.sourceType/sourceId yang sudah ada di schema. */
   sourceType?: string | null;
@@ -138,20 +147,23 @@ export interface ConsignmentSalePlan {
     note: string;
   };
   productDecrement: { productId: string; qty: number };
-  cashTransaction: {
+  /**
+   * Utang ke supplier. Pemanggil WAJIB menyimpan ini sebagai ScheduledObligation
+   * lalu memanggil `postObligationIssuedInTx()` supaya jurnal Dr HPP / Cr Utang
+   * Usaha terbentuk. Jangan membuat baris kas di sini: uang belum keluar.
+   */
+  obligation: {
     workspaceId: string;
-    userId: string | null;
-    type: 'EXPENSE';
-    category: string;
+    name: string;
+    dueDate: Date;
     amount: number;
-    description: string;
-    paymentMethod: string;
+    category: string;
   };
 }
 
 /**
  * Susun "rencana" 3 tulisan atomik (StockMovement SALE_OUT + Product decrement +
- * CashTransaction Kewajiban Konsinyasi) untuk satu penjualan produk konsinyasi.
+ * ScheduledObligation utang usaha) untuk satu penjualan produk konsinyasi.
  * Pemanggil WAJIB cek `isConsignedProduct()` dulu SEBELUM manggil fungsi ini --
  * fungsi ini sendiri tidak menolak produk OWNED (bukan tanggung jawabnya menebak
  * status produk, cuma menyusun angka dari qty+costPrice yang dikasih).
@@ -175,7 +187,8 @@ export function planConsignmentSaleLiability(
 
   const amount = input.qty * input.costPrice;
   const userId = input.userId ?? null;
-  const paymentMethod = input.paymentMethod ?? 'TRANSFER_BANK';
+  const supplier = input.supplierName?.trim();
+  const name = `Konsinyasi ${input.productName} x${input.qty}${supplier ? ` — ${supplier}` : ''}`.slice(0, 150);
 
   return {
     stockMovement: {
@@ -190,14 +203,12 @@ export function planConsignmentSaleLiability(
       note: `Penjualan konsinyasi: ${input.productName} x${input.qty}`,
     },
     productDecrement: { productId: input.productId, qty: input.qty },
-    cashTransaction: {
+    obligation: {
       workspaceId: input.workspaceId,
-      userId,
-      type: 'EXPENSE',
-      category: CONSIGNMENT_LIABILITY_CATEGORY,
+      name,
+      dueDate: input.dueDate ?? new Date(),
       amount,
-      description: `Kewajiban konsinyasi ke supplier: ${input.productName} x${input.qty} terjual (belum dibayar)`,
-      paymentMethod,
+      category: CONSIGNMENT_EXPENSE_CATEGORY,
     },
   };
 }

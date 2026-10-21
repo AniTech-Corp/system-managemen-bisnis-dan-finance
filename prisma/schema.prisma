@@ -34,6 +34,8 @@ model User {
   stockMovements   StockMovement[]
   purchaseOrders   PurchaseOrder[]
 
+  userBackups      Backup[]         @relation("UserBackups")
+  userAuditLogs    AuditLog[]       @relation("UserAuditLogs")
   @@map("users")
 }
 
@@ -60,9 +62,9 @@ model Workspace {
   updatedAt      DateTime @updatedAt @map("updated_at")
   enabledModules String[] @default(["corplan", "personal", "finance", "advertising", "workspace", "schedule", "inventory"]) @map("enabled_modules")
 
-  industry             String?               @db.VarChar(100)
-  targetMarket         String?               @map("target_market") @db.VarChar(150)
-  businessModel        String?               @map("business_model") @db.VarChar(100)
+  industry      String? @db.VarChar(100)
+  targetMarket  String? @map("target_market") @db.VarChar(150)
+  businessModel String? @map("business_model") @db.VarChar(100)
 
   owner                User                  @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members              WorkspaceMember[]
@@ -79,6 +81,8 @@ model Workspace {
   promoCoupons         PromoCoupon[]
   campaigns            Campaign[]
   scheduledObligations ScheduledObligation[]
+  budgets              Budget[]
+  budgetAlerts         BudgetAlert[]
   workspaceFiles       WorkspaceFile[]
   ingestLogs           IngestLog[]
   contentCalendars     ContentCalendar[]
@@ -98,6 +102,21 @@ model Workspace {
   productBatches       ProductBatch[]
   customers            Customer[]
 
+  // Additive 19 Okt 2026 -- Modul Laporan Keuangan (double-entry).
+  // Tabel baru murni tambahan; CashTransaction tetap ada sebagai dokumen sumber.
+  accounts            Account[]
+  cashAccounts        CashAccount[]
+  partners            Partner[]
+  fiscalPeriods       FiscalPeriod[]
+  journalEntries      JournalEntry[]
+  journalLines        JournalLine[]
+  accountingSetting   AccountingSetting?
+  categoryAccountMaps CategoryAccountMap[]
+  documentSequences   DocumentSequence[]
+  paymentAllocations  PaymentAllocation[]
+
+  auditLogs    AuditLog[]       @relation("WorkspaceAuditLogs")
+  backups      Backup[]         @relation("WorkspaceBackups")
   @@map("workspaces")
 }
 
@@ -239,13 +258,12 @@ model Project {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creator         User             @relation("ProjectCreator", fields: [createdBy], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator   User      @relation("ProjectCreator", fields: [createdBy], references: [id])
 
   @@index([workspaceId])
   @@map("projects")
 }
-
 
 enum MemoryScope {
   PERSONAL
@@ -306,31 +324,59 @@ enum TransactionType {
 }
 
 model CashTransaction {
-  id              String          @id @default(uuid()) @db.Uuid
-  workspaceId     String          @map("workspace_id") @db.Uuid
-  userId          String?         @map("user_id") @db.Uuid
-  sourceFileId    String?         @map("source_file_id") @db.Uuid
-  type            TransactionType
-  category        String          @db.VarChar(100)
-  amount          Float
-  description     String
-  transactionDate DateTime        @default(now()) @map("transaction_date")
-  paymentMethod   String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
-  receiptUrl      String?         @map("receipt_url")
-  createdAt       DateTime        @default(now()) @map("created_at")
+  id                  String          @id @default(uuid()) @db.Uuid
+  workspaceId         String          @map("workspace_id") @db.Uuid
+  userId              String?         @map("user_id") @db.Uuid
+  sourceFileId        String?         @map("source_file_id") @db.Uuid
+  // Faktur yang dilunasi transaksi ini (kalau ada). Dipakai jurnal otomatis untuk
+  // memilih akun lawan: pelunasan faktur mengurangi PIUTANG, bukan menambah
+  // pendapatan lagi -- kalau tidak, pendapatan faktur terhitung dua kali.
+  invoiceId           String?         @map("invoice_id") @db.Uuid
+  // Kewajiban yang dibayar transaksi ini (kalau ada). Jurnalnya melunasi UTANG,
+  // bukan menambah beban lagi -- bebannya sudah diakui saat kewajiban dicatat.
+  obligationId        String?         @map("obligation_id") @db.Uuid
+  // Slip gaji yang dibayar transaksi ini (kalau ada). Sama seperti kewajiban:
+  // bebannya sudah diakui saat slip dibuat, jadi pembayaran hanya melunasi utang.
+  payrollId           String?         @map("payroll_id") @db.Uuid
+  // Kalau diisi, baris kas ini MELUNASI liabilitas tersebut (mis. setor PPh 21
+  // ke 2-1320 atau BPJS ke 2-1340), bukan menambah beban baru.
+  settlementAccountId String?         @map("settlement_account_id") @db.Uuid
+  type                TransactionType
+  category            String          @db.VarChar(100)
+  amount              Float
+  description         String
+  transactionDate     DateTime        @default(now()) @map("transaction_date")
+  paymentMethod       String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
+  receiptUrl          String?         @map("receipt_url")
+  /// Divisi yang memakai dana ini. Nullable: kosong = "Tanpa Divisi" (data lama
+  /// dan transaksi yang memang tidak terkait divisi). Ikut turun ke
+  /// `JournalLine.costCenter` supaya realisasi per divisi berasal dari jurnal.
+  division            String?         @db.VarChar(30)
+  createdAt           DateTime        @default(now()) @map("created_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace          Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invoice            Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  obligation         ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
+  payroll            EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
+  settlementAccount  Account?             @relation("CashSettlementAccount", fields: [settlementAccountId], references: [id], onDelete: SetNull)
+  paymentAllocations PaymentAllocation[]  @relation("CashAllocations")
 
   @@index([workspaceId, type])
   @@index([workspaceId, transactionDate])
   @@index([workspaceId, sourceFileId])
+  @@index([workspaceId, invoiceId])
+  @@index([workspaceId, obligationId])
+  @@index([workspaceId, payrollId])
+  @@index([workspaceId, settlementAccountId])
   @@map("cash_transactions")
 }
 
 enum InvoiceStatus {
   DRAFT
   UNPAID
+  // Sudah dibayar sebagian (Fase 3.2). Sisa tagihan = totalAmount - paidAmount.
+  PARTIAL
   PAID
   CANCELLED
   OVERDUE
@@ -349,6 +395,11 @@ model Invoice {
   taxAmount      Float         @default(0) @map("tax_amount")
   totalAmount    Float         @map("total_amount")
   status         InvoiceStatus @default(UNPAID)
+  // Total pelunasan yang sudah dialokasikan (Fase 3.2). Sisa = totalAmount - paidAmount.
+  paidAmount     Float         @default(0) @map("paid_amount")
+  // Tanggal bisnis faktur (dasar pengakuan pendapatan pada basis akrual).
+  // Terpisah dari createdAt supaya staf keuangan bisa mencatat faktur bulan lalu.
+  issueDate      DateTime      @default(now()) @map("issue_date")
   dueDate        DateTime      @map("due_date")
   paidAt         DateTime?     @map("paid_at")
   items          Json          @db.JsonB
@@ -358,8 +409,12 @@ model Invoice {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // Pelunasan faktur (kalau modul laporan keuangan aktif).
+  cashTransactions   CashTransaction[]
+  // Alokasi pembayaran per baris kas (pembayaran sebagian & split).
+  paymentAllocations PaymentAllocation[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, dueDate])
@@ -432,24 +487,60 @@ model Campaign {
 // untuk KEWAJIBAN (uang keluar terjadwal) -- konsep beda, tabel terpisah.
 enum ObligationStatus {
   PENDING
+  // Sudah dibayar sebagian (Fase 3.2). Sisa utang = amount - paidAmount.
+  PARTIAL
   PAID
   CANCELLED
 }
 
 model ScheduledObligation {
-  id          String           @id @default(uuid()) @db.Uuid
-  workspaceId String           @map("workspace_id") @db.Uuid
-  name        String           @db.VarChar(150)
-  dueDate     DateTime         @map("due_date")
-  amount      Float
-  status      ObligationStatus @default(PENDING)
-  category    String?          @db.VarChar(100)
-  createdAt   DateTime         @default(now()) @map("created_at")
+  id            String           @id @default(uuid()) @db.Uuid
+  workspaceId   String           @map("workspace_id") @db.Uuid
+  name          String           @db.VarChar(150)
+  dueDate       DateTime         @map("due_date")
+  amount        Float
+  // Total pelunasan yang sudah dialokasikan (Fase 3.2). Sisa = amount - paidAmount.
+  paidAmount    Float            @default(0) @map("paid_amount")
+  status        ObligationStatus @default(PENDING)
+  category      String?          @db.VarChar(100)
+  // Tanggal & metode pembayaran saat kewajiban dilunasi.
+  paidAt        DateTime?        @map("paid_at")
+  paymentMethod String?          @map("payment_method") @db.VarChar(50)
+  createdAt     DateTime         @default(now()) @map("created_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTransactions   CashTransaction[]
+  paymentAllocations PaymentAllocation[]
 
   @@index([workspaceId, dueDate])
+  @@index([workspaceId, status])
   @@map("scheduled_obligations")
+}
+
+// Additive Fase 3.2 -- Pembayaran sebagian & alokasi dokumen.
+// Satu baris kas bisa dialokasikan ke beberapa faktur/kewajiban (split payment),
+// dan satu dokumen bisa menerima banyak pembayaran. `Invoice.paidAmount` /
+// `ScheduledObligation.paidAmount` adalah ringkasan dari tabel ini.
+model PaymentAllocation {
+  id              String   @id @default(uuid()) @db.Uuid
+  workspaceId     String   @map("workspace_id") @db.Uuid
+  cashTxId        String   @map("cash_tx_id") @db.Uuid
+  invoiceId       String?  @map("invoice_id") @db.Uuid
+  obligationId    String?  @map("obligation_id") @db.Uuid
+  amount          Decimal  @db.Decimal(18, 2)
+  // Tanggal bisnis alokasi, dipakai laporan umur agar sisa tagihan tepat per tanggal.
+  transactionDate DateTime @map("transaction_date")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  workspace  Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTx     CashTransaction      @relation("CashAllocations", fields: [cashTxId], references: [id], onDelete: Cascade)
+  invoice    Invoice?             @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  obligation ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, invoiceId])
+  @@index([workspaceId, obligationId])
+  @@index([workspaceId, cashTxId])
+  @@map("payment_allocations")
 }
 
 // Roadmap 7 Sep, item 4.2/4.1 -- fondasi penyimpanan file (Pusat/Hub Upload Data,
@@ -629,21 +720,30 @@ model AttendanceRecord {
 }
 
 model EmployeePayroll {
-  id           String    @id @default(uuid()) @db.Uuid
-  workspaceId  String    @map("workspace_id") @db.Uuid
-  employeeName String    @map("employee_name") @db.VarChar(100)
-  role         String    @default("Staf Operasional") @db.VarChar(100)
-  basicSalary  Float     @map("basic_salary")
-  allowance    Float     @default(0)
-  overtime     Float     @default(0)
-  deductions   Float     @default(0)
-  netSalary    Float     @map("net_salary")
-  monthYear    String    @map("month_year") @db.VarChar(50)
-  isPaid       Boolean   @default(false) @map("is_paid")
-  paidAt       DateTime? @map("paid_at")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  workspaceId     String    @map("workspace_id") @db.Uuid
+  employeeName    String    @map("employee_name") @db.VarChar(100)
+  role            String    @default("Staf Operasional") @db.VarChar(100)
+  basicSalary     Float     @map("basic_salary")
+  allowance       Float     @default(0)
+  overtime        Float     @default(0)
+  // `deductions` = TOTAL potongan karyawan (pph21 + bpjsEmployee + other),
+  // dipertahankan agar data & tampilan lama tetap konsisten.
+  deductions      Float     @default(0)
+  // Rincian potongan (Fase 3.3). PPh 21 & BPJS diinput manual dari aplikasi
+  // payroll resmi -- sistem tidak menghitung tarif pajak.
+  pph21           Float     @default(0)
+  bpjsEmployee    Float     @default(0) @map("bpjs_employee")
+  bpjsEmployer    Float     @default(0) @map("bpjs_employer")
+  otherDeductions Float     @default(0) @map("other_deductions")
+  netSalary       Float     @map("net_salary")
+  monthYear       String    @map("month_year") @db.VarChar(50)
+  isPaid          Boolean   @default(false) @map("is_paid")
+  paidAt          DateTime? @map("paid_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cashTransactions CashTransaction[]
 
   @@index([workspaceId, monthYear])
   @@map("employee_payrolls")
@@ -716,37 +816,42 @@ model QueueTicket {
 // database produksi MASIH menunggu izin eksplisit Mecca (lihat 6 pertanyaan
 // arsitektural BUILD_PLAN), belum dijalankan oleh agent penulis skema ini.
 model Product {
-  id            String   @id @default(uuid()) @db.Uuid
-  workspaceId   String   @map("workspace_id") @db.Uuid
-  sourceFileId  String?  @map("source_file_id") @db.Uuid
-  sku           String?  @db.VarChar(100)
-  name          String   @db.VarChar(255)
-  category      String?  @db.VarChar(100)
-  unit          String   @default("pcs") @db.VarChar(50)
+  id             String   @id @default(uuid()) @db.Uuid
+  workspaceId    String   @map("workspace_id") @db.Uuid
+  sourceFileId   String?  @map("source_file_id") @db.Uuid
+  sku            String?  @db.VarChar(100)
+  name           String   @db.VarChar(255)
+  category       String?  @db.VarChar(100)
+  unit           String   @default("pcs") @db.VarChar(50)
   // "OWNED" (beli putus, default) atau "CONSIGNED" (titip jual, belum dibayar ke supplier
   // sampai laku). String bebas bukan enum, konsisten pola "unit" di atas.
-  ownershipType String   @default("OWNED") @map("ownership_type") @db.VarChar(20)
-  costPrice     Float    @default(0) @map("cost_price")
-  sellPrice     Float    @default(0) @map("sell_price")
-  currentStock  Float    @default(0) @map("current_stock")
-  minStock      Float    @default(0) @map("min_stock")
-  imageUrl      String?  @map("image_url") @db.Text
-  isActive      Boolean  @default(true) @map("is_active")
+  ownershipType  String   @default("OWNED") @map("ownership_type") @db.VarChar(20)
+  costPrice      Float    @default(0) @map("cost_price")
+  sellPrice      Float    @default(0) @map("sell_price")
+  currentStock   Float    @default(0) @map("current_stock")
+  // Nilai persediaan menurut buku (rata-rata bergerak) -- SATU-satunya angka
+  // yang dipakai laporan "Nilai Persediaan" untuk dicocokkan dengan saldo akun
+  // 1-1400. Diperbarui di alur yang sama dengan currentStock supaya nilai buku
+  // tidak pernah berbeda dari kartu stok karena pembulatan.
+  inventoryValue Float    @default(0) @map("inventory_value")
+  minStock       Float    @default(0) @map("min_stock")
+  imageUrl       String?  @map("image_url") @db.Text
+  isActive       Boolean  @default(true) @map("is_active")
   // Additive 10 Sep 2026 (Fable) -- kontrak inventory-api-schema, kontrak Distributor
   // F3b/F4. packSize/packUnit = konversi satuan dus/pcs (2026-09-10-scan-kebutuhan-
   // data-modul-7.md bagian 3.1). packSize default 1 supaya produk lama otomatis
   // "1 pack = 1 unit" (perilaku lama tidak berubah). packUnit nullable (kosong = produk
   // tidak pakai konsep pack, dijual satuan langsung). unit (kolom lama di atas) TETAP
   // jadi satuan jual/tampil, maknanya tidak berubah.
-  packSize      Int?     @default(1) @map("pack_size")
-  packUnit      String?  @map("pack_unit") @db.VarChar(50)
+  packSize       Int?     @default(1) @map("pack_size")
+  packUnit       String?  @map("pack_unit") @db.VarChar(50)
   // Soft-reference (bukan foreign key Prisma) ke SupplierScore.supplierName /
   // PurchaseOrder.supplierName -- meniru pola sourceType/sourceId di StockMovement/
   // StockReturn (match by string, bukan relasi formal). Nullable, dipakai laporan
   // konsinyasi untuk tahu titipan produk ini punya siapa (bagian 3.4 dokumen di atas).
-  supplierName  String?  @map("supplier_name") @db.VarChar(150)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  supplierName   String?  @map("supplier_name") @db.VarChar(150)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   stockMovements     StockMovement[]
@@ -960,4 +1065,398 @@ model Customer {
   @@index([workspaceId, area])
   @@index([workspaceId, name])
   @@map("customers")
+}
+
+// ============================================================================
+// MODUL LAPORAN KEUANGAN (DOUBLE-ENTRY)
+// Additive 19 Okt 2026. Semua nominal uang memakai Decimal(18,2) -- bukan Float --
+// supaya penjumlahan tidak terkena pembulatan biner. CashTransaction.amount yang
+// lama tetap Float (legacy) dan dikonversi di batas (lihat src/lib/accounting/money.ts).
+// Prinsip: seluruh laporan membaca journal_lines, TIDAK PERNAH cash_transactions.
+// ============================================================================
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum CashAccountType {
+  CASH
+  BANK
+}
+
+enum PartnerType {
+  CUSTOMER
+  SUPPLIER
+  BOTH
+}
+
+enum JournalSource {
+  MANUAL
+  CASH_TX
+  INVOICE
+  INVOICE_PAYMENT
+  OBLIGATION
+  OBLIGATION_PAYMENT
+  PAYROLL
+  OPENING
+  ADJUSTMENT
+  CLOSING
+  REVERSAL
+  // Jurnal persediaan: HPP saat penjualan, retur, dan penyesuaian stok.
+  INVENTORY
+}
+
+enum JournalStatus {
+  DRAFT
+  POSTED
+}
+
+enum PeriodStatus {
+  OPEN
+  CLOSING
+  CLOSED
+  LOCKED
+}
+
+enum TaxProfile {
+  UMKM_NON_PKP
+  UMKM_PKP
+  BADAN_NORMAL
+}
+
+model Account {
+  id            String        @id @default(uuid()) @db.Uuid
+  workspaceId   String        @map("workspace_id") @db.Uuid
+  code          String        @db.VarChar(20)
+  name          String        @db.VarChar(150)
+  type          AccountType
+  normalBalance NormalBalance @map("normal_balance")
+  parentId      String?       @map("parent_id") @db.Uuid
+  // Akun header (mis. "1-1000 Aset Lancar") tidak boleh dipakai di jurnal.
+  isPostable    Boolean       @default(true) @map("is_postable")
+  // Akun sistem tidak boleh dihapus karena dipakai logika auto-posting.
+  isSystem      Boolean       @default(false) @map("is_system")
+  isActive      Boolean       @default(true) @map("is_active")
+  description   String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  workspace       Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent          Account?             @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children        Account[]            @relation("AccountTree")
+  lines           JournalLine[]
+  cashAccounts    CashAccount[]
+  categoryMaps    CategoryAccountMap[]
+  budgets         Budget[]
+  budgetAlerts    BudgetAlert[]
+  cashSettlements CashTransaction[]    @relation("CashSettlementAccount")
+
+  @@unique([workspaceId, code])
+  @@index([workspaceId, type])
+  @@index([workspaceId, parentId])
+  @@map("accounts")
+}
+
+model CashAccount {
+  id            String          @id @default(uuid()) @db.Uuid
+  workspaceId   String          @map("workspace_id") @db.Uuid
+  code          String          @db.VarChar(20)
+  name          String          @db.VarChar(100)
+  type          CashAccountType
+  // Akun CoA tempat saldo rekening ini dicatat (mis. 1-1110 Kas).
+  accountId     String          @map("account_id") @db.Uuid
+  bankName      String?         @map("bank_name") @db.VarChar(100)
+  accountNumber String?         @map("account_number") @db.VarChar(50)
+  isActive      Boolean         @default(true) @map("is_active")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account       @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  lines     JournalLine[]
+
+  @@unique([workspaceId, code])
+  @@index([workspaceId, isActive])
+  @@map("cash_accounts")
+}
+
+model Partner {
+  id          String      @id @default(uuid()) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  name        String      @db.VarChar(150)
+  type        PartnerType @default(CUSTOMER)
+  email       String?     @db.VarChar(255)
+  phone       String?     @db.VarChar(50)
+  address     String?
+  npwp        String?     @db.VarChar(30)
+  isActive    Boolean     @default(true) @map("is_active")
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lines     JournalLine[]
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, name])
+  @@map("partners")
+}
+
+model FiscalPeriod {
+  id          String       @id @default(uuid()) @db.Uuid
+  workspaceId String       @map("workspace_id") @db.Uuid
+  year        Int
+  month       Int
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime     @map("end_date")
+  status      PeriodStatus @default(OPEN)
+  closedAt    DateTime?    @map("closed_at")
+  closedBy    String?      @map("closed_by") @db.Uuid
+  lockedAt    DateTime?    @map("locked_at")
+  lockedBy    String?      @map("locked_by") @db.Uuid
+
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries   JournalEntry[]
+
+  @@unique([workspaceId, year, month])
+  @@index([workspaceId, status])
+  @@map("fiscal_periods")
+}
+
+model JournalEntry {
+  id           String        @id @default(uuid()) @db.Uuid
+  workspaceId  String        @map("workspace_id") @db.Uuid
+  periodId     String        @map("period_id") @db.Uuid
+  entryNumber  String        @map("entry_number") @db.VarChar(30)
+  entryDate    DateTime      @map("entry_date")
+  description  String
+  source       JournalSource
+  // Dokumen sumber (CashTransaction.id, Invoice.id, dst). Null untuk MANUAL/OPENING.
+  sourceId     String?       @map("source_id") @db.Uuid
+  status       JournalStatus @default(DRAFT)
+  totalDebit   Decimal       @map("total_debit") @db.Decimal(18, 2)
+  totalCredit  Decimal       @map("total_credit") @db.Decimal(18, 2)
+  createdBy    String        @map("created_by") @db.Uuid
+  postedBy     String?       @map("posted_by") @db.Uuid
+  postedAt     DateTime?     @map("posted_at")
+  reversalOfId String?       @unique @map("reversal_of_id") @db.Uuid
+  reversedBy   String?       @map("reversed_by") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  workspace  Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  period     FiscalPeriod  @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  lines      JournalLine[]
+  reversalOf JournalEntry? @relation("JournalReversal", fields: [reversalOfId], references: [id], onDelete: SetNull)
+  reversed   JournalEntry? @relation("JournalReversal")
+
+  // Cegah jurnal dobel bila dokumen sumber diproses ulang.
+  // sourceId NULL (MANUAL/OPENING) boleh berulang -- perilaku default Postgres.
+  @@unique([workspaceId, source, sourceId])
+  @@unique([workspaceId, entryNumber])
+  @@index([workspaceId, entryDate])
+  @@index([workspaceId, status])
+  @@index([workspaceId, periodId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id            String  @id @default(uuid()) @db.Uuid
+  workspaceId   String  @map("workspace_id") @db.Uuid
+  entryId       String  @map("entry_id") @db.Uuid
+  lineNo        Int     @map("line_no")
+  accountId     String  @map("account_id") @db.Uuid
+  cashAccountId String? @map("cash_account_id") @db.Uuid
+  partnerId     String? @map("partner_id") @db.Uuid
+  description   String?
+  debit         Decimal @default(0) @db.Decimal(18, 2)
+  credit        Decimal @default(0) @db.Decimal(18, 2)
+  currency      String  @default("IDR") @db.VarChar(3)
+  exchangeRate  Decimal @default(1) @map("exchange_rate") @db.Decimal(18, 6)
+  costCenter    String? @map("cost_center") @db.VarChar(50)
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entry       JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  cashAccount CashAccount? @relation(fields: [cashAccountId], references: [id], onDelete: SetNull)
+  partner     Partner?     @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  @@unique([entryId, lineNo])
+  @@index([workspaceId, accountId])
+  @@index([workspaceId, partnerId])
+  @@index([workspaceId, cashAccountId])
+  @@map("journal_lines")
+}
+
+model AccountingSetting {
+  id                         String     @id @default(uuid()) @db.Uuid
+  workspaceId                String     @unique @map("workspace_id") @db.Uuid
+  isEnabled                  Boolean    @default(false) @map("is_enabled")
+  booksStartDate             DateTime?  @map("books_start_date")
+  taxProfile                 TaxProfile @default(UMKM_NON_PKP) @map("tax_profile")
+  entityType                 String     @default("BADAN_USAHA") @map("entity_type") @db.VarChar(30)
+  fiscalYearStartMonth       Int        @default(1) @map("fiscal_year_start_month")
+  retainedEarningsAccountId  String?    @map("retained_earnings_account_id") @db.Uuid
+  currentYearProfitAccountId String?    @map("current_year_profit_account_id") @db.Uuid
+  defaultCashAccountId       String?    @map("default_cash_account_id") @db.Uuid
+  // Akun pendapatan yang dipakai saat faktur (AR) diterbitkan. Faktur hanya
+  // menyimpan daftar item (nama/harga/qty) tanpa kategori akun, jadi owner
+  // memilih SATU akun pendapatan default di Pengaturan.
+  defaultRevenueAccountId    String?    @map("default_revenue_account_id") @db.Uuid
+  enablePpn                  Boolean    @default(false) @map("enable_ppn")
+  enableInventory            Boolean    @default(false) @map("enable_inventory")
+  createdAt                  DateTime   @default(now()) @map("created_at")
+  updatedAt                  DateTime   @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("accounting_settings")
+}
+
+model CategoryAccountMap {
+  id          String      @id @default(uuid()) @db.Uuid
+  workspaceId String      @map("workspace_id") @db.Uuid
+  category    String      @db.VarChar(100)
+  type        AccountType
+  accountId   String      @map("account_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([workspaceId, category, type])
+  @@map("category_account_maps")
+}
+
+/// Anggaran tahunan per akun pendapatan/beban, per divisi.
+///
+/// `fiscalYear` = tahun kalender saat tahun buku DIMULAI (Januari untuk tahun
+/// buku normal). `monthly` berisi 12 angka berurutan mulai dari bulan pertama
+/// tahun buku, sehingga tahun buku yang mulai April tetap punya 12 slot.
+///
+/// `division` memecah anggaran per divisi. Satu baris = (divisi, akun); TOTAL
+/// per divisi adalah JUMLAH barisnya, bukan entitas tersendiri. "Anggaran bebas"
+/// bukan konsep terpisah: alokasikan seluruh anggaran divisi ke satu akun beban
+/// umum. Nilai `PERUSAHAAN` dipakai baris lama (sebelum ada dimensi divisi) dan
+/// untuk anggaran yang memang sifatnya umum.
+///
+/// Anggaran murni rencana: tidak pernah membuat jurnal dan tidak memengaruhi
+/// laporan utama. Realisasi dihitung dari jurnal yang sama dengan Laba Rugi,
+/// disaring lewat `JournalLine.costCenter`.
+model Budget {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  fiscalYear  Int      @map("fiscal_year")
+  accountId   String   @map("account_id") @db.Uuid
+  /// Divisi pemilik anggaran. Non-null: baris lama otomatis `PERUSAHAAN`.
+  division    String   @default("PERUSAHAAN") @db.VarChar(30)
+  monthly     Json     @db.JsonB
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, fiscalYear, accountId, division])
+  @@index([workspaceId, fiscalYear])
+  @@index([workspaceId, fiscalYear, division])
+  @@map("budgets")
+}
+
+enum BudgetAlertLevel {
+  /// Realisasi mendekati batas (default 80% anggaran YTD).
+  WARNING
+  /// Realisasi melewati batas (100% anggaran YTD).
+  EXCEEDED
+}
+
+/// Peringatan anggaran: realisasi sebuah baris anggaran (divisi + akun) sudah
+/// menyentuh ambang batas pada bulan tertentu tahun buku berjalan.
+///
+/// Dibuat ulang (bukan ditumpuk) oleh `evaluateBudgetAlerts`, sehingga unique
+/// constraint di bawah sekaligus berfungsi sebagai mekanisme dedup -- evaluasi
+/// ulang yang berulang tidak pernah menghasilkan notifikasi ganda.
+///
+/// `accountId` sengaja NON-NULL (satu alert per baris anggaran). Kalau nullable,
+/// unique constraint tidak akan mencegah duplikat karena NULL tidak pernah sama
+/// dengan NULL di Postgres. Ringkasan per divisi dihitung di UI, bukan disimpan.
+model BudgetAlert {
+  id             String           @id @default(uuid()) @db.Uuid
+  workspaceId    String           @map("workspace_id") @db.Uuid
+  fiscalYear     Int              @map("fiscal_year")
+  /// Posisi bulan dalam tahun buku (0–11), konsisten dengan slot `monthly`.
+  monthIndex     Int              @map("month_index")
+  division       String           @db.VarChar(30)
+  accountId      String           @map("account_id") @db.Uuid
+  level          BudgetAlertLevel
+  budget         Decimal          @db.Decimal(18, 2)
+  actual         Decimal          @db.Decimal(18, 2)
+  triggeredAt    DateTime         @default(now()) @map("triggered_at")
+  acknowledgedAt DateTime?        @map("acknowledged_at")
+  acknowledgedBy String?          @map("acknowledged_by") @db.Uuid
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, fiscalYear, monthIndex, division, accountId, level])
+  @@index([workspaceId, fiscalYear, monthIndex])
+  @@index([workspaceId, acknowledgedAt])
+  @@map("budget_alerts")
+}
+
+model DocumentSequence {
+  id          String @id @default(uuid()) @db.Uuid
+  workspaceId String @map("workspace_id") @db.Uuid
+  key         String @db.VarChar(30)
+  nextNumber  Int    @default(1) @map("next_number")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, key])
+  @@map("document_sequences")
+}
+
+// Backup records for database/system backup operations.
+model Backup {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  backupType String   @map("backup_type")
+  data        Json
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id") @db.Uuid
+
+  workspaceBackrefs Workspace[]       @relation("WorkspaceBackups")
+  creator     User     @relation("UserBackups", fields: [createdById], references: [id])
+
+  @@index([workspaceId, createdAt])
+  @@map("backups")
+}
+
+// Audit log for tracking all system and accounting actions.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  action      String
+  entityType  String   @map("entity_type")
+  entityId    String?  @map("entity_id") @db.Uuid
+  changes     Json?
+  metadata    Json?
+  timestamp   DateTime @default(now()) @map("timestamp")
+
+  workspace Workspace @relation("WorkspaceAuditLogs", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserAuditLogs", fields: [userId], references: [id])
+
+  @@index([workspaceId, timestamp])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

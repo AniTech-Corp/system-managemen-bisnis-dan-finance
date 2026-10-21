@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { StockMovementType } from '@prisma/client';
+import { recordCashTransaction } from '@/lib/accounting/posting';
 import { executeAIRequest, analyzeImageWithGemini, validateRequestedModel, EFFORT_SETTINGS } from '@/lib/ai-gateway';
 import type { EffortLevel } from '@/lib/ai-gateway';
 // SETELAN JAWABAN composer (8 Sep 2026, wave B3-backend-chat) -- fallback pure sementara
@@ -1950,25 +1951,32 @@ Aturan:
             };
           });
 
-          const createdList = await prisma.$transaction((db) => Promise.all(
-            normalizedTransactions.map((tx: {
+          // Satu pintu: setiap baris kas dari AI juga dijurnal. Kategori yang
+          // belum dipetakan otomatis masuk akun "lain-lain" dan muncul di layar
+          // Pemetaan Kategori untuk dibetulkan.
+          const createdList = await prisma.$transaction(async (db) => {
+            const out = [];
+            for (const item of normalizedTransactions as Array<{
               type: 'INCOME' | 'EXPENSE';
               amount: number;
               category: string;
               description: string;
               transactionDate: Date;
-            }) => db.cashTransaction.create({
-              data: {
+            }>) {
+              const recorded = await recordCashTransaction(db, {
                 workspaceId,
-                type: tx.type,
-                category: tx.category,
-                amount: tx.amount,
-                description: tx.description,
-                transactionDate: tx.transactionDate,
+                type: item.type,
+                category: item.category,
+                amount: item.amount,
+                description: item.description,
+                transactionDate: item.transactionDate,
                 paymentMethod: 'TRANSFER_BANK',
-              },
-            }))
-          ));
+                autoMapFallback: true,
+              });
+              out.push(recorded.transaction);
+            }
+            return out;
+          });
 
           if (createdList.length > 0) {
             invalidateContextCache(workspaceId);

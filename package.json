@@ -7,10 +7,11 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-test-module-mocks --import tsx --test tests/activity-log.test.ts tests/ai-orchestrator.test.ts",
+    "test": "node --experimental-test-module-mocks --import tsx --test tests/accounting-core.test.ts tests/activity-log.test.ts tests/ai-orchestrator.test.ts",
     "test:unit": "node --experimental-test-module-mocks --import tsx --test tests/activity-log.test.ts",
     "test:all": "node --experimental-test-module-mocks --import tsx --test \"tests/**/*.test.ts\"",
     "seed": "npx tsx prisma/seed.ts",
+    "seed:finance": "npx tsx scripts/seed-finance.ts",
     "seed:benchmark": "npx tsx scripts/seed-benchmark.ts"
   },
   "dependencies": {
@@ -56,5 +57,15 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "allowScripts": {
+    "@google/genai": true,
+    "@prisma/client@6.3.1": true,
+    "@prisma/engines": true,
+    "argon2": true,
+    "esbuild": true,
+    "prisma": true,
+    "protobufjs": true,
+    "unrs-resolver": true
   }
 }

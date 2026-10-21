@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { TransactionType } from '@prisma/client';
+import { recordCashTransaction } from '@/lib/accounting/posting';
 import {
   buildCashTransactionDraftsFromLedger,
   tryParseWorkspaceFileAsLedger,
@@ -314,8 +315,36 @@ export const POST = withTenantGuard(
         const CHUNK_SIZE = 2000;
         const allCreatedIds: string[] = [];
 
+        // Kalau modul laporan keuangan aktif, setiap baris impor WAJIB punya
+        // jurnal. Jalur massal (createManyAndReturn) tetap dipakai saat modul
+        // nonaktif karena jauh lebih cepat untuk rekening koran besar.
+        const setting = await tx.accountingSetting.findUnique({
+          where: { workspaceId: auth.workspace.id },
+          select: { isEnabled: true },
+        });
+        const journalEnabled = Boolean(setting?.isEnabled);
+
         for (let i = 0; i < drafts.length; i += CHUNK_SIZE) {
           const chunk = drafts.slice(i, i + CHUNK_SIZE);
+
+          if (journalEnabled) {
+            for (const d of chunk) {
+              const { transaction } = await recordCashTransaction(tx, {
+                workspaceId: auth.workspace.id,
+                userId: auth.user.id,
+                type: d.type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE,
+                category: d.category,
+                amount: d.amount,
+                description: `${d.description} (impor dari "${record.fileName}")`,
+                paymentMethod: 'TRANSFER_BANK',
+                transactionDate: d.transactionDate,
+                autoMapFallback: true,
+              });
+              allCreatedIds.push(transaction.id);
+            }
+            continue;
+          }
+
           const chunkRows = await (tx.cashTransaction as any).createManyAndReturn({
             data: chunk.map((d) => ({
               workspaceId: auth.workspace.id,
