@@ -12,6 +12,7 @@ const ACTIONS: AccountingAction[] = [
   'lock_period',
   'manage_settings',
   'opening_balance',
+  'manage_ar_ap',
 ];
 
 /**

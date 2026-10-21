@@ -1,6 +1,14 @@
 import { JournalStatus, Prisma, TaxProfile } from '@prisma/client';
 import { prisma } from '../prisma';
 import type { DateRange } from './period';
+import {
+  AGING_BUCKETS,
+  bucketForDaysOverdue,
+  daysOverdue as daysPastDue,
+  summarizeAgingByPartner,
+  type AgingBucketKey,
+  type PartnerAgingRow,
+} from './ar-ap';
 
 /**
  * Laporan pendukung (sub-ledger): umur piutang/utang dan ringkasan PPN.
@@ -21,6 +29,8 @@ export interface AgingRow {
   id: string;
   reference: string;
   partner: string;
+  /** Tautan ke master pihak lawan (Partner). Null untuk dokumen lama. */
+  partnerId: string | null;
   dueDate: Date;
   daysOverdue: number;
   /** Sisa tagihan/utang (total dokumen dikurangi pembayaran sampai `asOf`). */
@@ -32,7 +42,9 @@ export interface AgingRow {
   bucket: AgingBucketKey;
 }
 
-export type AgingBucketKey = 'current' | 'd1_30' | 'd31_60' | 'd61_90' | 'd90_plus';
+// Definisi bucket & perhitungan hari terlambat tinggal di ar-ap.ts (logika
+// murni) agar laporan umur dan modul AR/AP lain memakai sumber yang sama.
+export type { AgingBucketKey };
 
 export interface AgingBucket {
   key: AgingBucketKey;
@@ -46,27 +58,12 @@ export interface AgingReport {
   asOf: Date;
   rows: AgingRow[];
   buckets: AgingBucket[];
+  /** Ringkasan umur per pihak lawan (pelanggan/vendor). */
+  byPartner: PartnerAgingRow[];
   total: Prisma.Decimal;
   ledgerBalance: Prisma.Decimal;
   difference: Prisma.Decimal;
   warnings: string[];
-}
-
-const BUCKETS: Array<{ key: AgingBucketKey; label: string; min: number; max: number }> = [
-  { key: 'current', label: 'Belum jatuh tempo', min: -Infinity, max: 0 },
-  { key: 'd1_30', label: '1–30 hari', min: 1, max: 30 },
-  { key: 'd31_60', label: '31–60 hari', min: 31, max: 60 },
-  { key: 'd61_90', label: '61–90 hari', min: 61, max: 90 },
-  { key: 'd90_plus', label: '> 90 hari', min: 91, max: Infinity },
-];
-
-function bucketFor(daysOverdue: number): AgingBucketKey {
-  const found = BUCKETS.find((b) => daysOverdue >= b.min && daysOverdue <= b.max);
-  return found?.key ?? 'd90_plus';
-}
-
-function daysBetween(from: Date, to: Date): number {
-  return Math.floor((to.getTime() - from.getTime()) / 86_400_000);
 }
 
 async function ledgerBalanceFor(workspaceId: string, type: AgingType, asOf: Date): Promise<Prisma.Decimal> {
@@ -90,10 +87,11 @@ async function ledgerBalanceFor(workspaceId: string, type: AgingType, asOf: Date
 /**
  * Umur piutang (AR) atau utang (AP) per tanggal potong.
  *
- * AR: faktur berstatus UNPAID/OVERDUE yang sudah diterbitkan.
- * AP: kewajiban berstatus PENDING yang sudah dicatat.
+ * AR: faktur UNPAID/OVERDUE/PARTIAL yang sudah diterbitkan.
+ * AP: kewajiban PENDING/PARTIAL yang sudah dicatat.
  *
- * Belum ada pembayaran sebagian, jadi nilai baris = nilai penuh dokumen.
+ * Nilai baris = sisa dokumen (total dikurangi pembayaran sampai `asOf`).
+ * Laporan juga menyertakan ringkasan per pihak lawan (`byPartner`).
  */
 export async function getAgingReport(
   workspaceId: string,
@@ -111,12 +109,12 @@ export async function getAgingReport(
             status: { in: ['UNPAID', 'OVERDUE', 'PARTIAL'] },
             issueDate: { lte: asOf },
           },
-          select: { id: true, invoiceNumber: true, clientName: true, dueDate: true, totalAmount: true },
+          select: { id: true, invoiceNumber: true, clientName: true, partnerId: true, dueDate: true, totalAmount: true },
           orderBy: { dueDate: 'asc' },
         })
       : prisma.scheduledObligation.findMany({
           where: { workspaceId, status: { in: ['PENDING', 'PARTIAL'] }, createdAt: { lte: asOf } },
-          select: { id: true, name: true, dueDate: true, amount: true },
+          select: { id: true, name: true, partnerId: true, dueDate: true, amount: true },
           orderBy: { dueDate: 'asc' },
         }),
     ledgerBalanceFor(workspaceId, type, asOf),
@@ -145,23 +143,24 @@ export async function getAgingReport(
         'invoiceNumber' in doc ? paidByInvoice.get(doc.id) : paidByObligation.get(doc.id)
       ) ?? ZERO;
       const amount = Prisma.Decimal.max(ZERO, documentAmount.minus(paidAmount)).toDecimalPlaces(2);
-      const daysOverdue = Math.max(0, daysBetween(doc.dueDate, asOf));
+      const overdueDays = daysPastDue(doc.dueDate, asOf);
       return {
         id: doc.id,
         reference: 'invoiceNumber' in doc ? doc.invoiceNumber : doc.name,
         partner: 'clientName' in doc ? doc.clientName : doc.name,
+        partnerId: doc.partnerId ?? null,
         dueDate: doc.dueDate,
-        daysOverdue,
+        daysOverdue: overdueDays,
         amount,
         documentAmount,
         paidAmount,
-        bucket: bucketFor(daysOverdue),
+        bucket: bucketForDaysOverdue(overdueDays),
       };
     })
     // Dokumen yang sudah lunas per tanggal potong tidak lagi jadi piutang/utang.
     .filter((row) => row.amount.gt(0.005));
 
-  const buckets: AgingBucket[] = BUCKETS.map((b) => {
+  const buckets: AgingBucket[] = AGING_BUCKETS.map((b) => {
     const inBucket = rows.filter((r) => r.bucket === b.key);
     return {
       key: b.key,
@@ -170,6 +169,8 @@ export async function getAgingReport(
       count: inBucket.length,
     };
   });
+
+  const byPartner = summarizeAgingByPartner(rows).partners;
 
   const total = rows.reduce((acc, r) => acc.plus(r.amount), ZERO);
   const difference = total.minus(ledgerBalance);
@@ -191,7 +192,7 @@ export async function getAgingReport(
     }
   }
 
-  return { type, asOf, rows, buckets, total, ledgerBalance, difference, warnings };
+  return { type, asOf, rows, buckets, byPartner, total, ledgerBalance, difference, warnings };
 }
 
 /* ─────────────────────────── PAJAK (PPN) ─────────────────────────── */

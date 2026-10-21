@@ -13,7 +13,8 @@ export type AccountingAction =
   | 'close_period'
   | 'lock_period'
   | 'manage_settings'
-  | 'opening_balance';
+  | 'opening_balance'
+  | 'manage_ar_ap';
 
 const ROLE_RANK: Record<Role, number> = {
   OWNER: 5,
@@ -32,6 +33,8 @@ const MIN_RANK: Record<AccountingAction, number> = {
   lock_period: 5, // OWNER
   manage_settings: 5,
   opening_balance: 5,
+  // Menagih piutang / menjadwalkan pembayaran utang: cukup MEMBER.
+  manage_ar_ap: 2,
 };
 
 export function canAccounting(auth: Pick<AuthContext, 'membership'>, action: AccountingAction): boolean {
@@ -49,6 +52,7 @@ export function accountingForbidden(action: AccountingAction): string {
     lock_period: 'mengunci periode',
     manage_settings: 'mengubah pengaturan akuntansi',
     opening_balance: 'mengisi saldo awal',
+    manage_ar_ap: 'mengelola utang & piutang (penagihan / jadwal pembayaran)',
   };
   return `Anda tidak memiliki izin untuk ${labels[action]}.`;
 }

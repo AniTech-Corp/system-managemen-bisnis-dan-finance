@@ -79,7 +79,7 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes, issueDate } = await req.json();
+      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes, issueDate, partnerId, termDays } = await req.json();
 
       if (!clientName || !items.length) {
         return NextResponse.json({ message: 'Nama klien dan minimal 1 item tagihan wajib diisi.' }, { status: 400 });
@@ -123,6 +123,30 @@ export const POST = withTenantGuard(
         }
       }
 
+      // Opsional (Pengelolaan Utang & Piutang): tautkan faktur ke master
+      // pelanggan (Partner) dan pakai termin kreditnya untuk menurunkan jatuh
+      // tempo bila `dueDate` tidak diisi eksplisit.
+      let resolvedPartnerId: string | null = null;
+      let resolvedTermDays: number | null = null;
+      if (partnerId) {
+        const partner = await prisma.partner.findFirst({
+          where: { id: String(partnerId), workspaceId: auth.workspace.id },
+          select: { id: true, paymentTermDays: true },
+        });
+        if (!partner) {
+          return NextResponse.json({ message: 'Pelanggan (partner) tidak ditemukan di workspace ini.' }, { status: 400 });
+        }
+        resolvedPartnerId = partner.id;
+        resolvedTermDays = partner.paymentTermDays ?? null;
+      }
+      if (termDays !== undefined && termDays !== null && termDays !== '') {
+        const parsedTerm = Number(termDays);
+        if (!Number.isFinite(parsedTerm) || parsedTerm < 0) {
+          return NextResponse.json({ message: 'Termin hari (termDays) tidak valid.' }, { status: 400 });
+        }
+        resolvedTermDays = Math.trunc(parsedTerm);
+      }
+
       // Hitung subtotal & total
       let subtotal = 0;
       for (const item of items) {
@@ -142,6 +166,15 @@ export const POST = withTenantGuard(
       const qrisString = `00020101021226580016ID.CO.ANITECH.WWW011893600002011${invoiceNumber}520458125303360540${totalAmount}5802ID5914${clientName.slice(0, 14)}6007JAKARTA6304`;
       const virtualAccount = `8808${Math.floor(1000000000 + Math.random() * 9000000000)}`;
 
+      const invoiceIssueDate = issueDate ? new Date(issueDate) : new Date();
+      // Termin efektif: dari partner/parameter, kalau tidak ada pakai default 7 hari.
+      const effectiveTermDays = Number.isFinite(resolvedTermDays)
+        ? Math.max(0, Math.trunc(resolvedTermDays as number))
+        : 7;
+      const invoiceDueDate = dueDate
+        ? new Date(dueDate)
+        : new Date(invoiceIssueDate.getTime() + effectiveTermDays * 24 * 60 * 60 * 1000);
+
       const invoice = await prisma.$transaction(async (tx) => {
         const created = await tx.invoice.create({
           data: {
@@ -156,8 +189,10 @@ export const POST = withTenantGuard(
             taxAmount,
             totalAmount,
             status: InvoiceStatus.UNPAID,
-            issueDate: issueDate ? new Date(issueDate) : new Date(),
-            dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 hari
+            issueDate: invoiceIssueDate,
+            dueDate: invoiceDueDate,
+            partnerId: resolvedPartnerId,
+            termDays: resolvedTermDays,
             items,
             qrisString,
             virtualAccount,

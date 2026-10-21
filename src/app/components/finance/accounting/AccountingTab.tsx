@@ -18,6 +18,7 @@ import {
   Settings,
   Target,
   TrendingUp,
+  Wallet,
   Wand2,
 } from 'lucide-react';
 import { apiGet, currentPeriodKey } from './client';
@@ -40,6 +41,8 @@ import { AccountingSettingsView } from './AccountingSettings';
 import { PayrollView } from './PayrollView';
 import { InventoryReportView } from './InventoryReportView';
 import SimpleBackupRecovery from './SimpleBackupRecovery';
+import ArApView from './ArApView';
+import ScenarioProjectionView from './ScenarioProjectionView';
 
 interface PermissionsResponse {
   role: string;
@@ -61,8 +64,10 @@ type ViewId =
   | 'equity'
   | 'trial'
   | 'aging'
+  | 'arap'
   | 'tax'
   | 'budget'
+  | 'proyeksi'
   | 'payroll'
   | 'inventory'
   | 'ledger'
@@ -79,8 +84,10 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'equity', label: 'Perubahan Ekuitas', icon: PieChart },
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
+  { id: 'arap', label: 'Utang & Piutang', icon: Wallet },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'budget', label: 'Anggaran', icon: Target },
+  { id: 'proyeksi', label: 'Proyeksi Skenario', icon: TrendingUp },
   { id: 'inventory', label: 'Persediaan', icon: Package },
   { id: 'payroll', label: 'Gaji & Pajak', icon: Banknote },
   { id: 'ledger', label: 'Buku Besar', icon: BookOpen },
@@ -152,6 +159,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
       manageSettings: Boolean(p.manage_settings),
       manageAccounts: Boolean(p.manage_accounts),
       lock: Boolean(p.lock_period),
+      manageArAp: Boolean(p.manage_ar_ap),
     };
   }, [permissions]);
 
@@ -244,7 +252,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
 
       {permissions !== null && can.view && (
         <>
-          {!period && view !== 'settings' && view !== 'backup' && (
+          {!period && view !== 'settings' && view !== 'backup' && view !== 'proyeksi' && (
             <p className="flex items-center gap-2 text-xs text-slate-500">
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Memuat periode laporan…
             </p>
@@ -256,10 +264,12 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {period && view === 'equity' && <EquityView {...reportProps} />}
           {period && view === 'trial' && <TrialBalanceView {...reportProps} />}
           {period && view === 'aging' && <AgingView {...reportProps} />}
+          {period && view === 'arap' && <ArApView canManage={can.manageArAp} />}
           {period && view === 'tax' && <TaxView {...reportProps} />}
           {period && view === 'budget' && (
             <BudgetView {...reportProps} canEdit={can.manageSettings} fiscalStartMonth={fiscalStartMonth} />
           )}
+          {view === 'proyeksi' && <ScenarioProjectionView />}
           {period && view === 'inventory' && (
             <InventoryReportView period={period} onPeriodChange={reportProps.onPeriodChange} />
           )}

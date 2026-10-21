@@ -83,6 +83,7 @@ model Workspace {
   scheduledObligations ScheduledObligation[]
   budgets              Budget[]
   budgetAlerts         BudgetAlert[]
+  financialScenarios   FinancialScenario[]
   workspaceFiles       WorkspaceFile[]
   ingestLogs           IngestLog[]
   contentCalendars     ContentCalendar[]
@@ -114,6 +115,8 @@ model Workspace {
   categoryAccountMaps CategoryAccountMap[]
   documentSequences   DocumentSequence[]
   paymentAllocations  PaymentAllocation[]
+  // Additive -- Pengelolaan Utang & Piutang: jejak penagihan pelanggan.
+  collectionActivities CollectionActivity[]
 
   auditLogs    AuditLog[]       @relation("WorkspaceAuditLogs")
   backups      Backup[]         @relation("WorkspaceBackups")
@@ -406,18 +409,33 @@ model Invoice {
   qrisString     String?       @map("qris_string")
   virtualAccount String?       @map("virtual_account") @db.VarChar(50)
   notes          String?
+  // Additive -- Pengelolaan Utang & Piutang. `partnerId` menautkan faktur ke
+  // master pihak lawan (Partner); dokumen lama tetap null dan dibaca lewat
+  // fallback `clientName`. `termDays` menyimpan termin kredit saat faktur dibuat
+  // (dueDate sudah diturunkan dari sini). `agingBucket`/`overdueSince` adalah
+  // snapshot hasil job penuaan agar daftar jatuh tempo bisa dipercaya tanpa
+  // menghitung ulang setiap kali dibuka.
+  partnerId      String?       @map("partner_id") @db.Uuid
+  termDays       Int?          @map("term_days")
+  agingBucket    String?       @map("aging_bucket") @db.VarChar(20)
+  overdueSince   DateTime?     @map("overdue_since")
+  lastReminderAt DateTime?     @map("last_reminder_at")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
   workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user               User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  partner            Partner?            @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   // Pelunasan faktur (kalau modul laporan keuangan aktif).
   cashTransactions   CashTransaction[]
   // Alokasi pembayaran per baris kas (pembayaran sebagian & split).
   paymentAllocations PaymentAllocation[]
+  // Riwayat penagihan pelanggan untuk faktur ini.
+  collectionActivities CollectionActivity[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, dueDate])
+  @@index([workspaceId, partnerId])
   @@map("invoices")
 }
 
@@ -506,14 +524,26 @@ model ScheduledObligation {
   // Tanggal & metode pembayaran saat kewajiban dilunasi.
   paidAt        DateTime?        @map("paid_at")
   paymentMethod String?          @map("payment_method") @db.VarChar(50)
+  // Additive -- Pengelolaan Utang & Piutang. Tautan ke master vendor (Partner),
+  // nomor tagihan internal, referensi dokumen vendor (invoice/PO), termin kredit,
+  // serta snapshot penuaan untuk jadwal pembayaran vendor.
+  partnerId     String?          @map("partner_id") @db.Uuid
+  billNumber    String?          @map("bill_number") @db.VarChar(50)
+  refNumber     String?          @map("ref_number") @db.VarChar(80)
+  termDays      Int?             @map("term_days")
+  agingBucket   String?          @map("aging_bucket") @db.VarChar(20)
+  overdueSince  DateTime?        @map("overdue_since")
+  lastReminderAt DateTime?       @map("last_reminder_at")
   createdAt     DateTime         @default(now()) @map("created_at")
 
   workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  partner            Partner?            @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   cashTransactions   CashTransaction[]
   paymentAllocations PaymentAllocation[]
 
   @@index([workspaceId, dueDate])
   @@index([workspaceId, status])
+  @@index([workspaceId, partnerId])
   @@map("scheduled_obligations")
 }
 
@@ -1199,15 +1229,84 @@ model Partner {
   npwp        String?     @db.VarChar(30)
   isActive    Boolean     @default(true) @map("is_active")
   notes       String?
+  // Additive -- Pengelolaan Utang & Piutang. Kebijakan kredit per pihak lawan:
+  // termin hari (dipakai menurunkan dueDate dokumen baru), plafon kredit, tarif
+  // pajak bawaan, dan daftar hitam (hanya peringatan, belum memblokir transaksi).
+  paymentTermDays Int      @default(30) @map("payment_term_days")
+  creditLimit     Decimal? @db.Decimal(18, 2) @map("credit_limit")
+  defaultTaxRate  Float?   @map("default_tax_rate")
+  isBlacklisted   Boolean  @default(false) @map("is_blacklisted")
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
 
-  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  lines     JournalLine[]
+  workspace           Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  lines               JournalLine[]
+  invoices            Invoice[]
+  obligations         ScheduledObligation[]
+  collectionActivities CollectionActivity[]
 
   @@index([workspaceId, type])
   @@index([workspaceId, name])
   @@map("partners")
+}
+
+// ============================================================================
+// PENGELOLAAN UTANG & PIUTANG (AR/AP) -- Additive.
+// Jejak penagihan piutang (dunning history). Setiap pengingat/penagihan yang
+// dikirim ke pelanggan dicatat di sini supaya bisa dipertanggungjawabkan, dan
+// `lastReminderAt` di Invoice menjadi ringkasan cepatnya.
+// ============================================================================
+
+enum CollectionChannel {
+  WHATSAPP
+  EMAIL
+  PHONE
+  VISIT
+  OTHER
+}
+
+enum CollectionOutcome {
+  /// Baru disiapkan/draft, belum benar-benar dikirim.
+  DRAFT
+  /// Sudah dikirim, menunggu respons.
+  SENT
+  /// Pelanggan berjanji membayar pada tanggal tertentu (`promisedAt`).
+  PROMISED_PAYMENT
+  /// Pelanggan membayar setelah penagihan.
+  PAID
+  /// Pelanggan menyanggah/menyengketakan tagihan.
+  DISPUTED
+  /// Tidak ada respons.
+  NO_RESPONSE
+}
+
+model CollectionActivity {
+  id              String            @id @default(uuid()) @db.Uuid
+  workspaceId     String            @map("workspace_id") @db.Uuid
+  invoiceId       String?           @map("invoice_id") @db.Uuid
+  partnerId       String?           @map("partner_id") @db.Uuid
+  channel         CollectionChannel @default(WHATSAPP)
+  outcome         CollectionOutcome @default(SENT)
+  /// Nada penagihan: soft / normal / firm / legal (bebas, mengikuti dunning level).
+  tone            String?           @db.VarChar(20)
+  note            String?
+  /// Sisa tagihan saat penagihan dilakukan, untuk konteks nominal yang dikejar.
+  amountAtRisk    Decimal?          @map("amount_at_risk") @db.Decimal(18, 2)
+  /// Tanggal janji bayar bila outcome = PROMISED_PAYMENT.
+  promisedAt      DateTime?         @map("promised_at")
+  /// Tanggal bisnis aktivitas penagihan (terpisah dari createdAt).
+  activityDate    DateTime          @default(now()) @map("activity_date")
+  createdByUserId String?           @map("created_by_user_id") @db.Uuid
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invoice   Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  partner   Partner?  @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, invoiceId])
+  @@index([workspaceId, partnerId])
+  @@index([workspaceId, activityDate])
+  @@map("collection_activities")
 }
 
 model FiscalPeriod {
@@ -1410,6 +1509,24 @@ model BudgetAlert {
   @@index([workspaceId, fiscalYear, monthIndex])
   @@index([workspaceId, acknowledgedAt])
   @@map("budget_alerts")
+}
+
+model FinancialScenario {
+  id            String   @id @default(uuid()) @db.Uuid
+  workspaceId   String   @map("workspace_id") @db.Uuid
+  name          String   @db.VarChar(120)
+  description   String?  @db.Text
+  baselineJson  Json     @map("baseline_json")
+  paramsJson    Json     @map("params_json")
+  resultsJson   Json?    @map("results_json")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, isActive])
+  @@map("financial_scenarios")
 }
 
 model DocumentSequence {

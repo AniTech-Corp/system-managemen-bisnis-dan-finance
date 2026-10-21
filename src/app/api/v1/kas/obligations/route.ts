@@ -61,6 +61,8 @@ export const GET = withTenantGuard(
         status: o.status,
         dueDate: o.dueDate.toISOString(),
         dueDateRaw: o.dueDate.toISOString(),
+        partnerId: o.partnerId ?? null,
+        billNumber: o.billNumber ?? null,
       });
 
       const within = (days: number) =>
@@ -88,7 +90,7 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { name, dueDate, amount, category, accrualDate } = await req.json();
+      const { name, dueDate, amount, category, accrualDate, partnerId, billNumber, refNumber } = await req.json();
 
       if (!name || !dueDate || typeof amount !== 'number' || amount <= 0) {
         return NextResponse.json(
@@ -103,6 +105,19 @@ export const POST = withTenantGuard(
       const entryDate = accrualDate ? parseDate(accrualDate, 'Tanggal pengakuan') : undefined;
       const targetWsId = auth.workspace.id;
 
+      // Opsional (Pengelolaan Utang & Piutang): tautkan ke master vendor (Partner)
+      // + nomor tagihan/referensi dokumen vendor untuk jadwal pembayaran.
+      const vendorId = partnerId ? String(partnerId) : null;
+      if (vendorId) {
+        const partner = await prisma.partner.findFirst({
+          where: { id: vendorId, workspaceId: targetWsId },
+          select: { id: true },
+        });
+        if (!partner) {
+          return NextResponse.json({ message: 'Vendor (partner) tidak ditemukan di workspace ini.' }, { status: 400 });
+        }
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         const obligation = await tx.scheduledObligation.create({
           data: {
@@ -111,6 +126,9 @@ export const POST = withTenantGuard(
             dueDate: parsedDate,
             amount: Number(amount),
             category: category ? String(category).trim().slice(0, 100) : null,
+            partnerId: vendorId,
+            billNumber: billNumber ? String(billNumber).trim().slice(0, 50) : null,
+            refNumber: refNumber ? String(refNumber).trim().slice(0, 80) : null,
           },
         });
 
