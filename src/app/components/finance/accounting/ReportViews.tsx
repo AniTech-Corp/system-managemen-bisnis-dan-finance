@@ -673,6 +673,15 @@ interface AgingData {
       bucket: string;
     }>;
     buckets: Array<{ key: string; label: string; amount: string; count: number }>;
+    byPartner: Array<{
+      partnerId: string | null;
+      partner: string;
+      total: string;
+      count: number;
+      maxDaysOverdue: number;
+      share: number;
+      buckets: Record<string, string>;
+    }>;
     total: string;
     ledgerBalance: string;
     difference: string;
@@ -761,6 +770,38 @@ export function AgingView({ comparative: _comparative, onComparativeChange: _onC
                 </div>
               ))}
             </div>
+
+            {cur.byPartner.length > 0 && (
+              <div className="border-b border-slate-100">
+                <p className="px-3 pt-3 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  Ringkasan per {type === 'AR' ? 'Pelanggan' : 'Vendor'}
+                </p>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="pl-3 pb-1.5 pt-2 text-left text-[10px] font-semibold uppercase text-slate-500">
+                        {type === 'AR' ? 'Pelanggan' : 'Vendor'}
+                      </th>
+                      <th className="pb-1.5 pt-2 text-right text-[10px] font-semibold uppercase text-slate-500">Dokumen</th>
+                      <th className="pb-1.5 pt-2 text-right text-[10px] font-semibold uppercase text-slate-500">Terlama</th>
+                      <th className="pr-3 pb-1.5 pt-2 text-right text-[10px] font-semibold uppercase text-slate-500">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cur.byPartner.map((p) => (
+                      <tr key={p.partnerId ?? p.partner} className="border-b border-slate-50">
+                        <td className="py-1.5 pl-3 text-xs font-medium text-slate-800">{p.partner}</td>
+                        <td className="py-1.5 text-right text-xs tabular-nums text-slate-600">{p.count}</td>
+                        <td className={`py-1.5 text-right text-xs tabular-nums ${p.maxDaysOverdue > 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                          {p.maxDaysOverdue > 0 ? `${p.maxDaysOverdue} hari` : '-'}
+                        </td>
+                        <td className="py-1.5 pr-3 text-right text-xs font-medium tabular-nums text-slate-900">{formatMoney(p.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <table className="w-full border-collapse">
               <thead>

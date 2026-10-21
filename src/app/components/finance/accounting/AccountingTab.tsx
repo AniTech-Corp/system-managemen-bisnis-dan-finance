@@ -18,6 +18,7 @@ import {
   Settings,
   Target,
   TrendingUp,
+  Wallet,
   Wand2,
 } from 'lucide-react';
 import { apiGet, currentPeriodKey } from './client';
@@ -40,6 +41,7 @@ import { AccountingSettingsView } from './AccountingSettings';
 import { PayrollView } from './PayrollView';
 import { InventoryReportView } from './InventoryReportView';
 import SimpleBackupRecovery from './SimpleBackupRecovery';
+import ArApView from './ArApView';
 
 interface PermissionsResponse {
   role: string;
@@ -61,6 +63,7 @@ type ViewId =
   | 'equity'
   | 'trial'
   | 'aging'
+  | 'arap'
   | 'tax'
   | 'budget'
   | 'payroll'
@@ -79,6 +82,7 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'equity', label: 'Perubahan Ekuitas', icon: PieChart },
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
+  { id: 'arap', label: 'Utang & Piutang', icon: Wallet },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'budget', label: 'Anggaran', icon: Target },
   { id: 'inventory', label: 'Persediaan', icon: Package },
@@ -152,6 +156,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
       manageSettings: Boolean(p.manage_settings),
       manageAccounts: Boolean(p.manage_accounts),
       lock: Boolean(p.lock_period),
+      manageArAp: Boolean(p.manage_ar_ap),
     };
   }, [permissions]);
 
@@ -256,6 +261,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {period && view === 'equity' && <EquityView {...reportProps} />}
           {period && view === 'trial' && <TrialBalanceView {...reportProps} />}
           {period && view === 'aging' && <AgingView {...reportProps} />}
+          {period && view === 'arap' && <ArApView canManage={can.manageArAp} />}
           {period && view === 'tax' && <TaxView {...reportProps} />}
           {period && view === 'budget' && (
             <BudgetView {...reportProps} canEdit={can.manageSettings} fiscalStartMonth={fiscalStartMonth} />
