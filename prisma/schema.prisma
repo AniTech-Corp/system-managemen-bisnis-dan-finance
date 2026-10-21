@@ -83,6 +83,7 @@ model Workspace {
   scheduledObligations ScheduledObligation[]
   budgets              Budget[]
   budgetAlerts         BudgetAlert[]
+  financialScenarios   FinancialScenario[]
   workspaceFiles       WorkspaceFile[]
   ingestLogs           IngestLog[]
   contentCalendars     ContentCalendar[]
@@ -1508,6 +1509,24 @@ model BudgetAlert {
   @@index([workspaceId, fiscalYear, monthIndex])
   @@index([workspaceId, acknowledgedAt])
   @@map("budget_alerts")
+}
+
+model FinancialScenario {
+  id            String   @id @default(uuid()) @db.Uuid
+  workspaceId   String   @map("workspace_id") @db.Uuid
+  name          String   @db.VarChar(120)
+  description   String?  @db.Text
+  baselineJson  Json     @map("baseline_json")
+  paramsJson    Json     @map("params_json")
+  resultsJson   Json?    @map("results_json")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, isActive])
+  @@map("financial_scenarios")
 }
 
 model DocumentSequence {
