@@ -33,6 +33,7 @@ import {
 } from './ReportViews';
 import { LedgerView } from './LedgerView';
 import { BudgetView } from './BudgetView';
+import { BudgetAlertsPanel } from './BudgetAlertsPanel';
 import { JournalView } from './JournalView';
 import { OpeningBalanceView } from './OpeningBalanceWizard';
 import { AccountingSettingsView } from './AccountingSettings';
@@ -98,6 +99,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [fiscalStartMonth, setFiscalStartMonth] = useState(1);
+  const [alertCount, setAlertCount] = useState(0);
   const periodTouched = useRef(false);
   const demoUserId = 'demo-user-123';
 
@@ -108,6 +110,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
     setPermissionsError(null);
     setSettingsError(null);
     setEnabled(null);
+    setAlertCount(0);
     setPeriod('');
 
     apiGet<{ data: PermissionsResponse }>('/api/v1/accounting/permissions')
@@ -168,6 +171,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
         {NAV.map((item) => {
           const Icon = item.icon;
           const active = view === item.id;
+          const badge = item.id === 'budget' ? alertCount : 0;
           return (
             <button
               key={item.id}
@@ -181,6 +185,14 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
             >
               <Icon className="h-3.5 w-3.5" aria-hidden="true" />
               {item.label}
+              {badge > 0 && (
+                <span
+                  title={`${badge} peringatan anggaran belum dibaca`}
+                  className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white"
+                >
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -190,6 +202,12 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
         <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
           Pengaturan akuntansi tidak dapat dimuat: {settingsError}
         </p>
+      )}
+
+      {/* Peringatan anggaran tampil di atas isi tab apa pun: tujuannya memang
+          memberi tahu, bukan menunggu user membuka tab Anggaran. */}
+      {enabled !== false && can.view && (
+        <BudgetAlertsPanel onUnacknowledgedChange={setAlertCount} />
       )}
 
       {enabled === false && view !== 'settings' && (

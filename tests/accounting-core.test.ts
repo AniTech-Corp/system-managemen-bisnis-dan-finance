@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { Prisma } from '@prisma/client';
+import { Prisma, TransactionType } from '@prisma/client';
 import { formatIDR, moneyToString, sumMoney, toMoney } from '../src/lib/accounting/money';
 import {
   comparativeRange,
@@ -128,7 +128,8 @@ function line(
   normalBalance: JournalLineRow['account']['normalBalance'],
   debit: string,
   credit: string,
-  accountId = code
+  accountId = code,
+  costCenter: string | null = null
 ): JournalLineRow {
   return {
     id: `${accountId}-${debit}-${credit}`,
@@ -139,6 +140,7 @@ function line(
     debit: new Prisma.Decimal(debit),
     credit: new Prisma.Decimal(credit),
     description: null,
+    costCenter,
     account: { id: accountId, code, name: code, type, normalBalance },
     entry: {
       id: 'entry-1',
@@ -644,5 +646,344 @@ describe('pembayaran sebagian: validasi alokasi', () => {
     const { validateAllocations } = await load();
     const result = validateAllocations([{ amount: 1_000_000 }], 1_000_000, 'EXPENSE');
     assert.equal(result.ok, false);
+  });
+});
+
+/* ── anggaran per divisi ───────────────────────────────────────────────── */
+
+describe('anggaran per divisi: daftar divisi', () => {
+  test('daftar divisi harus sama dengan enum DivisionRole di skema', async () => {
+    // `budget-divisions.ts` mendeklarasikan sendiri nilainya supaya aman dipakai
+    // dari komponen klien tanpa menarik runtime Prisma ke bundel browser.
+    // Test inilah yang menjaga supaya deklarasi itu tidak pernah menyimpang
+    // dari enum di schema.prisma.
+    const { DivisionRole } = await import('@prisma/client');
+    const { DIVISIONS } = await import('../src/lib/accounting/budget-divisions');
+    assert.deepEqual([...DIVISIONS].sort(), Object.values(DivisionRole).sort());
+  });
+});
+
+describe('anggaran per divisi: normalisasi input', () => {
+  const load = () => import('../src/lib/accounting/budget-divisions');
+
+  test('anggaran tanpa divisi dianggap Perusahaan, bukan ditolak', async () => {
+    const { normalizeBudgetDivision, COMPANY_DIVISION } = await load();
+    assert.equal(normalizeBudgetDivision(null), COMPANY_DIVISION);
+    assert.equal(normalizeBudgetDivision(undefined), COMPANY_DIVISION);
+    assert.equal(normalizeBudgetDivision(''), COMPANY_DIVISION);
+    assert.equal(normalizeBudgetDivision('   '), COMPANY_DIVISION);
+  });
+
+  test('anggaran menerima semua nilai divisi, huruf besar-kecil acak pun', async () => {
+    const { normalizeBudgetDivision, DIVISIONS } = await load();
+    for (const division of DIVISIONS) {
+      assert.equal(normalizeBudgetDivision(division), division);
+      assert.equal(normalizeBudgetDivision(division.toLowerCase()), division);
+      assert.equal(normalizeBudgetDivision(`  ${division}  `), division);
+    }
+  });
+
+  test('anggaran menolak nilai di luar daftar divisi', async () => {
+    const { normalizeBudgetDivision } = await load();
+    assert.throws(() => normalizeBudgetDivision('BAGIAN_UMUM'), /tidak dikenal/);
+    assert.throws(() => normalizeBudgetDivision('123'), /tidak dikenal/);
+  });
+
+  test('transaksi kas tanpa divisi menjadi null, bukan Perusahaan', async () => {
+    // Berbeda dari anggaran: di transaksi kas, kolomnya nullable. Mengisinya
+    // "PERUSAHAAN" akan membuat realisasi anggaran Perusahaan tidak pernah
+    // cocok dengan laporan lama yang menyaring `costCenter IS NULL`.
+    const { normalizeCashDivision, COMPANY_DIVISION } = await load();
+    assert.equal(normalizeCashDivision(null), null);
+    assert.equal(normalizeCashDivision(''), null);
+    assert.equal(normalizeCashDivision('TANPA_DIVISI'), null);
+    assert.throws(() => normalizeCashDivision(COMPANY_DIVISION), /tidak dikenal/);
+  });
+
+  test('transaksi kas menerima divisi nyata', async () => {
+    const { normalizeCashDivision, DIVISIONS } = await load();
+    for (const division of DIVISIONS) {
+      assert.equal(normalizeCashDivision(division), division);
+    }
+  });
+
+  test('label kas menampilkan "Tanpa Divisi" untuk nilai kosong', async () => {
+    const { cashDivisionLabel, divisionLabel } = await load();
+    assert.equal(cashDivisionLabel(null), 'Tanpa Divisi');
+    assert.equal(cashDivisionLabel('  '), 'Tanpa Divisi');
+    assert.equal(cashDivisionLabel('MARKETING'), divisionLabel('MARKETING'));
+  });
+});
+
+describe('anggaran per divisi: penyaringan jurnal', () => {
+  const load = () => import('../src/lib/accounting/budgets');
+
+  test('anggaran Perusahaan tidak menyaring apa pun', async () => {
+    // Inilah yang membuat laporan anggaran LAMA tetap utuh: seluruh barisnya
+    // berlabel PERUSAHAAN, jadi realisasinya tetap SELURUH pengeluaran.
+    const { budgetDivisionFilter } = await load();
+    const { COMPANY_DIVISION } = await import('../src/lib/accounting/budget-divisions');
+    assert.equal(budgetDivisionFilter(COMPANY_DIVISION), undefined);
+  });
+
+  test('divisi nyata menyaring lewat costCenter', async () => {
+    const { budgetDivisionFilter } = await load();
+    assert.deepEqual(budgetDivisionFilter('MARKETING'), { costCenter: 'MARKETING' });
+  });
+
+  test('costCenter baris kas tidak ikut terisi', async () => {
+    const { journalCostCenter, normalizeCashDivision } = await import(
+      '../src/lib/accounting/budget-divisions'
+    );
+    assert.equal(journalCostCenter(normalizeCashDivision(null)), null);
+    assert.equal(journalCostCenter(normalizeCashDivision('MARKETING')), 'MARKETING');
+  });
+});
+
+/**
+ * Invarian paling penting dari anggaran per divisi: divisi hanya boleh menempel
+ * pada baris BEBAN/PENDAPATAN di cabang generik. Cabang pelunasan (kewajiban,
+ * faktur, gaji, persediaan) memindahkan utang/aset yang beban-nya SUDAH diakui
+ * di dokumen sumber -- menempelkan divisi di sana akan menghitung beban dua
+ * kali dan membuat realisasi divisi menyimpang dari Laba Rugi.
+ *
+ * Test ini memakai transaction client palsu supaya cabang-cabang itu benar-benar
+ * dijalankan, bukan sekadar diperiksa dari struktur kode.
+ */
+function makePostingTx(captured: { lines: Array<Record<string, any>> }) {
+  const accounts = [
+    { id: 'acc-cash', code: '1-1100', name: 'Kas', isActive: true, isPostable: true },
+    { id: 'acc-expense', code: '6-9000', name: 'Beban Lain-lain', isActive: true, isPostable: true },
+    { id: 'acc-revenue', code: '4-1900', name: 'Pendapatan Lain-lain', isActive: true, isPostable: true },
+    { id: 'acc-ar', code: '1-1300', name: 'Piutang Usaha', isActive: true, isPostable: true },
+    { id: 'acc-ap', code: '2-1100', name: 'Utang Usaha', isActive: true, isPostable: true },
+    { id: 'acc-salary', code: '2-1200', name: 'Utang Gaji', isActive: true, isPostable: true },
+    { id: 'acc-inventory', code: '1-1400', name: 'Persediaan', isActive: true, isPostable: true },
+  ];
+
+  const cashAccount = {
+    id: 'cash-1',
+    name: 'Kas',
+    code: 'KAS',
+    type: 'CASH',
+    bankName: null,
+    isActive: true,
+    account: accounts[0],
+  };
+
+  return {
+    accountingSetting: {
+      findUnique: async () => ({ isEnabled: true, defaultCashAccountId: null }),
+    },
+    cashAccount: {
+      findMany: async (args: any) =>
+        args?.select ? [{ id: 'cash-1', isActive: true }] : [cashAccount],
+    },
+    account: {
+      findMany: async (args: any) =>
+        accounts.filter((account) => args.where.id.in.includes(account.id)),
+      findFirst: async (args: any) => {
+        const found = accounts.find((account) => account.code === args.where.code);
+        return found ? { id: found.id } : null;
+      },
+    },
+    categoryAccountMap: {
+      findUnique: async (args: any) => ({
+        accountId:
+          args.where.workspaceId_category_type.type === 'REVENUE' ? 'acc-revenue' : 'acc-expense',
+      }),
+    },
+    fiscalPeriod: {
+      upsert: async () => ({ id: 'period-1', year: 2026, month: 10, status: 'OPEN' }),
+    },
+    $queryRaw: async () => [{ next_number: 1 }],
+    journalEntry: {
+      create: async () => ({ id: 'entry-1' }),
+    },
+    journalLine: {
+      createMany: async (args: any) => {
+        captured.lines.push(...args.data);
+        return { count: args.data.length };
+      },
+      findMany: async () =>
+        captured.lines.map((line, index) => ({ ...line, lineNo: index + 1 })),
+    },
+  } as any;
+}
+
+describe('anggaran per divisi: divisi tidak bocor ke cabang non-beban', () => {
+  const transactionDate = new Date('2026-10-05T00:00:00Z');
+
+  const txRow = (overrides: Record<string, unknown>) => ({
+    id: 'tx-1',
+    type: TransactionType.EXPENSE,
+    category: 'Operasional',
+    amount: 1_000_000,
+    description: 'uji',
+    paymentMethod: 'TUNAI',
+    transactionDate,
+    invoiceId: null,
+    obligationId: null,
+    payrollId: null,
+    settlementAccountId: null,
+    // Sengaja diisi: kalau cabang non-beban bocor, divisi inilah yang muncul.
+    division: 'MARKETING',
+    ...overrides,
+  });
+
+  async function post(
+    overrides: Record<string, unknown>,
+    contextExtra: Record<string, unknown> = {}
+  ) {
+    const { postCashTransaction } = await import('../src/lib/accounting/posting');
+    const captured = { lines: [] as Array<Record<string, any>> };
+    await postCashTransaction(makePostingTx(captured), {
+      workspaceId: 'ws-1',
+      userId: 'user-1',
+      transaction: txRow(overrides) as any,
+      ...contextExtra,
+    });
+    return captured.lines;
+  }
+
+  const hasNoCostCenter = (lines: Array<Record<string, any>>) =>
+    lines.every((line) => line.costCenter === null || line.costCenter === undefined);
+
+  test('setoran kewajiban tidak menempelkan costCenter', async () => {
+    const lines = await post({ settlementAccountId: 'acc-ap' });
+    assert.equal(lines.length, 2);
+    assert.ok(hasNoCostCenter(lines));
+  });
+
+  test('pelunasan faktur tidak menempelkan costCenter', async () => {
+    const lines = await post({ type: TransactionType.INCOME, invoiceId: 'inv-1' });
+    assert.equal(lines.length, 2);
+    assert.ok(hasNoCostCenter(lines));
+  });
+
+  test('pembayaran kewajiban tidak menempelkan costCenter', async () => {
+    const lines = await post({ obligationId: 'obl-1' });
+    assert.equal(lines.length, 2);
+    assert.ok(hasNoCostCenter(lines));
+  });
+
+  test('pembayaran gaji tidak menempelkan costCenter', async () => {
+    const lines = await post({ payrollId: 'pay-1' });
+    assert.equal(lines.length, 2);
+    assert.ok(hasNoCostCenter(lines));
+  });
+
+  test('pembelian persediaan tidak menempelkan costCenter', async () => {
+    const lines = await post({}, { debitAccountCode: '1-1400' });
+    assert.equal(lines.length, 2);
+    assert.ok(hasNoCostCenter(lines));
+  });
+
+  test('cabang generik menempelkan costCenter HANYA di baris non-kas', async () => {
+    const lines = await post({});
+    const cashLine = lines.find((line) => line.cashAccountId !== null);
+    const expenseLine = lines.find((line) => line.cashAccountId === null);
+
+    assert.ok(cashLine, 'harus ada baris kas');
+    assert.ok(expenseLine, 'harus ada baris beban');
+    assert.equal(cashLine!.costCenter, null, 'baris kas tidak boleh punya divisi');
+    assert.equal(expenseLine!.costCenter, 'MARKETING');
+  });
+
+  test('transaksi tanpa divisi tetap tanpa costCenter', async () => {
+    const lines = await post({ division: null });
+    assert.ok(hasNoCostCenter(lines));
+  });
+});
+
+describe('anggaran per divisi: ambang peringatan', () => {
+  const load = () => import('../src/lib/accounting/budget-alerts');
+
+  test('di bawah 80% tidak memicu apa pun', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(1_000_000, 799_999), null);
+    assert.equal(resolveAlertLevel(1_000_000, 0), null);
+  });
+
+  test('tepat 80% memicu WARNING', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(1_000_000, 800_000), 'WARNING');
+  });
+
+  test('mendekati tapi belum 100% tetap WARNING', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(1_000_000, 999_999), 'WARNING');
+  });
+
+  test('tepat 100% memicu EXCEEDED, bukan terpeleset karena pembulatan', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(1_000_000, 1_000_000), 'EXCEEDED');
+    // Anggaran yang nilainya 3 kali tidak presisi di floating point.
+    assert.equal(resolveAlertLevel(0.3, 0.3), 'EXCEEDED');
+  });
+
+  test('realisasi melebihi anggaran memicu EXCEEDED', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(1_000_000, 1_500_000), 'EXCEEDED');
+  });
+
+  test('anggaran nol tidak bisa dinilai', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(0, 100_000), null);
+    assert.equal(resolveAlertLevel(-1, 100_000), null);
+  });
+
+  test('menerima Decimal maupun number', async () => {
+    const { resolveAlertLevel } = await load();
+    assert.equal(resolveAlertLevel(new Prisma.Decimal(1_000_000), new Prisma.Decimal(800_000)), 'WARNING');
+  });
+});
+
+describe('anggaran per divisi: realisasi tidak menyimpang dari Laba Rugi', () => {
+  // Invarian terpenting seluruh fitur ini. Angka per divisi berasal dari
+  // penyaringan baris jurnal yang SAMA dengan Laba Rugi, jadi jika dijumlahkan
+  // kembali hasilnya harus persis sama dengan laporan tanpa saringan. Kalau
+  // test ini gagal, berarti ada baris yang terhitung dua kali atau justru lolos.
+  test('realisasi per divisi + tanpa divisi = laba rugi tanpa saringan', () => {
+    const lines: JournalLineRow[] = [
+      line('6-6100', 'EXPENSE', 'DEBIT', '400.00', '0.00', 'acc-6100', 'MARKETING'),
+      line('6-6200', 'EXPENSE', 'DEBIT', '250.00', '0.00', 'acc-6200', 'MARKETING'),
+      line('6-6300', 'EXPENSE', 'DEBIT', '300.00', '0.00', 'acc-6300', 'MANAGER_OPERASIONAL'),
+      line('6-6400', 'EXPENSE', 'DEBIT', '50.00', '0.00', 'acc-6400'),
+    ];
+
+    const expenseTotal = (rows: JournalLineRow[]) =>
+      aggregateBalances(rows)
+        .filter((b) => b.type === 'EXPENSE')
+        .reduce((acc, b) => acc.plus(b.amount), new Prisma.Decimal(0));
+
+    const unfiltered = expenseTotal(lines);
+    assert.equal(unfiltered.toFixed(2), '1000.00');
+
+    const buckets = ['MARKETING', 'MANAGER_OPERASIONAL', null];
+    const summed = buckets
+      .map((division) => expenseTotal(lines.filter((l) => l.costCenter === division)))
+      .reduce((acc, v) => acc.plus(v), new Prisma.Decimal(0));
+
+    assert.equal(summed.toFixed(2), unfiltered.toFixed(2));
+
+    // Setiap baris persis sekali di satu keranjang -- tidak ada yang terhitung
+    // dua kali dan tidak ada yang lolos.
+    const counted = buckets.reduce(
+      (n, division) => n + lines.filter((l) => l.costCenter === division).length,
+      0
+    );
+    assert.equal(counted, lines.length);
+  });
+
+  test('baris dengan costCenter berbeda tidak bercampur saat disaring', () => {
+    const lines: JournalLineRow[] = [
+      line('6-6100', 'EXPENSE', 'DEBIT', '400.00', '0.00', 'acc-6100', 'MARKETING'),
+      line('6-6300', 'EXPENSE', 'DEBIT', '300.00', '0.00', 'acc-6300', 'MANAGER_OPERASIONAL'),
+    ];
+    const marketingOnly = aggregateBalances(lines.filter((l) => l.costCenter === 'MARKETING'));
+    assert.equal(marketingOnly.length, 1);
+    assert.equal(marketingOnly[0].accountId, 'acc-6100');
+    assert.equal(marketingOnly[0].amount.toFixed(2), '400.00');
   });
 });

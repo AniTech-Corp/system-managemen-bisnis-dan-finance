@@ -214,7 +214,8 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 | `/periods/{id}/reopen` | POST | Buka kembali + alasan (tercatat di `activity_events`) |
 | `/opening-balance` | GET, POST | Baca / isi saldo awal |
 | `/category-mapping` | GET, PUT | Lihat / simpan pemetaan kategori |
-| `/budgets` | GET, PUT | Lihat / simpan anggaran tahunan per akun |
+| `/budgets` | GET, PUT | Lihat / simpan anggaran tahunan per akun, per divisi |
+| `/budget-alerts` | GET, POST, PATCH | Peringatan ambang: baca, nilai ulang, tandai sudah dibaca |
 | `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget`, `inventory` |
 | `/kas/transactions` | POST | Terima `invoiceId` tunggal **atau** `allocations[]` (split payment, pembayaran sebagian). |
 | `/reports/summary` | GET | KPI + rasio + peringatan |
@@ -504,6 +505,31 @@ jadi tahun buku April–Maret tetap punya 12 kolom yang benar. Hanya akun
 pendapatan dan beban yang bisa dianggarkan. **Menyimpan anggaran tidak pernah
 membuat jurnal** — kalau ada jurnal baru setelah menyimpan, itu bug.
 
+**Dimensi divisi.** Satu baris anggaran = (divisi, akun CoA); total per divisi
+adalah jumlah barisnya, bukan entitas tersendiri. "Anggaran bebas" bukan mode
+terpisah: alokasikan seluruhnya ke satu akun beban umum.
+
+```
+Realisasi divisi = getIncomeStatement() dengan filter costCenter = divisi
+Realisasi PERUSAHAAN = tanpa saringan (seluruh pengeluaran)
+```
+
+Realisasi berasal dari `JournalLine.costCenter`, yang diisi dari
+`CashTransaction.division` **hanya pada baris beban/pendapatan**. Baris kas dan
+liabilitas tidak pernah diberi cost center. Nilai `PERUSAHAAN` sengaja tidak
+disaring, sehingga laporan anggaran lama tampil persis seperti sebelum ada
+dimensi divisi.
+
+Pengeluaran yang tidak punya baris anggaran tidak disembunyikan dan tidak
+diblokir — ia tidak muncul di laporan ini, dan harus dicek lewat Buku Kas.
+
+**Peringatan ambang.** `evaluateBudgetAlerts()` membandingkan realisasi YTD
+terhadap anggaran: 80% → `WARNING`, 100% → `EXCEEDED`. Dijalankan **setelah**
+transaksi commit dan tidak pernah melempar — kegagalan menilai anggaran tidak
+boleh membatalkan pencatatan pengeluaran. Idempoten: `BudgetAlert` punya unique
+constraint yang berperan sebagai dedup, dan alert yang sudah tidak berlaku ikut
+dihapus. Peringatan hanya menampilkan, tidak pernah memblokir transaksi.
+
 ---
 
 ## 6. Bagan akun bawaan
@@ -574,7 +600,9 @@ src/lib/accounting/journal-service.ts   ← buat/posting/balik jurnal, penomoran
 src/lib/accounting/posting.ts           ← auto-jurnal transaksi kas
 src/lib/accounting/reports.ts           ← mesin 6 laporan utama
 src/lib/accounting/aux-reports.ts       ← umur piutang/utang + ringkasan PPN
-src/lib/accounting/budgets.ts           ← anggaran tahunan + realisasi vs anggaran
+src/lib/accounting/budgets.ts           ← anggaran tahunan + realisasi vs anggaran (per divisi)
+src/lib/accounting/budget-divisions.ts  ← daftar & validasi divisi (aman dipakai dari klien)
+src/lib/accounting/budget-alerts.ts     ← penilaian peringatan ambang 80%/100% (tidak pernah melempar)
 src/lib/accounting/payroll.ts           ← perhitungan slip gaji (PPh 21 & BPJS)
 src/lib/accounting/inventory.ts         ← rata-rata bergerak (nilai buku & HPP)
 src/lib/accounting/inventory-report.ts  ← nilai persediaan + kartu stok
@@ -584,8 +612,9 @@ src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
-src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input + realisasi)
-tests/accounting-core.test.ts           ← 81 tes (uang, periode, agregasi, anggaran, payroll, persediaan, angsuran)
+src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input per divisi + realisasi)
+src/app/components/finance/accounting/BudgetAlertsPanel.tsx ← panel peringatan ambang anggaran
+tests/accounting-core.test.ts           ← 80 tes (uang, periode, agregasi, anggaran, anggaran per divisi, payroll, persediaan, angsuran)
 scripts/accounting-smoke.mjs            ← 237 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 

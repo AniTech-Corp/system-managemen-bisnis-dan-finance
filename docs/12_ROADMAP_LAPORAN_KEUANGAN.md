@@ -5,11 +5,18 @@ selesai**, apa yang **berikutnya**, urutan pengerjaan, kriteria diterima, dan
 risiko yang harus diputuskan sebelum mulai. Dokumen modul yang sudah berjalan
 ada di `docs/11_MODUL_LAPORAN_KEUANGAN.md`.
 
-Status terakhir: **Fase 0–3.3, 3.1, dan 3.2 selesai**, termasuk laporan pendukung
-(umur piutang/utang, ringkasan PPN), anggaran, pajak payroll (PPh 21 & BPJS input
-manual), persediaan & HPP rata-rata bergerak, serta pembayaran sebagian & alokasi
-dokumen (split payment). Konsinyasi sudah menjadi utang usaha. 237 pemeriksaan
-smoke + 81 unit test hijau.
+Status terakhir: **Fase 0–3.3, 3.1, 3.2, serta Fase 2.7 (anggaran per divisi &
+peringatan ambang) selesai**, termasuk laporan pendukung (umur piutang/utang,
+ringkasan PPN), anggaran, pajak payroll (PPh 21 & BPJS input manual), persediaan
+& HPP rata-rata bergerak, serta pembayaran sebagian & alokasi dokumen (split
+payment). Konsinyasi sudah menjadi utang usaha. 100 unit test hijau.
+
+> **Fase 2.7 sudah ditekan ke database LOKAL.** Database pengembangan kini
+> berjalan di container Docker sendiri (`docker-compose.yml`, port host 5434),
+> bukan lagi menumpang container proyek lain. `prisma db push` dijalankan ke
+> container itu dan diverifikasi 19 pemeriksaan fungsional terhadap database
+> sungguhan. **Skema belum ditekan ke produksi (Neon)** — itu tetap menunggu
+> keputusan pemilik sesuai `PROTOKOL-PUSH-DEPLOY-KLIR.md`.
 
 ---
 
@@ -47,6 +54,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 | 2.5 | Laporan umur piutang/utang + ringkasan PPN | `aux-reports.ts`, tab Umur & PPN |
 | 2.5 | Konsinyasi menjadi utang usaha (bukan pengurangan kas) | `consignment-engine.ts` |
 | 2.6 | Anggaran tahunan + realisasi vs anggaran | `budgets.ts`, tab Anggaran |
+| 2.7 | Anggaran per divisi + peringatan ambang 80%/100% | `budget-alerts.ts`, `budget-divisions.ts`, panel Peringatan |
 | 3.3 | PPh 21 & BPJS pada slip gaji + setoran kewajiban | `payroll.ts`, tab Gaji & Pajak |
 | 3.1 | Persediaan & HPP rata-rata bergerak + kartu stok & kontrol akun 1-1400 | `inventory.ts`, `inventory-report.ts`, tab Persediaan |
 | 3.2 | Pembayaran sebagian & alokasi dokumen (split payment, status PARTIAL) | `settlement.ts`, `settlement-service.ts`, `PaymentAllocation` |
@@ -79,10 +87,14 @@ model Budget {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, fiscalYear, accountId])
+  @@unique([workspaceId, fiscalYear, accountId])   // ← sejak Fase 2.7 menjadi 4 bagian
   @@map("budgets")
 }
 ```
+
+> **Diperbarui Fase 2.7.** Unique constraint di atas sekarang menjadi
+> `[workspaceId, fiscalYear, accountId, division]` dan kolom `division`
+> ditambahkan. Lihat Fase 2.7 di bawah.
 
 **API.**
 
@@ -110,6 +122,138 @@ per kelompok, dan peringatan bila realisasi > 100% sebelum tahun berjalan.
 - Ekspor Excel memuat sheet "Anggaran vs Realisasi".
 
 **Estimasi.** 2–3 hari. Risiko rendah.
+
+---
+
+## 2b. Fase 2.7 — Anggaran per divisi & peringatan ambang ✅ SELESAI
+
+Sebelum fase ini, anggaran hanya ada satu dimensi: akun CoA. Owner tidak bisa
+menjawab "divisi mana yang paling mendekati batas", dan tidak ada yang tahu
+sebelum pengeluaran benar-benar jadi.
+
+**Tujuan.** Mengontrol pengeluaran per divisi dengan membandingkan anggaran
+terhadap realisasi dari jurnal yang sama dengan Laba Rugi, plus peringatan dini
+saat pengeluaran mendekati batas.
+
+**Keputusan desain yang membentuk fase ini.**
+
+- **Satu unit: (divisi, akun CoA).** "Anggaran bebas" bukan konsep terpisah --
+  cukup alokasikan seluruh anggaran divisi ke satu akun beban umum. Total per
+  divisi adalah JUMLAH barisnya, bukan entitas tersendiri. Saya menolak anggaran
+  kasar sebagai baris terpisah dengan `accountId` NULL: di Postgres NULL tidak
+  pernah sama dengan NULL, jadi unique constraint tidak akan mencegah duplikat
+  dan integritas `Budget` lama hilang.
+- **`PERUSAHAAN` tidak disaring.** Nilai ini berarti anggaran umum seluruh
+  perusahaan, jadi realisasinya SELURUH pengeluaran. Inilah yang membuat
+  laporan Fase 2.6 (seluruh barisnya berlabel PERUSAHAAN) tampil persis seperti
+  sebelum ada dimensi divisi.
+- **Atribusi lewat `JournalLine.costCenter`.** Kolomnya sudah ada sejak awal dan
+  selama ini kosong. Baris BEBAN/PENDAPATAN saja yang diberi cost center; baris
+  kas dan liabilitas tidak, supaya arus kas per divisi tidak salah hitung.
+- **Peringatan tidak pernah memblokir.** Pemblokiran dengan persetujuan owner
+  sudah domain `spending-approval-guardrail.ts`; mencampurnya membuat aturan
+  ambang jadi ambigu.
+
+**Skema.**
+
+```prisma
+model Budget {
+  // ... kolom lama, ditambah:
+  division String @default("PERUSAHAAN") @db.VarChar(30)
+  @@unique([workspaceId, fiscalYear, accountId, division])   // 4 bagian, sebelumnya 3
+}
+
+model CashTransaction {
+  // ... kolom lama, ditambah:
+  division String? @db.VarChar(30)     // nullable: kosong = "Tanpa Divisi"
+}
+
+enum BudgetAlertLevel { WARNING EXCEEDED }
+
+model BudgetAlert {
+  id             String           @id @default(uuid()) @db.Uuid
+  workspaceId    String           @map("workspace_id") @db.Uuid
+  fiscalYear     Int              @map("fiscal_year")
+  monthIndex     Int              @map("month_index")   // 0–11 posisi dalam tahun buku
+  division       String           @db.VarChar(30)
+  accountId      String           @map("account_id") @db.Uuid   // NON-NULL, lihat catatan
+  level          BudgetAlertLevel
+  budget         Decimal          @db.Decimal(18, 2)
+  actual         Decimal          @db.Decimal(18, 2)
+  triggeredAt    DateTime         @default(now()) @map("triggered_at")
+  acknowledgedAt DateTime?        @map("acknowledged_at")
+  acknowledgedBy String?          @map("acknowledged_by") @db.Uuid
+  @@unique([workspaceId, fiscalYear, monthIndex, division, accountId, level])
+}
+```
+
+`accountId` sengaja NON-NULL (satu alert per baris anggaran). Kalau nullable,
+unique constraint di atas tidak akan mencegah duplikat karena NULL tidak pernah
+sama dengan NULL. Ringkasan per divisi dihitung di UI, bukan disimpan.
+
+**API.**
+
+- `GET/PUT /api/v1/accounting/budgets` → baris kini membawa `division`.
+- `GET /api/v1/accounting/reports/budget?period=&division=` → realisasi tersaring
+  per divisi; tanpa parameter, semua divisi tampil.
+- `GET/POST/PATCH /api/v1/accounting/budget-alerts` → baca peringatan, nilai
+  ulang manual, tandai sudah dibaca.
+
+**Layanan baru.**
+
+- `src/lib/accounting/budget-divisions.ts` — SATU-SATUNYA tempat validasi nilai
+  divisi. Sengaja tidak mengimpor `@prisma/client` supaya aman dipakai dari
+  komponen klien; kecocokan dengan enum `DivisionRole` dijaga oleh test.
+- `src/lib/accounting/budget-alerts.ts` — `evaluateBudgetAlerts()` dengan ambang
+  `WARNING = 80%` dan `EXCEEDED = 100%` (YTD). Idempoten: unique constraint
+  berperan sebagai dedup, jadi evaluasi berulang tidak pernah menggandakan
+  notifikasi. Alert yang sudah tidak berlaku (realisasi turun, baris dihapus)
+  ikut dibersihkan.
+
+**Aturan.**
+
+- `evaluateBudgetAlerts` dipanggil SETELAH transaksi commit, di luar transaksi
+  database, dan TIDAK PERNAH melempar. Kegagalan menilai anggaran tidak boleh
+  membatalkan pencatatan pengeluaran.
+- Cabang pelunasan/setoran di `postCashTransaction` (kewajiban, faktur, gaji,
+  persediaan) sengaja TIDAK diberi `costCenter`: barisnya bukan beban baru.
+  Menempelkan divisi di sana akan menghitung beban dua kali.
+- Impor mutasi bank (batch) tidak diberi divisi: mutasi bank tidak memuat
+  informasi divisi, dan mengisinya berarti menebak.
+- Edit anggaran tetap hanya `OWNER`/`ADMIN`; melihat anggaran divisi mana pun
+  boleh semua member.
+- `ScheduledObligation` dan slip gaji TIDAK membawa divisi di fase ini, jadi
+  beban keduanya muncul di "Tanpa Divisi". Menambah kolomnya murah tapi berarti
+  menyentuh UI kewajiban dan slip gaji -- tunda ke fase berikutnya.
+
+**UI.**
+
+- Form kas: dropdown Divisi di samping kategori, default "Tanpa Divisi".
+- Tab Anggaran: baris dikelompokkan per divisi dan bisa dilipat, tiap grup
+  berjudul dengan totalnya; kartu "Sisa Anggaran per Divisi" dengan bilah
+  progres pemakaian.
+- Panel `BudgetAlertsPanel` di atas isi tab, dengan badge jumlah peringatan
+  yang belum dibaca.
+
+**Kriteria diterima.**
+
+- Mengisi anggaran tetap tidak membuat jurnal apa pun.
+- **Total semua divisi + "Tanpa Divisi" = Laba Rugi tanpa saringan** (diuji
+  unit). Ini jaminan terpenting: angka per divisi tidak mungkin menyimpang.
+- Baris `Budget` lama terbaca sebagai `PERUSAHAAN` dan laporannya tidak berubah.
+- 79% tidak memicu apa pun, 80% memicu WARNING, 100% memicu EXCEEDED.
+- Evaluasi ulang idempoten; alert hilang saat realisasi turun kembali.
+
+**Catatan rilis.** Perubahan ini menyentuh unique constraint `budgets` --
+satu-satunya bagian yang TIDAK murni aditif. Prisma menandainya sebagai "data
+loss warning" karena index unik dicopot, tetapi `prisma migrate diff` menunjukkan
+tidak ada kolom atau tabel yang dihapus; seluruh isi tetap utuh dan baris lama
+otomatis menjadi `PERUSAHAAN` (diverifikasi pada data nyata: 1 anggaran + 20
+transaksi kas selamat).
+
+Urutan yang benar: tekan ke database lokal di container Docker lebih dulu
+(`docker compose up -d`, lalu `npx prisma db push`), uji, baru tekan ke Neon saat
+produksi siap -- dengan backup sesuai `PROTOKOL-PUSH-DEPLOY-KLIR.md`.
 
 ---
 
@@ -192,9 +336,14 @@ Stok opname kurang    Dr 6-9100 Selisih Persediaan    / Cr 1-1400
 
 ---
 
-## 4. Fase 3.2 — Pembayaran sebagian & alokasi dokumen
+## 4. Fase 3.2 — Pembayaran sebagian & alokasi dokumen ✅ SELESAI
 
-Sekarang pelunasan harus penuh; satu faktur = satu pembayaran.
+**Masalah awal.** Sebelumnya pelunasan harus penuh; satu faktur = satu pembayaran.
+
+**Status implementasi.** Sudah berjalan di kode: model `PaymentAllocation`,
+status `InvoiceStatus.PARTIAL`, serta `src/lib/accounting/settlement.ts` dan
+`settlement-service.ts` yang dipakai route kas, faktur, dan kewajiban. Sisa
+pekerjaan yang tercatat di bawah adalah acuan bila alur ini diubah lagi.
 
 **Skema.**
 

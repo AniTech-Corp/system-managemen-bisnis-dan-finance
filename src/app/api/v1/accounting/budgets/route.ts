@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { badRequest, guardAccounting, serverError } from '@/lib/accounting/api';
+import { evaluateBudgetAlerts } from '@/lib/accounting/budget-alerts';
 import { getJakartaParts } from '@/lib/accounting/period';
 import {
   fiscalStartYear,
@@ -11,11 +12,12 @@ import {
 } from '@/lib/accounting/budgets';
 
 /**
- * Anggaran tahunan per akun pendapatan/beban.
+ * Anggaran tahunan per akun pendapatan/beban, per divisi.
  *
  * GET  ?year=2026  → daftar anggaran + akun yang bisa dianggarkan
- * PUT  { year, items: [{ accountId, monthly: number[12], note? }] }
+ * PUT  { year, items: [{ accountId, division?, monthly: number[12], note? }] }
  *
+ * `division` per baris. Kosong dianggap "Perusahaan" (kompatibilitas input lama).
  * Anggaran tidak membuat jurnal. Realisasi ada di `/reports/budget`.
  */
 export const GET = withTenantGuard(
@@ -71,19 +73,28 @@ export const PUT = withTenantGuard(
         }
         return {
           accountId: item.accountId,
+          // Dinormalisasi di `saveBudgets` supaya hanya ada SATU aturan validasi
+          // divisi di seluruh codebase (lihat budget-divisions.ts).
+          division: item?.division ?? null,
           monthly: item.monthly,
           note: typeof item.note === 'string' ? item.note : null,
         };
       });
 
       const result = await saveBudgets(auth.workspace.id, year, normalized);
+
+      // Anggaran berubah, jadi peringatan perlu dinilai ulang -- misal realisasi
+      // yang tadinya di bawah 80% tiba-tiba melewati batas karena ambangnya
+      // diturunkan. Gagal di sini tidak menggagalkan penyimpanan anggaran.
+      void evaluateBudgetAlerts(auth.workspace.id, { userId: auth.user.id });
+
       return NextResponse.json({
         success: true,
-        message: `Anggaran tersimpan (${result.saved} akun${result.deleted ? `, ${result.deleted} baris kosong dihapus` : ''}).`,
+        message: `Anggaran tersimpan (${result.saved} baris${result.deleted ? `, ${result.deleted} baris kosong dihapus` : ''}).`,
         data: result,
       });
     } catch (err) {
-      if (err instanceof Error && /anggota|akun|angka|tahun|bulan|Anggaran/i.test(err.message)) {
+      if (err instanceof Error && /divisi|anggota|akun|angka|tahun|bulan|Anggaran/i.test(err.message)) {
         return badRequest(err.message);
       }
       return serverError('budgets:put', err, 'Gagal menyimpan anggaran.');

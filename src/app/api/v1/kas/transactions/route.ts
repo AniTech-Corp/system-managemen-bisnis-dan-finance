@@ -8,6 +8,8 @@ import { createApprovalRequest } from '@/lib/security-guardrail';
 import { invalidateContextCache } from '@/lib/ai-brain/context-engine';
 import { invalidateDashboardInsightCache } from '@/lib/ai-brain/dashboard-insight';
 import { postCashTransaction } from '@/lib/accounting/posting';
+import { normalizeCashDivision } from '@/lib/accounting/budget-divisions';
+import { evaluateBudgetAlerts } from '@/lib/accounting/budget-alerts';
 import { JournalValidationError, reverseJournalInTx } from '@/lib/accounting/journal-service';
 import { planDocumentSettlement, validateAllocations } from '@/lib/accounting/settlement';
 import {
@@ -318,10 +320,20 @@ export const POST = withTenantGuard(
         transactionDate,
         sourceFileId,
         invoiceId,
+        division,
       } = body;
 
       if (!type || !category || !amount || !description) {
         return NextResponse.json({ message: 'Type (INCOME/EXPENSE), kategori, nominal, dan deskripsi wajib diisi.' }, { status: 400 });
+      }
+
+      // Divisi dinormalisasi SEBELUM transaksi database dibuka supaya input yang
+      // tidak sah gagal lebih awal, tanpa meninggalkan baris kas tanpa jurnal.
+      let cashDivision: string | null = null;
+      try {
+        cashDivision = normalizeCashDivision(division);
+      } catch (err) {
+        return NextResponse.json({ message: err instanceof Error ? err.message : 'Divisi tidak valid.' }, { status: 400 });
       }
 
       if (Number(amount) <= 0) {
@@ -474,6 +486,7 @@ export const POST = withTenantGuard(
             paymentMethod,
             transactionDate: businessDate,
             invoiceId: linkedInvoiceId,
+            division: cashDivision,
           },
         });
 
@@ -515,6 +528,11 @@ export const POST = withTenantGuard(
 
       invalidateContextCache(auth.workspace.id);
       void invalidateDashboardInsightCache(auth.workspace.id);
+
+      // Nilai ulang peringatan anggaran SETELAH commit. Sengaja tidak di dalam
+      // transaksi: kegagalan menilai anggaran tidak boleh membatalkan pencatatan
+      // pengeluaran. `evaluateBudgetAlerts` tidak pernah melempar.
+      void evaluateBudgetAlerts(auth.workspace.id, { userId: auth.user.id });
 
       return NextResponse.json({
         success: true,
@@ -656,6 +674,10 @@ export const DELETE = withTenantGuard(
 
       invalidateContextCache(auth.workspace.id);
       void invalidateDashboardInsightCache(auth.workspace.id);
+
+      // Transaksi berkurang, jadi realisasi anggaran ikut turun. Evaluasi ulang
+      // membuat badge tidak menampilkan peringatan yang sudah basi.
+      void evaluateBudgetAlerts(auth.workspace.id, { userId: auth.user.id });
 
       return NextResponse.json({
         success: true,

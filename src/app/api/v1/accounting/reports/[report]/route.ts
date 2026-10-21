@@ -140,7 +140,14 @@ export const GET = withTenantGuard(
         }
 
         case 'budget': {
-          const current = await getBudgetReport(workspaceId, range, fiscalYearStartMonth);
+          // `division` menyaring laporan ke satu divisi; tanpa parameter, semua
+          // divisi ikut tampil.
+          const current = await getBudgetReport(
+            workspaceId,
+            range,
+            fiscalYearStartMonth,
+            sp.get('division')
+          );
           return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
         }
 

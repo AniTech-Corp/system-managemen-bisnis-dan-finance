@@ -82,6 +82,7 @@ model Workspace {
   campaigns            Campaign[]
   scheduledObligations ScheduledObligation[]
   budgets              Budget[]
+  budgetAlerts         BudgetAlert[]
   workspaceFiles       WorkspaceFile[]
   ingestLogs           IngestLog[]
   contentCalendars     ContentCalendar[]
@@ -347,6 +348,10 @@ model CashTransaction {
   transactionDate     DateTime        @default(now()) @map("transaction_date")
   paymentMethod       String          @default("TRANSFER_BANK") @map("payment_method") @db.VarChar(50)
   receiptUrl          String?         @map("receipt_url")
+  /// Divisi yang memakai dana ini. Nullable: kosong = "Tanpa Divisi" (data lama
+  /// dan transaksi yang memang tidak terkait divisi). Ikut turun ke
+  /// `JournalLine.costCenter` supaya realisasi per divisi berasal dari jurnal.
+  division            String?         @db.VarChar(30)
   createdAt           DateTime        @default(now()) @map("created_at")
 
   workspace          Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -1152,6 +1157,7 @@ model Account {
   cashAccounts    CashAccount[]
   categoryMaps    CategoryAccountMap[]
   budgets         Budget[]
+  budgetAlerts    BudgetAlert[]
   cashSettlements CashTransaction[]    @relation("CashSettlementAccount")
 
   @@unique([workspaceId, code])
@@ -1329,19 +1335,28 @@ model CategoryAccountMap {
   @@map("category_account_maps")
 }
 
-/// Anggaran tahunan per akun pendapatan/beban.
+/// Anggaran tahunan per akun pendapatan/beban, per divisi.
 ///
 /// `fiscalYear` = tahun kalender saat tahun buku DIMULAI (Januari untuk tahun
 /// buku normal). `monthly` berisi 12 angka berurutan mulai dari bulan pertama
 /// tahun buku, sehingga tahun buku yang mulai April tetap punya 12 slot.
 ///
+/// `division` memecah anggaran per divisi. Satu baris = (divisi, akun); TOTAL
+/// per divisi adalah JUMLAH barisnya, bukan entitas tersendiri. "Anggaran bebas"
+/// bukan konsep terpisah: alokasikan seluruh anggaran divisi ke satu akun beban
+/// umum. Nilai `PERUSAHAAN` dipakai baris lama (sebelum ada dimensi divisi) dan
+/// untuk anggaran yang memang sifatnya umum.
+///
 /// Anggaran murni rencana: tidak pernah membuat jurnal dan tidak memengaruhi
-/// laporan utama. Realisasi dihitung dari jurnal yang sama dengan Laba Rugi.
+/// laporan utama. Realisasi dihitung dari jurnal yang sama dengan Laba Rugi,
+/// disaring lewat `JournalLine.costCenter`.
 model Budget {
   id          String   @id @default(uuid()) @db.Uuid
   workspaceId String   @map("workspace_id") @db.Uuid
   fiscalYear  Int      @map("fiscal_year")
   accountId   String   @map("account_id") @db.Uuid
+  /// Divisi pemilik anggaran. Non-null: baris lama otomatis `PERUSAHAAN`.
+  division    String   @default("PERUSAHAAN") @db.VarChar(30)
   monthly     Json     @db.JsonB
   note        String?
   createdAt   DateTime @default(now()) @map("created_at")
@@ -1350,9 +1365,51 @@ model Budget {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, fiscalYear, accountId])
+  @@unique([workspaceId, fiscalYear, accountId, division])
   @@index([workspaceId, fiscalYear])
+  @@index([workspaceId, fiscalYear, division])
   @@map("budgets")
+}
+
+enum BudgetAlertLevel {
+  /// Realisasi mendekati batas (default 80% anggaran YTD).
+  WARNING
+  /// Realisasi melewati batas (100% anggaran YTD).
+  EXCEEDED
+}
+
+/// Peringatan anggaran: realisasi sebuah baris anggaran (divisi + akun) sudah
+/// menyentuh ambang batas pada bulan tertentu tahun buku berjalan.
+///
+/// Dibuat ulang (bukan ditumpuk) oleh `evaluateBudgetAlerts`, sehingga unique
+/// constraint di bawah sekaligus berfungsi sebagai mekanisme dedup -- evaluasi
+/// ulang yang berulang tidak pernah menghasilkan notifikasi ganda.
+///
+/// `accountId` sengaja NON-NULL (satu alert per baris anggaran). Kalau nullable,
+/// unique constraint tidak akan mencegah duplikat karena NULL tidak pernah sama
+/// dengan NULL di Postgres. Ringkasan per divisi dihitung di UI, bukan disimpan.
+model BudgetAlert {
+  id             String           @id @default(uuid()) @db.Uuid
+  workspaceId    String           @map("workspace_id") @db.Uuid
+  fiscalYear     Int              @map("fiscal_year")
+  /// Posisi bulan dalam tahun buku (0–11), konsisten dengan slot `monthly`.
+  monthIndex     Int              @map("month_index")
+  division       String           @db.VarChar(30)
+  accountId      String           @map("account_id") @db.Uuid
+  level          BudgetAlertLevel
+  budget         Decimal          @db.Decimal(18, 2)
+  actual         Decimal          @db.Decimal(18, 2)
+  triggeredAt    DateTime         @default(now()) @map("triggered_at")
+  acknowledgedAt DateTime?        @map("acknowledged_at")
+  acknowledgedBy String?          @map("acknowledged_by") @db.Uuid
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, fiscalYear, monthIndex, division, accountId, level])
+  @@index([workspaceId, fiscalYear, monthIndex])
+  @@index([workspaceId, acknowledgedAt])
+  @@map("budget_alerts")
 }
 
 model DocumentSequence {

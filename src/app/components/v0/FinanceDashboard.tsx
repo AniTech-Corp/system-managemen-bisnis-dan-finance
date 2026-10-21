@@ -41,6 +41,7 @@ import {
 import dynamic from 'next/dynamic';
 
 import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
+import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
 import ModernAICopilotView from './ModernAICopilotView';
 import AccountingTab from '../finance/accounting/AccountingTab';
 
@@ -98,6 +99,11 @@ export default function FinanceDashboard({
   const [txCategory, setTxCategory] = useState<string>('Penjualan');
   const [txDesc, setTxDesc] = useState<string>('');
   const [txBank, setTxBank] = useState<string>('BCA Operasional');
+  // Divisi pemakai dana. Kosong = "Tanpa Divisi" (data lama tetap sah).
+  // Melekat pada pengeluaran sebagai `JournalLine.costCenter`, sehingga
+  // realisasi anggaran per divisi dihitung dari jurnal yang sama dengan
+  // Laba Rugi. Lihat src/lib/accounting/budget-divisions.ts.
+  const [txDivision, setTxDivision] = useState<string>('');
   const [txSaving, setTxSaving] = useState<boolean>(false);
 
   // Form states for Buat Faktur Baru
@@ -204,6 +210,7 @@ export default function FinanceDashboard({
           description: txDesc,
           transactionDate: new Date().toISOString(),
           paymentMethod: txBank,
+          division: txDivision || null,
         }),
       });
 
@@ -219,6 +226,7 @@ export default function FinanceDashboard({
       setNewTxModalOpen(false);
       setTxAmount('');
       setTxDesc('');
+      setTxDivision('');
     } catch (err) {
       console.warn('Gagal menyimpan transaksi:', err);
     } finally {
@@ -1505,6 +1513,26 @@ export default function FinanceDashboard({
                   <option value="Marketing & Iklan">Marketing & Iklan</option>
                   <option value="Operasional Umum">Operasional Umum</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">Divisi:</label>
+                <select
+                  value={txDivision}
+                  onChange={(e) => setTxDivision(e.target.value)}
+                  title="Dipakai untuk mengukur realisasi anggaran per divisi. Kosongkan bila pengeluaran tidak terkait divisi tertentu."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-900 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Tanpa Divisi</option>
+                  {DIVISIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {divisionLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Pengeluaran tanpa divisi tetap tercatat, hanya tidak dihitung ke anggaran sebuah divisi.
+                </p>
               </div>
 
               <div>

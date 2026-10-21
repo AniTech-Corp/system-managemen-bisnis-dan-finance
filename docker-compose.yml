@@ -1,0 +1,44 @@
+# ==============================================================================
+# KLIR OS - Local PostgreSQL (pengganti Neon untuk pengembangan)
+# ==============================================================================
+#
+# PENTING: Protokol deploy (PROTOKOL-PUSH-DEPLOY-KLIR.md) menyatakan database
+# dev dan produksi selama ini MEMAKAI NEON YANG SAMA, sehingga `prisma db push`
+# selalu menulis langsung ke produksi. Container ini memisahkan keduanya: `db push`
+# dijalankan ke sini lebih dulu, diverifikasi, baru dijalankan ke Neon saat siap.
+#
+# Pakai:
+#   docker compose up -d       # nyalakan
+#   npx prisma db push         # tulis skema ke container ini (BUKAN ke Neon)
+#   npm run seed               # isi CoA & workspace
+#   docker compose down        # matikan, data tetap tersimpan di volume
+#   docker compose down -v     # matikan SEKALIGUS hapus data
+#
+# Port 5432 dan 5433 sudah dipakai container proyek lain (library-postgres,
+# tms-postgres) di mesin ini, jadi KLIR memakai 5434.
+#
+# Kredensial di bawah hanya untuk pengembangan lokal dan tidak boleh dipakai
+# di mana pun selain container ini.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: klir-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-klir}
+      POSTGRES_USER: ${POSTGRES_USER:-klir}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-klir_local}
+    ports:
+      # "5434:5432" = host:container. 5432 di container, 5434 di mesin.
+      - "${KLIR_PG_PORT:-5434}:5432"
+    volumes:
+      - klir_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  klir_pgdata:

@@ -28,6 +28,8 @@ export interface JournalLineRow {
   debit: Prisma.Decimal;
   credit: Prisma.Decimal;
   description: string | null;
+  /** Divisi pemilik baris ini, atau null bila "Tanpa Divisi". */
+  costCenter: string | null;
   account: {
     id: string;
     code: string;
@@ -53,6 +55,7 @@ const LINE_SELECT = {
   debit: true,
   credit: true,
   description: true,
+  costCenter: true,
   account: {
     select: { id: true, code: true, name: true, type: true, normalBalance: true },
   },
@@ -61,14 +64,33 @@ const LINE_SELECT = {
   },
 } satisfies Prisma.JournalLineSelect;
 
+/**
+ * Opsi penyaringan baris jurnal.
+ *
+ * `costCenter` memilih baris milik SATU divisi (nilai persis, sesuai yang
+ * ditulis `postCashTransaction`). Tidak ada opsi "baris tanpa divisi" karena
+ * anggaran Perusahaan berarti TANPA penyaringan: `null` di Prisma memang
+ * berarti "tanpa penyaringan", bukan "yang nilainya null". Menambahkan opsi
+ * itu hanya akan menyesatkan pembaca berikutnya.
+ */
+export interface JournalLineFilter {
+  costCenter?: string | null;
+}
+
+function divisionWhere(filter?: JournalLineFilter): Prisma.JournalLineWhereInput {
+  if (!filter?.costCenter) return {};
+  return { costCenter: filter.costCenter };
+}
+
 async function fetchPostedLines(
   workspaceId: string,
   range: DateRange,
-  options: { excludeSources?: JournalSource[] } = {}
+  options: { excludeSources?: JournalSource[]; division?: JournalLineFilter } = {}
 ): Promise<JournalLineRow[]> {
   const rows = await prisma.journalLine.findMany({
     where: {
       workspaceId,
+      ...divisionWhere(options.division),
       entry: {
         status: JournalStatus.POSTED,
         entryDate: { gte: range.startDate, lte: range.endDate },
@@ -222,9 +244,22 @@ export interface IncomeStatement {
   };
 }
 
-export async function getIncomeStatement(workspaceId: string, range: DateRange): Promise<IncomeStatement> {
+/**
+ * Laba rugi untuk sebuah periode.
+ *
+ * `division` menyaring realisasi per divisi. Karena penyaringan terjadi di
+ * tingkat baris jurnal SEBELUM diagregasi, angka per divisi berasal dari mesin
+ * yang sama dengan laba rugi utuh -- total semua divisi + "Tanpa Divisi" selalu
+ * tepat sama dengan laba rugi tanpa saringan apa pun.
+ */
+export async function getIncomeStatement(
+  workspaceId: string,
+  range: DateRange,
+  division?: JournalLineFilter
+): Promise<IncomeStatement> {
   const lines = await fetchPostedLines(workspaceId, range, {
     excludeSources: [JournalSource.CLOSING, JournalSource.OPENING],
+    division,
   });
   const balances = aggregateBalances(lines);
 

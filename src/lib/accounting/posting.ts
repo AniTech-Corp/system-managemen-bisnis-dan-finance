@@ -18,6 +18,7 @@ import {
   type JournalLineInput,
   type JournalWithLines,
 } from './journal-service';
+import { journalCostCenter, normalizeCashDivision } from './budget-divisions';
 import { toMoney } from './money';
 
 /**
@@ -44,6 +45,7 @@ export interface PostingContext {
     | 'obligationId'
     | 'payrollId'
     | 'settlementAccountId'
+    | 'division'
   >;
   /**
    * Kalau diisi, uang KELUAR didebit ke akun ini alih-alih akun kategori.
@@ -405,6 +407,12 @@ export async function postObligationIssuedInTx(
 /**
  * Buat jurnal otomatis untuk satu transaksi kas.
  * Mengembalikan null bila modul akuntansi belum diaktifkan untuk workspace.
+ *
+ * CATATAN ANGGARAN PER DIVISI: hanya cabang generik di bawah yang menempelkan
+ * `costCenter`. Cabang pelunasan/setoran (kewajiban, faktur, gaji, persediaan)
+ * sengaja TIDAK -- barisnya bukan beban baru, melainkan pemindahan utang atau
+ * penambahan aset. Menempelkan divisi di sana akan menghitung beban dua kali
+ * karena beban itu sudah diakui saat dokumen sumbernya dicatat.
  */
 export async function postCashTransaction(
   tx: Prisma.TransactionClient,
@@ -528,16 +536,26 @@ export async function postCashTransaction(
     transaction.type
   );
 
+  // Divisi hanya menempel di baris BEBAN/PENDAPATAN, tidak di baris kas. Baris
+  // kas adalah aset; kalau ikut dicost-center, laporan arus kas per divisi akan
+  // salah hitung karena setiap transaksi kas punya baris kas dua sisi.
+  //
+  // Inilah satu-satunya sumber data anggaran per divisi. Realisasi dihitung
+  // dengan menyaring `costCenter` di `getIncomeStatement`, sehingga angka per
+  // divisi berasal dari jurnal yang SAMA dengan Laba Rugi dan tidak mungkin
+  // menyimpang darinya.
+  const costCenter = journalCostCenter(transaction.division);
+
   const lines =
     transaction.type === TransactionType.INCOME
       ? [
           // Uang masuk: Kas bertambah (debit), Pendapatan bertambah (kredit)
           { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: amount, credit: 0 },
-          { accountId: target.accountId, debit: 0, credit: amount },
+          { accountId: target.accountId, debit: 0, credit: amount, costCenter },
         ]
       : [
           // Uang keluar: Beban bertambah (debit), Kas berkurang (kredit)
-          { accountId: target.accountId, debit: amount, credit: 0 },
+          { accountId: target.accountId, debit: amount, credit: 0, costCenter },
           { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: 0, credit: amount },
         ];
 
@@ -788,12 +806,20 @@ export async function recordCashTransaction(
     payrollId?: string | null;
     /** Isi bila baris kas ini melunasi liabilitas tertentu (PPh 21/BPJS). */
     settlementAccountId?: string | null;
+    /**
+     * Divisi pemakai dana, untuk anggaran per divisi. Null/kosong = "Tanpa
+     * Divisi". Nilai di luar daftar divisi akan melempar Error.
+     */
+    division?: string | null;
     /** Akun debit pengganti akun kategori (mis. '1-1400' untuk pembelian stok). */
     debitAccountCode?: string;
     autoMapFallback?: boolean;
   }
 ): Promise<{ transaction: CashTransaction; journal: JournalWithLines | null; warning?: string }> {
   const category = ctx.category.trim().slice(0, 100);
+  // Dinormalisasi SEBELUM baris kas dibuat, supaya nilai yang tidak sah
+  // gagal lebih awal dan tidak meninggalkan transaksi tanpa jurnal.
+  const division = normalizeCashDivision(ctx.division);
   let warning: string | undefined;
 
   if (ctx.autoMapFallback) {
@@ -822,6 +848,7 @@ export async function recordCashTransaction(
       obligationId: ctx.obligationId ?? null,
       payrollId: ctx.payrollId ?? null,
       settlementAccountId: ctx.settlementAccountId ?? null,
+      division,
     },
   });
 
