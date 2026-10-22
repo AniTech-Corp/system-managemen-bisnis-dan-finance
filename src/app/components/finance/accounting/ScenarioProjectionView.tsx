@@ -3,15 +3,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import {
+  ArrowDown,
+  ArrowUp,
+  CalendarRange,
   TrendingUp,
   TrendingDown,
   Save,
   RotateCcw,
-  BarChart2,
+  BarChart3,
   DollarSign,
   Clock,
   AlertTriangle,
   RefreshCw,
+  Minus,
 } from 'lucide-react';
 import { apiSend } from './client';
 
@@ -90,9 +94,9 @@ const DEFAULT_SCENARIOS: ScenarioParams[] = [
 ];
 
 const SCENARIO_COLORS: Record<string, string> = {
-  optimistic: '#00C853',
-  normal: '#2979FF',
-  pessimistic: '#FF6D00',
+  optimistic: '#047857',
+  normal: '#1D4ED8',
+  pessimistic: '#C2410C',
 };
 
 const SCENARIO_BG: Record<string, string> = {
@@ -266,21 +270,21 @@ function ScenarioCard({
   bgColor: string;
 }) {
   return (
-    <div className="linear-card p-4" style={{ borderLeft: `4px solid ${color}`, background: bgColor }}>
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="font-bold text-sm" style={{ color }}>{scenario.label}</h4>
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: color, color: '#fff' }}>
-          {scenario.id === 'optimistic' && '📈'}
-          {scenario.id === 'normal' && '➖'}
-          {scenario.id === 'pessimistic' && '📉'}
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" style={{ borderLeft: `3px solid ${color}` }}>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h4 className="text-sm font-semibold text-slate-900">{scenario.label}</h4>
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg" style={{ backgroundColor: bgColor, color }}>
+          {scenario.id === 'optimistic' && <TrendingUp className="h-4 w-4" aria-hidden="true" />}
+          {scenario.id === 'normal' && <Minus className="h-4 w-4" aria-hidden="true" />}
+          {scenario.id === 'pessimistic' && <TrendingDown className="h-4 w-4" aria-hidden="true" />}
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         <div>
-          <label className="flex items-center justify-between text-xs text-slate-600 mb-1">
+          <label className="mb-1 flex items-center justify-between gap-2 text-xs text-slate-600">
             <span>Perubahan Penjualan</span>
-            <span className="font-bold" style={{ color }}>
+            <span className="font-semibold tabular-nums" style={{ color }}>
               {scenario.salesDeltaPct >= 0 ? '+' : ''}{scenario.salesDeltaPct}%
             </span>
           </label>
@@ -290,16 +294,17 @@ function ScenarioCard({
             max="100"
             step="1"
             value={scenario.salesDeltaPct}
+            aria-label={`${scenario.label}: perubahan penjualan`}
             onChange={(e) => onChange(scenario.id, 'salesDeltaPct', parseInt(e.target.value))}
-            className="w-full h-1.5 appearance-none rounded-lg bg-slate-200 cursor-pointer"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200"
             style={{ accentColor: color }}
           />
         </div>
 
         <div>
-          <label className="flex items-center justify-between text-xs text-slate-600 mb-1">
+          <label className="mb-1 flex items-center justify-between gap-2 text-xs text-slate-600">
             <span>Perubahan Biaya Operasional</span>
-            <span className="font-bold" style={{ color }}>
+            <span className="font-semibold tabular-nums" style={{ color }}>
               {scenario.opexDeltaPct >= 0 ? '+' : ''}{scenario.opexDeltaPct}%
             </span>
           </label>
@@ -309,16 +314,17 @@ function ScenarioCard({
             max="100"
             step="1"
             value={scenario.opexDeltaPct}
+            aria-label={`${scenario.label}: perubahan biaya operasional`}
             onChange={(e) => onChange(scenario.id, 'opexDeltaPct', parseInt(e.target.value))}
-            className="w-full h-1.5 appearance-none rounded-lg bg-slate-200 cursor-pointer"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200"
             style={{ accentColor: color }}
           />
         </div>
 
         <div>
-          <label className="flex items-center justify-between text-xs text-slate-600 mb-1">
+          <label className="mb-1 flex items-center justify-between gap-2 text-xs text-slate-600">
             <span>Keterlambatan Bayar Pelanggan</span>
-            <span className="font-bold" style={{ color }}>
+            <span className="font-semibold tabular-nums" style={{ color }}>
               +{scenario.delayDays} hari
             </span>
           </label>
@@ -328,8 +334,9 @@ function ScenarioCard({
             max="60"
             step="1"
             value={scenario.delayDays}
+            aria-label={`${scenario.label}: keterlambatan bayar pelanggan`}
             onChange={(e) => onChange(scenario.id, 'delayDays', parseInt(e.target.value))}
-            className="w-full h-1.5 appearance-none rounded-lg bg-slate-200 cursor-pointer"
+            className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200"
             style={{ accentColor: color }}
           />
         </div>
@@ -346,18 +353,21 @@ function KpiCard({ label, value, trend, icon, color }: {
   color?: string;
 }) {
   return (
-    <div className="linear-card p-4">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">{label}</p>
-          <p className="text-lg font-extrabold text-slate-900 mt-1" style={{ color }}>{value}</p>
+          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
+          <p className="mt-1 text-lg font-bold tabular-nums text-slate-900" style={{ color }}>{value}</p>
           {trend && (
-            <p className="text-xs mt-1" style={{ color: trend.positive ? '#00C853' : '#FF6D00' }}>
-              {trend.positive ? '▲' : '▼'} {trend.label}
+            <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium" style={{ color: trend.positive ? '#047857' : '#c2410c' }}>
+              {trend.positive
+                ? <ArrowUp className="h-3 w-3" aria-hidden="true" />
+                : <ArrowDown className="h-3 w-3" aria-hidden="true" />}
+              {trend.label}
             </p>
           )}
         </div>
-        {icon && <div className="p-2 rounded-lg" style={{ background: `${color}15`, color }}>{icon}</div>}
+        {icon && <div className="rounded-lg p-2" style={{ backgroundColor: `${color}15`, color }}>{icon}</div>}
       </div>
     </div>
   );
@@ -465,10 +475,10 @@ export default function ScenarioProjectionView() {
 
   if (loading && baseline.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-          <p className="text-slate-500 text-sm">Memuat proyeksi skenario...</p>
+          <RefreshCw className="h-6 w-6 animate-spin text-emerald-600" aria-hidden="true" />
+          <p className="text-sm text-slate-500">Memuat proyeksi skenario...</p>
         </div>
       </div>
     );
@@ -476,13 +486,14 @@ export default function ScenarioProjectionView() {
 
   if (error && baseline.length === 0) {
     return (
-      <div className="linear-card p-6 text-center">
-        <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-        <p className="text-slate-600">{error}</p>
+      <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+        <AlertTriangle className="mx-auto mb-3 h-6 w-6 text-amber-600" aria-hidden="true" />
+        <p className="text-sm text-amber-900">{error}</p>
         <button
           onClick={fetchBaseline}
-          className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
+          <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
           Coba Lagi
         </button>
       </div>
@@ -548,7 +559,7 @@ export default function ScenarioProjectionView() {
     }
 
     if (activeChartTab === 'pnl') {
-      const pnlColors = ['#00C853', '#FF6D00', '#2979FF'];
+      const pnlColors = ['#047857', '#C2410C', '#1D4ED8'];
       return {
         options: {
           ...baseOptions,
@@ -584,41 +595,42 @@ export default function ScenarioProjectionView() {
   const chartConfig = getChartConfig();
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-bold text-slate-900">Proyeksi Skenario Keuangan</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-lg font-semibold text-slate-900">Proyeksi Skenario Keuangan</h2>
+          <p className="mt-0.5 text-xs text-slate-500">
             Bandingkan dampak skenario optimistis, normal, dan pesimistis terhadap kas, laba rugi, dan runway
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleRunProjection}
             disabled={fetching}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 disabled:opacity-50"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${fetching ? 'animate-spin' : ''}`} /> Jalankan
+            <RefreshCw className={`h-3.5 w-3.5 ${fetching ? 'animate-spin' : ''}`} aria-hidden="true" /> Jalankan
           </button>
           <button
             onClick={handleResetDefaults}
-            className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Reset Default
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" /> Reset Default
           </button>
         </div>
       </div>
 
       {/* Period Controls */}
-      <div className="linear-card p-4">
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="flex items-center gap-2">
-            <label className="text-slate-600 font-medium">Lookback:</label>
+            <label htmlFor="scenario-lookback" className="font-medium text-slate-600">Lookback:</label>
             <select
+              id="scenario-lookback"
               value={lookbackMonths}
               onChange={(e) => setLookbackMonths(parseInt(e.target.value))}
-              className="input-linear px-2 py-1 text-xs rounded border-slate-200"
+              className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               <option value={3}>3 Bulan</option>
               <option value={6}>6 Bulan</option>
@@ -626,11 +638,12 @@ export default function ScenarioProjectionView() {
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-slate-600 font-medium">Horizon:</label>
+            <label htmlFor="scenario-horizon" className="font-medium text-slate-600">Horizon:</label>
             <select
+              id="scenario-horizon"
               value={horizonMonths}
               onChange={(e) => setHorizonMonths(parseInt(e.target.value))}
-              className="input-linear px-2 py-1 text-xs rounded border-slate-200"
+              className="h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
               <option value={3}>3 Bulan</option>
               <option value={6}>6 Bulan</option>
@@ -641,12 +654,12 @@ export default function ScenarioProjectionView() {
       </div>
 
       {/* Scenario Controls */}
-      <div className="linear-card p-4">
-        <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-blue-600" />
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <BarChart3 className="h-4 w-4 text-emerald-700" aria-hidden="true" />
           Parameter Skenario
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {scenarios.map(s => (
             <ScenarioCard
               key={s.id}
@@ -660,45 +673,45 @@ export default function ScenarioProjectionView() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Kas Saat Ini"
           value={formatRupiah(result.kpis.currentCash)}
-          icon={<DollarSign className="w-5 h-5" />}
-          color="#2979FF"
+          icon={<DollarSign className="h-4 w-4" aria-hidden="true" />}
+          color="#1D4ED8"
         />
         <KpiCard
           label="Runway Saat Ini"
-          value={result.kpis.currentRunway ? `${result.kpis.currentRunway} bln` : '∞'}
+          value={result.kpis.currentRunway !== null ? `${result.kpis.currentRunway} bln` : '∞'}
           trend={result.kpis.currentRunway !== null && result.kpis.currentRunway < 3
             ? { label: 'Kritis', positive: false }
             : result.kpis.currentRunway !== null && result.kpis.currentRunway < 6
             ? { label: 'Waspada', positive: false }
             : { label: 'Aman', positive: true }}
-          icon={<TrendingUp className="w-5 h-5" />}
-          color="#00C853"
+          icon={<TrendingUp className="h-4 w-4" aria-hidden="true" />}
+          color="#047857"
         />
         <KpiCard
           label="DSO Saat Ini"
           value={`${result.kpis.currentDso.toFixed(1)} hari`}
-          icon={<Clock className="w-5 h-5" />}
-          color="#FF6D00"
+          icon={<Clock className="h-4 w-4" aria-hidden="true" />}
+          color="#C2410C"
         />
         <KpiCard
           label="Horizon Proyeksi"
           value={`${result.kpis.projectionHorizon} Bulan`}
-          icon={<TrendingDown className="w-5 h-5" />}
+          icon={<CalendarRange className="h-4 w-4" aria-hidden="true" />}
           color="#7C3AED"
         />
       </div>
 
       {/* Charts */}
-      <div className="linear-card">
-        <div className="p-4 border-b border-slate-100">
-          <div className="flex flex-wrap gap-1" role="tablist">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-3 sm:p-4">
+          <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Jenis grafik proyeksi">
             {[
               { id: 'cash', label: 'Kas Proyeksi', icon: DollarSign },
-              { id: 'pnl', label: 'Laba Rugi', icon: BarChart2 },
+              { id: 'pnl', label: 'Laba Rugi', icon: BarChart3 },
               { id: 'runway', label: 'Runway & DSO', icon: TrendingUp },
             ].map(tab => (
               <button
@@ -706,20 +719,20 @@ export default function ScenarioProjectionView() {
                 role="tab"
                 aria-selected={activeChartTab === tab.id}
                 onClick={() => setActiveChartTab(tab.id as typeof activeChartTab)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 ${
                   activeChartTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                <tab.icon className="w-3.5 h-3.5" />
+                <tab.icon className="h-3.5 w-3.5" aria-hidden="true" />
                 {tab.label}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="p-4 h-80">
+        <div className="h-80 p-3 sm:p-4">
           <Chart
             options={chartConfig.options}
             series={chartConfig.series}
@@ -730,30 +743,30 @@ export default function ScenarioProjectionView() {
       </div>
 
       {/* Comparison Table */}
-      <div className="linear-card overflow-x-auto">
-        <div className="p-4 border-b border-slate-100">
-          <h3 className="text-sm font-bold text-slate-900">Perbandingan Bulanan</h3>
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 p-4">
+          <h3 className="text-sm font-semibold text-slate-900">Perbandingan Bulanan</h3>
         </div>
-        <table className="sap-smart-table w-full">
+        <table className="w-full min-w-[1080px] border-collapse text-xs">
           <thead>
-            <tr>
-              <th className="sticky left-0 z-10">Bulan</th>
+            <tr className="border-b border-slate-200 bg-slate-50/60">
+              <th className="sticky left-0 z-10 min-w-32 bg-slate-50/60 px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">Bulan</th>
               {result.scenarios.map(s => (
                 <React.Fragment key={s.id}>
-                  <th className="text-center" colSpan={4} style={{ color: SCENARIO_COLORS[s.id] }}>
+                  <th className="px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wide" colSpan={4} style={{ color: SCENARIO_COLORS[s.id] }}>
                     {s.label}
                   </th>
                 </React.Fragment>
               ))}
             </tr>
-            <tr>
-              <th className="sticky left-0 z-10">—</th>
+            <tr className="border-b border-slate-200 bg-slate-50/60">
+              <th className="sticky left-0 z-10 bg-slate-50/60 px-3 py-2 text-left text-[10px] font-semibold text-slate-500">—</th>
               {result.scenarios.map(s => (
                 <React.Fragment key={s.id}>
-                  <th className="text-right">Pendapatan</th>
-                  <th className="text-right">Biaya</th>
-                  <th className="text-right">Laba Bersih</th>
-                  <th className="text-right">Saldo Kas</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-slate-500">Pendapatan</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-slate-500">Biaya</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-slate-500">Laba Bersih</th>
+                  <th className="px-3 py-2 text-right text-[10px] font-semibold text-slate-500">Saldo Kas</th>
                 </React.Fragment>
               ))}
             </tr>
@@ -761,40 +774,40 @@ export default function ScenarioProjectionView() {
           <tbody>
             {/* Baseline months */}
             {result.baseline.map(b => (
-              <tr key={`baseline-${b.month}`} className="bg-slate-50/50">
-                <td className="font-medium text-slate-700 sticky left-0 z-10 bg-slate-50/50">{b.monthLabel} (Aktual)</td>
+              <tr key={`baseline-${b.month}`} className="border-b border-slate-100 bg-slate-50/50">
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-slate-50/50 px-3 py-2 font-medium text-slate-700">{b.monthLabel} (Aktual)</td>
                 {result.scenarios.map(s => (
                   <React.Fragment key={s.id}>
-                    <td className="text-right text-slate-600">{formatRupiah(b.revenue)}</td>
-                    <td className="text-right text-slate-600">{formatRupiah(b.expense)}</td>
-                    <td className="text-right font-medium" style={{ color: b.netIncome >= 0 ? '#00C853' : '#FF6D00' }}>
+                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-600">{formatRupiah(b.revenue)}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-600">{formatRupiah(b.expense)}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums" style={{ color: b.netIncome >= 0 ? '#047857' : '#c2410c' }}>
                       {formatRupiah(b.netIncome)}
                     </td>
-                    <td className="text-right font-medium">{formatRupiah(b.cashBalance)}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums text-slate-700">{formatRupiah(b.cashBalance)}</td>
                   </React.Fragment>
                 ))}
             </tr>
             ))}
             {/* Separator */}
             <tr>
-              <td colSpan={13} className="py-1 border-t-2 border-slate-200" />
+              <td colSpan={13} className="border-t-2 border-slate-200 py-1" />
             </tr>
             {/* Projected months */}
             {result.scenarios[0]?.months.map((_, mIdx) => (
-              <tr key={`proj-${mIdx}`}>
-                <td className="font-medium text-slate-900 sticky left-0 z-10">
+              <tr key={`proj-${mIdx}`} className="border-b border-slate-100 hover:bg-slate-50/60">
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-2 font-medium text-slate-900">
                   {result.scenarios[0].months[mIdx].monthLabel} (Proyeksi)
                 </td>
                 {result.scenarios.map(s => {
                   const month = s.months[mIdx];
                   return (
                     <React.Fragment key={s.id}>
-                      <td className="text-right text-slate-700">{formatRupiah(month.revenue)}</td>
-                      <td className="text-right text-slate-700">{formatRupiah(month.expense)}</td>
-                      <td className="text-right font-medium" style={{ color: month.netIncome >= 0 ? '#00C853' : '#FF6D00' }}>
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-700">{formatRupiah(month.revenue)}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-slate-700">{formatRupiah(month.expense)}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums" style={{ color: month.netIncome >= 0 ? '#047857' : '#c2410c' }}>
                         {formatRupiah(month.netIncome)}
                       </td>
-                      <td className="text-right font-bold" style={{ color: SCENARIO_COLORS[s.id] }}>
+                      <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums" style={{ color: SCENARIO_COLORS[s.id] }}>
                         {formatRupiah(month.cashBalance)}
                       </td>
                     </React.Fragment>
@@ -807,42 +820,45 @@ export default function ScenarioProjectionView() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {result.scenarios.map(s => (
-          <div key={s.id} className="linear-card p-4" style={{ borderTop: `3px solid ${SCENARIO_COLORS[s.id]}` }}>
-            <h4 className="font-bold text-sm mb-3" style={{ color: SCENARIO_COLORS[s.id] }}>
+          <div key={s.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm" style={{ borderTop: `3px solid ${SCENARIO_COLORS[s.id]}` }}>
+            <h4 className="mb-3 text-sm font-semibold text-slate-900">
               {s.label}
             </h4>
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-600">Total Pendapatan</span>
-                <span className="font-bold">{formatRupiah(s.summary.totalRevenue)}</span>
+                <span className="font-semibold tabular-nums text-slate-800">{formatRupiah(s.summary.totalRevenue)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Total Biaya</span>
-                <span className="font-bold">{formatRupiah(s.summary.totalExpense)}</span>
+                <span className="font-semibold tabular-nums text-slate-800">{formatRupiah(s.summary.totalExpense)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Total Laba Bersih</span>
-                <span className="font-bold" style={{ color: s.summary.totalNetIncome >= 0 ? '#00C853' : '#FF6D00' }}>
+                <span className="font-semibold tabular-nums" style={{ color: s.summary.totalNetIncome >= 0 ? '#047857' : '#c2410c' }}>
                   {formatRupiah(s.summary.totalNetIncome)}
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-slate-100">
                 <span className="text-slate-600">Saldo Kas Akhir</span>
-                <span className="font-extrabold" style={{ color: SCENARIO_COLORS[s.id] }}>
+                <span className="font-bold tabular-nums" style={{ color: SCENARIO_COLORS[s.id] }}>
                   {formatRupiah(s.summary.finalCashBalance)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Rata-rata Runway</span>
-                <span className="font-bold" style={{ color: s.summary.avgRunwayMonths !== null && s.summary.avgRunwayMonths < 3 ? '#FF6D00' : '#00C853' }}>
+                <span className="font-semibold tabular-nums" style={{ color: s.summary.avgRunwayMonths !== null && s.summary.avgRunwayMonths < 3 ? '#c2410c' : '#047857' }}>
                   {s.summary.avgRunwayMonths ? `${s.summary.avgRunwayMonths} bln` : '∞'}
                 </span>
               </div>
               {s.summary.cashOutMonth && (
-                <div className="flex justify-between text-amber-600 font-medium">
-                  <span>⚠️ Kas Habis di Bulan</span>
+                <div className="flex items-center justify-between gap-2 font-medium text-amber-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    Kas Habis di Bulan
+                  </span>
                   <span>Ke-{s.summary.cashOutMonth}</span>
                 </div>
               )}
@@ -852,28 +868,30 @@ export default function ScenarioProjectionView() {
       </div>
 
       {/* Save Scenario */}
-      <div className="linear-card p-4 border-t-2 border-slate-100">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <Save className="w-5 h-5 text-slate-400" />
+            <Save className="h-5 w-5 text-slate-500" aria-hidden="true" />
             <div>
-              <p className="text-sm font-medium text-slate-900">Simpan Skenario</p>
+              <p className="text-sm font-semibold text-slate-900">Simpan Skenario</p>
               <p className="text-xs text-slate-500">Simpan parameter dan hasil proyeksi untuk referensi kelak</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <input
               type="text"
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
               placeholder="Nama skenario (contoh: Ekspansi Q3 2026)"
-              className="input-linear px-3 py-2 text-sm flex-1 max-w-xs"
+              aria-label="Nama skenario"
+              className="h-10 min-w-0 max-w-xs flex-1 rounded-lg border border-slate-300 bg-white px-3 text-xs text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             />
             <button
               onClick={handleSaveScenario}
               disabled={saving || !saveName.trim()}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
             >
+              {saving && <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
               {saving ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>

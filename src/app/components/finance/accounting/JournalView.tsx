@@ -53,6 +53,10 @@ const SOURCE_LABELS: Record<string, string> = {
   ADJUSTMENT: 'Penyesuaian',
   CLOSING: 'Tutup Buku',
   REVERSAL: 'Pembalik',
+  INVENTORY: 'Persediaan',
+  ASSET_DEPRECIATION: 'Penyusutan Aset',
+  ASSET_DISPOSAL: 'Pelepasan Aset',
+  ASSET_IMPAIRMENT: 'Penurunan Nilai Aset',
 };
 
 const emptyLine = (): DraftLine => ({ accountId: '', debit: '', credit: '', description: '' });
