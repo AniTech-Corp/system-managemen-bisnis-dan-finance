@@ -43,13 +43,13 @@ function buildPlainTabularXlsx(): Buffer {
 }
 
 describe('B2: extractZipText (arsip .zip generik)', { concurrency: false }, () => {
-  let extractTextFromBuffer: typeof import('../src/app/api/v1/documents/extract-text/route')['extractTextFromBuffer'];
-  let extractZipText: typeof import('../src/app/api/v1/documents/extract-text/route')['extractZipText'];
+  let extractTextFromBuffer: typeof import('../src/lib/document-text-extractor')['extractTextFromBuffer'];
+  let extractZipText: typeof import('../src/lib/document-text-extractor')['extractZipText'];
   let extractTextForWorkspaceFile: typeof import('../src/lib/workspace-file-extraction')['extractTextForWorkspaceFile'];
   let isSupportedWorkspaceFileExtension: typeof import('../src/lib/workspace-file-extraction')['isSupportedWorkspaceFileExtension'];
 
   before(async () => {
-    ({ extractTextFromBuffer, extractZipText } = await import('../src/app/api/v1/documents/extract-text/route'));
+    ({ extractTextFromBuffer, extractZipText } = await import('../src/lib/document-text-extractor'));
     ({ extractTextForWorkspaceFile, isSupportedWorkspaceFileExtension } = await import('../src/lib/workspace-file-extraction'));
   });
 
@@ -183,17 +183,17 @@ describe('B2: extractZipText (arsip .zip generik)', { concurrency: false }, () =
 // ---------------------------------------------------------------------------
 
 describe('B4 KONTRAK T2 (8 Sep 2026): listZipEntries / extractWorkspaceZipEntries / buildSafeChildFileName', { concurrency: false }, () => {
-  let listZipEntries: typeof import('../src/app/api/v1/documents/extract-text/route')['listZipEntries'] | undefined;
+  let listZipEntries: typeof import('../src/lib/document-text-extractor')['listZipEntries'] | undefined;
   let extractWorkspaceZipEntries: typeof import('../src/lib/workspace-file-extraction')['extractWorkspaceZipEntries'] | undefined;
   let buildSafeChildFileName: typeof import('../src/lib/workspace-file-extraction')['buildSafeChildFileName'] | undefined;
-  let extractZipText: typeof import('../src/app/api/v1/documents/extract-text/route')['extractZipText'];
+  let extractZipText: typeof import('../src/lib/document-text-extractor')['extractZipText'];
   let getFileExtension: typeof import('../src/lib/workspace-file-extraction')['getFileExtension'];
 
   before(async () => {
-    const extractTextRoute: any = await import('../src/app/api/v1/documents/extract-text/route');
+    const docExtractor: any = await import('../src/lib/document-text-extractor');
     const workspaceExtraction: any = await import('../src/lib/workspace-file-extraction');
-    listZipEntries = extractTextRoute.listZipEntries;
-    extractZipText = extractTextRoute.extractZipText;
+    listZipEntries = docExtractor.listZipEntries;
+    extractZipText = docExtractor.extractZipText;
     extractWorkspaceZipEntries = workspaceExtraction.extractWorkspaceZipEntries;
     buildSafeChildFileName = workspaceExtraction.buildSafeChildFileName;
     getFileExtension = workspaceExtraction.getFileExtension;

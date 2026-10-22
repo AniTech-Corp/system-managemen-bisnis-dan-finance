@@ -165,9 +165,10 @@ describe('data-visibility: finansial, memori chat, kebijakan', () => {
     assert.match(visibilityPolicyLine('MANAGER_OPERASIONAL'), /stok\/rantai pasok/);
     assert.equal(divisionRoleToInsightRole('FINANCE'), 'finance');
     assert.equal(divisionRoleToInsightRole('CEO'), 'ceo');
-    assert.equal(divisionRoleToInsightRole('SEKRETARIS'), null);
-    assert.equal(divisionRoleToInsightRole('MANAGER_UMUM'), null);
-    assert.equal(divisionRoleToInsightRole('MANAGER_OPERASIONAL'), null);
+    assert.equal(divisionRoleToInsightRole('MARKETING'), 'marketing');
+    assert.equal(divisionRoleToInsightRole('SEKRETARIS'), 'sekretaris');
+    assert.equal(divisionRoleToInsightRole('MANAGER_UMUM'), 'manager_umum');
+    assert.equal(divisionRoleToInsightRole('MANAGER_OPERASIONAL'), 'manager_operasional');
     assert.equal(divisionRoleToInsightRole('LAIN'), null);
   });
 });

@@ -165,6 +165,9 @@ describe('Fix integrasi-02/integrasi-04: workspace-files/[id]/import-ledger', { 
                 return record;
               });
             }
+            if (method === 'accountingSetting.findUnique') {
+              return null;
+            }
             throw new Error(`Forbidden Prisma operation in test fixture: ${method}`);
           };
         },

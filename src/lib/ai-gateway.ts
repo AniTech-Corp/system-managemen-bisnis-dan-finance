@@ -172,6 +172,60 @@ function parseJsonOutput(textOutput: string): any {
 }
 
 /**
+ * Sanitasi output teks dari model AI:
+ * - Menghilangkan tag penalaran/thinking (<think>...</think>, <thought>...</thought>)
+ * - Menghapus unclosed <think> / <thought> jika token terpotong
+ * - Menghilangkan monolog scratchpad bahasa Inggris (DeepSeek-R1 / Qwen reasoning outputs)
+ *   seperti "We need respond to user in Indonesian. User says... Let's craft: '...'"
+ * - Mengekstrak draf jawaban final yang bersih jika ada di dalam monolog
+ * - Menghapus tanda kutip luar pembungkus seluruh pesan
+ */
+export function sanitizeAIResponseText(rawText: string): string {
+  if (!rawText) return '';
+  let text = String(rawText);
+
+  // 1. Strip <think>...</think> and <thought>...</thought> tags and content
+  text = text.replace(/<(think|thought)>[\s\S]*?<\/\1>/gi, '');
+
+  // 2. Strip dangling unclosed <think> or <thought> if output was cut off
+  text = text.replace(/<(think|thought)>[\s\S]*$/gi, '');
+
+  // 3. Strip English scratchpad meta-reasoning prefixes (common with DeepSeek-R1 / Qwen reasoning outputs)
+  // E.g. "We need respond to user in Indonesian. User says... Let's craft: '...'"
+  const trimmed = text.trim();
+  if (
+    /^(We need|Need inspect|User says|The user|Let's think|Thinking Process|Chain of thought|In this scenario|To answer the user|I need to respond)/i.test(trimmed)
+  ) {
+    // Try to extract the drafted response after "Let's craft:", "Let's write:", "Response:", "Output:", "Draft:", or final quotes
+    const craftMatch = trimmed.match(
+      /(?:let'?s\s+(?:craft|write|respond)|final\s+(?:response|answer)|draft\s+(?:response)?|response|output)\s*:\s*["']?([\s\S]+)$/i
+    );
+    if (craftMatch && craftMatch[1]) {
+      text = craftMatch[1].trim();
+      if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+        text = text.slice(1, -1).trim();
+      }
+    } else {
+      // Look for a quoted Indonesian block at the end (at least 30 chars)
+      const quotedMatch = trimmed.match(/"([^"]{30,})"\s*$/);
+      if (quotedMatch && quotedMatch[1]) {
+        text = quotedMatch[1].trim();
+      } else {
+        // Pure scratchpad, no clean Indonesian response extractable
+        text = '';
+      }
+    }
+  }
+
+  // 4. Strip stray markdown quote marks wrapping the entire response
+  if (/^"[\s\S]+"$/.test(text.trim()) && !text.includes('\n\n"')) {
+    text = text.trim().slice(1, -1).trim();
+  }
+
+  return text.trim();
+}
+
+/**
  * Nama model OpenRouter untuk gateway teks. DIGANTI 11 Sep 2026 (wave B1-backend-routing) --
  * dulu fungsi ini (resolveOpenRouterTextModel) selalu mengembalikan SATU string model.
  * Sekarang mengembalikan DAFTAR kandidat (untuk dicoba berurutan dalam satu percobaan
@@ -305,14 +359,20 @@ async function callGroq(
     }
 
     const fbData = await fallbackRes.json();
-    const fbOutput = fbData.choices?.[0]?.message?.content || '';
+    const fbOutput = sanitizeAIResponseText(fbData.choices?.[0]?.message?.content || '');
+    if (!fbOutput.trim() && !jsonMode) {
+      throw new Error('Groq fallback output kosong atau hanya memuat reasoning internal');
+    }
     // Jalur retry wajib parse JSON juga, kalau tidak caller jsonMode dapat json null padahal output valid.
     const fbJson = jsonMode ? parseJsonOutput(fbOutput) : null;
     return { text: fbOutput, json: fbJson, modelUsed: 'qwen/qwen3.8-27b' };
   }
 
   const data = await response.json();
-  const textOutput = data.choices?.[0]?.message?.content || '';
+  const textOutput = sanitizeAIResponseText(data.choices?.[0]?.message?.content || '');
+  if (!textOutput.trim() && !jsonMode) {
+    throw new Error('Groq output kosong atau hanya memuat reasoning internal');
+  }
 
   let parsedJson: any = null;
   if (jsonMode) {
@@ -387,7 +447,7 @@ async function callOpenAI(
   }
 
   const data = await response.json();
-  const textOutput = data.choices?.[0]?.message?.content || '';
+  const textOutput = sanitizeAIResponseText(data.choices?.[0]?.message?.content || '');
 
   let parsedJson: any = null;
   if (jsonMode) {
@@ -475,7 +535,8 @@ async function callOpenRouterChat(
 
   const maxTokens = normalizeMaxTokens(maxOutputTokens);
   if (maxTokens) {
-    body.max_tokens = maxTokens;
+    // Berikan ruang minimal 1500 token agar model reasoning tidak kehabisan kuota sebelum memproduksi konten
+    body.max_tokens = Math.max(maxTokens, 1500);
   }
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -500,9 +561,12 @@ async function callOpenRouterChat(
   }
 
   const data = await response.json();
-  let textOutput = data.choices?.[0]?.message?.content || '';
+  let textOutput = sanitizeAIResponseText(data.choices?.[0]?.message?.content || '');
   if (!textOutput && data.choices?.[0]?.message?.reasoning && !jsonMode) {
-    textOutput = data.choices[0].message.reasoning;
+    textOutput = sanitizeAIResponseText(data.choices[0].message.reasoning);
+  }
+  if (!textOutput.trim() && !jsonMode) {
+    throw new Error(`${opts.errorLabel}: response content kosong atau hanya memuat reasoning internal`);
   }
   const parsedJson = jsonMode ? parseJsonOutput(textOutput) : null;
 
@@ -580,7 +644,7 @@ async function callGemini(
   });
 
   const result = await callWithRetry(() => model.generateContent(prompt));
-  const textOutput = result.response.text();
+  const textOutput = sanitizeAIResponseText(result.response.text());
   let parsedJson: any = null;
   if (jsonMode) {
     try {
@@ -701,13 +765,22 @@ async function tryExplicitOpenRouterModel(
  * PERNAH masuk cabang baru ini sama sekali (short-circuit di kondisi if di bawah).
  */
 export async function executeAIRequest(options: AIGenerateOptions): Promise<AIGenerateResult> {
+  let result: AIGenerateResult;
   if (options.forceProvider === 'openrouter' && options.requestedModelId) {
     const explicit = await tryExplicitOpenRouterModel(options, options.requestedModelId);
-    if (explicit.result) return explicit.result;
-    const fallback = await runProviderCascade(options);
-    return { ...fallback, requestedModelId: options.requestedModelId, fallbackNote: explicit.note };
+    if (explicit.result) {
+      result = explicit.result;
+    } else {
+      const fallback = await runProviderCascade(options);
+      result = { ...fallback, requestedModelId: options.requestedModelId, fallbackNote: explicit.note };
+    }
+  } else {
+    result = await runProviderCascade(options);
   }
-  return runProviderCascade(options);
+  if (result.text) {
+    result.text = sanitizeAIResponseText(result.text);
+  }
+  return result;
 }
 
 async function runProviderCascade(options: AIGenerateOptions): Promise<AIGenerateResult> {

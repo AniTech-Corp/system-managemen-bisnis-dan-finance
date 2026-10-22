@@ -1016,6 +1016,9 @@ export async function POST(req: NextRequest) {
       }))
       .filter((h: { content: string }) => h.content.trim().length > 0);
     let attachment = body.attachment || null;
+    if (attachment) {
+      attachment.name = attachment.name || attachment.fileName || 'dokumen';
+    }
 
     // Perpajakan berada di luar scope aktif sampai rancangan internal selesai
     // dan validasinya. Block di server, bukan hanya di UI, supaya prompt manual,
@@ -2857,14 +2860,20 @@ ${capabilityCatalogBlock}
 - TAMBAHAN (11 Sep 2026, B2, kontrak modul 5): kalau blok data LAPIS 2 di atas memuat "AKTIVITAS TERBARU LINTAS DIVISI (memori percakapan, ...)", itu KONTEKS percakapan sebelumnya (siapa nanya apa, divisi mana), BUKAN fakta finansial/data bisnis terverifikasi -- DILARANG KERAS mengutip ANGKA dari blok itu sebagai fakta, angka finansial HANYA boleh dari bagian data live/dokumen yang sudah dijelaskan di atas.
 
 === LAPIS 4: OUTPUT INTEGRITY (syarat sebuah jawaban boleh keluar) ===
+- DILARANG KERAS membocorkan proses berpikir internal, rantai penalaran (chain of thought), perencanaan bahasa Inggris, atau tag <think>/<thought>. Seluruh jawaban Anda WAJIB langsung berupa respons final Bahasa Indonesia yang elegan, rapi, dan siap dibaca pengguna.
+- Gunakan Bahasa Indonesia baku, fasih, dan profesional TANPA typo atau salah ketik (contoh: gunakan "jelaskan", jangan pernah menulis "jelisikan").
 - SEBELUM menjawab pertanyaan yang menyebut/menyiratkan ANGKA (uang, persentase, jumlah, tanggal transaksi): pastikan angka itu benar-benar tercatat di blok data LAPIS 2 di atas (untuk lampiran yang punya blok verifikasi tersendiri, ikuti aturan prioritas blok itu yang sudah disebutkan di LAPIS 3) -- BUKAN hasil kira-kira atau hitungan ulang model. Kalau angkanya tidak ada di data manapun, ikuti LAPIS 3 (jawab jujur tidak tersedia) -- JANGAN PERNAH menyodorkan angka tebakan sebagai fakta.
 - ${modeInstruction}${assistantModeInstructionText ? `\n- ${assistantModeInstructionText}` : ''}
 - Jawab cerdas, berwibawa, dan to the point selayaknya konsultan bisnis senior, disesuaikan gaya per LAPIS 1 di atas.
-- Kalau pengguna melampirkan file/dokumen (PDF/Word/Excel/CSV/Foto Dokumen):
-  * Analisis dokumen secara MENDALAM, CERMAT, dan 100% AKURAT berdasarkan data teks yang terbaca.
-  * Jika ini dokumen keuangan / rekap kas: sebutkan seluruh transaksi, pos pendapatan, pos pengeluaran, saldo kas, serta rincian angka secara jelas dalam format tabel markdown yang rapi.
-  * Jika ini profil perusahaan / dokumen legal / katalog: ekstrak nama entitas, bidang industri, produk/jasa utama, target pasar, serta poin penting lainnya.
-  * Berikan analisis bisnis atau rekomendasi strategis atas data dokumen tersebut.
+- PANDUAN PENANGANAN DOKUMEN:
+  * Jika pengguna melampirkan file/dokumen (PDF/Word/Excel/CSV/Foto Dokumen):
+    - Analisis dokumen secara MENDALAM, CERMAT, dan 100% AKURAT berdasarkan data teks yang terbaca di blok lampiran.
+    - Jika ini dokumen keuangan / rekap kas: sebutkan seluruh transaksi, pos pendapatan, pos pengeluaran, saldo kas, serta rincian angka secara jelas dalam format tabel markdown yang rapi.
+    - Jika ini profil perusahaan / dokumen legal / katalog: ekstrak nama entitas, bidang industri, produk/jasa utama, target pasar, serta poin penting lainnya.
+    - Berikan analisis bisnis atau rekomendasi strategis atas data dokumen tersebut.
+  * Jika pengguna meminta membaca/menganalisis dokumen tetapi TIDAK ADA dokumen terlampir pada pesan ini:
+    - Jawab dengan ramah dan sopan bahwa belum ada dokumen yang terlampir pada pesan ini.
+    - Jelaskan bahwa pengguna dapat melampirkan file dokumen (PDF, Excel/XLSX, Word/DOCX, CSV, atau Foto Dokumen) melalui tombol ikon klip kertas (📎) atau drag-and-drop file langsung ke jendela obrolan, dan sistem akan langsung membaca serta menyajikan analisis lengkapnya.
 - Kalau ada gambar yang baru digenerate (lihat blok di atas), berikan ulasan konsep visual, target audiens, dan kesesuaian materi iklan secara profesional.
 - DILARANG memakai tag HTML mentah seperti <br>. Gunakan markdown rapi (bold, bullet, tabel).
 ${RICH_FORMAT_INSTRUCTION}

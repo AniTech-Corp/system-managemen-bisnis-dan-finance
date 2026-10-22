@@ -115,6 +115,16 @@ describe('B5-Backend full-scan 8 Sep: promo/coupons PATCH + workspaces profile N
                   return record;
                 }
 
+                if (method === 'cashTransaction.groupBy') {
+                  const wsTx = cashTransactions.filter(t => t.workspaceId === query.where?.workspaceId);
+                  const incomeSum = wsTx.filter(t => t.type === 'INCOME').reduce((acc, t) => acc + (t.amount || 0), 0);
+                  const expenseSum = wsTx.filter(t => t.type === 'EXPENSE').reduce((acc, t) => acc + (t.amount || 0), 0);
+                  return [
+                    { type: 'INCOME', _sum: { amount: incomeSum } },
+                    { type: 'EXPENSE', _sum: { amount: expenseSum } },
+                  ];
+                }
+
                 if (method === 'cashTransaction.findMany') {
                   return cashTransactions.filter(t => t.workspaceId === query.where?.workspaceId);
                 }

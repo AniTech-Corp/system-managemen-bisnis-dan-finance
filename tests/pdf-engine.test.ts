@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 import { generatePdfBuffer, PdfDocumentInput } from '../src/lib/pdf-engine';
-import { extractTextFromBuffer } from '../src/app/api/v1/documents/extract-text/route';
+import { extractTextFromBuffer } from '../src/lib/document-text-extractor';
 
 describe('pdf-engine.ts -- generatePdfBuffer', () => {
   test('menghasilkan buffer PDF 1.4 yang valid dengan header dan trailer standar', () => {

@@ -57,12 +57,26 @@ export interface ModernAICopilotViewProps {
   onClose?: () => void;
 }
 
+export interface ExtractedDocumentAttachment {
+  name: string;
+  content: string;
+  type?: string;
+  size?: number;
+  structuredLedger?: any;
+  discrepancies?: any;
+}
+
 interface ChatMessageItem {
   id: string;
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
   actionLinks?: Array<{ label: string; tabId: string }>;
+  attachment?: {
+    name: string;
+    size?: number;
+    type?: string;
+  };
 }
 
 interface ChatSession {
@@ -300,10 +314,81 @@ export default function ModernAICopilotView({
   const [showCompanyData, setShowCompanyData] = useState<boolean>(false);
   const [composerMode, setComposerMode] = useState<'tanya' | 'gambar' | 'riset' | 'belajar' | 'analis'>('tanya');
   const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
+  const [attachedDoc, setAttachedDoc] = useState<ExtractedDocumentAttachment | null>(null);
+  const [isExtractingDoc, setIsExtractingDoc] = useState<boolean>(false);
+  const [docExtractError, setDocExtractError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // File upload and extraction handler
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+    setIsExtractingDoc(true);
+    setDocExtractError(null);
+    setAttachedFileName(file.name);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/v1/documents/extract-text', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || `Gagal membaca file (${res.status})`);
+      }
+
+      const data = await res.json();
+      if (data.success && (data.content || data.rawContent)) {
+        setAttachedDoc({
+          name: data.fileName || file.name,
+          content: data.content || data.rawContent || '',
+          type: file.type || file.name.split('.').pop(),
+          size: file.size,
+          structuredLedger: data.structuredLedger,
+          discrepancies: data.discrepancies,
+        });
+        setAttachedFileName(data.fileName || file.name);
+      } else {
+        throw new Error(data.message || 'Dokumen berhasil diunggah tetapi tidak ada teks/data yang terbaca.');
+      }
+    } catch (err: any) {
+      console.error('[Copilot] File extraction failed:', err);
+      setDocExtractError(err.message || 'Gagal mengekstrak dokumen.');
+      setAttachedDoc(null);
+    } finally {
+      setIsExtractingDoc(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      void handleFileUpload(file);
+    }
+  };
 
   // Local storage chats management
   const storageKey = `klir_v0_copilot_chats_${mode}_${workspaceId || 'default'}`;
@@ -481,8 +566,19 @@ export default function ModernAICopilotView({
 
   // Handle Send Message to Real Endpoint
   const handleSendMessage = async (customPrompt?: string) => {
-    const textToSend = (customPrompt || inputMessage).trim();
+    if (isExtractingDoc) return;
+
+    let textToSend = (customPrompt || inputMessage).trim();
+    if (!textToSend && attachedDoc) {
+      textToSend = `Tolong baca dan analisis dokumen "${attachedDoc.name}" ini secara jelas dan terperinci. Jelaskan seluruh transaksi, pos keuangan, saldo kas, serta ringkasan pentingnya.`;
+    }
     if (!textToSend || isLoading) return;
+
+    const currentDoc = attachedDoc;
+    // Clear attachment state
+    setAttachedDoc(null);
+    setAttachedFileName(null);
+    setDocExtractError(null);
 
     const userMsgId = `user-${Date.now()}`;
     const userMsg: ChatMessageItem = {
@@ -490,6 +586,11 @@ export default function ModernAICopilotView({
       sender: 'user',
       text: textToSend,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      attachment: currentDoc ? {
+        name: currentDoc.name,
+        size: currentDoc.size,
+        type: currentDoc.type,
+      } : undefined,
     };
 
     // Update session title on first message
@@ -528,6 +629,16 @@ export default function ModernAICopilotView({
           userRole: isFinance ? 'FINANCE' : 'CEO',
           workspaceName,
           history: historyPayload,
+          assistantMode: composerMode === 'gambar' ? 'tanya' : composerMode,
+          attachment: currentDoc ? {
+            name: currentDoc.name,
+            fileName: currentDoc.name,
+            content: currentDoc.content,
+            type: currentDoc.type,
+            size: currentDoc.size,
+            structuredLedger: currentDoc.structuredLedger,
+            discrepancies: currentDoc.discrepancies,
+          } : undefined,
         }),
       });
 
@@ -634,10 +745,13 @@ export default function ModernAICopilotView({
         type="file"
         ref={fileInputRef}
         onChange={(e) => {
-          if (e.target.files?.[0]) {
-            setAttachedFileName(e.target.files[0].name);
+          const file = e.target.files?.[0];
+          if (file) {
+            void handleFileUpload(file);
           }
+          e.target.value = '';
         }}
+        accept=".pdf,.xlsx,.xls,.docx,.doc,.csv,.tsv,.txt,.md,.png,.jpg,.jpeg,.webp"
         className="hidden"
       />
 
@@ -811,7 +925,22 @@ export default function ModernAICopilotView({
       {/* ========================================================================= */}
       {/* 💬 2. MAIN CENTER WORKSPACE */}
       {/* ========================================================================= */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 min-w-0">
+      <main
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 min-w-0 relative"
+      >
+        {/* Drag and Drop Visual Overlay */}
+        {isDragOver && (
+          <div className="absolute inset-0 z-50 bg-emerald-600/10 backdrop-blur-xs border-2 border-dashed border-emerald-500 rounded-2xl flex flex-col items-center justify-center pointer-events-none p-6">
+            <div className="bg-white p-5 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-emerald-200">
+              <Paperclip className="w-8 h-8 text-emerald-600 animate-bounce" />
+              <p className="font-semibold text-slate-800 text-sm">Lepaskan dokumen untuk dilampirkan ke AI Copilot</p>
+              <p className="text-xs text-slate-500">Mendukung PDF, Excel, Word, CSV, dan Foto Dokumen</p>
+            </div>
+          </div>
+        )}
         {/* 🔝 TOP BAR (PRISTINE LIGHT ENTERPRISE HEADER) */}
         <header className="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
           <div className="flex items-center gap-3 min-w-0">
@@ -883,17 +1012,49 @@ export default function ModernAICopilotView({
 
               {/* 🎯 FLOATING CENTER COMPOSER SEARCH BOX */}
               <div className="max-w-3xl mx-auto space-y-2">
-                {attachedFileName && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs text-slate-700">
-                    <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{attachedFileName}</span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachedFileName(null)}
-                      className="text-slate-400 hover:text-slate-700"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                {(attachedFileName || isExtractingDoc || docExtractError) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isExtractingDoc ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-800 animate-pulse">
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                        <span>Mengekstrak isi dokumen ({attachedFileName})...</span>
+                      </div>
+                    ) : attachedDoc ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 shadow-2xs">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="font-semibold truncate max-w-[200px] sm:max-w-[320px]">{attachedDoc.name}</span>
+                        {attachedDoc.size && (
+                          <span className="text-[10px] text-emerald-600">({Math.round(attachedDoc.size / 1024)} KB)</span>
+                        )}
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-medium">Siap Dianalisis</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAttachedDoc(null);
+                            setAttachedFileName(null);
+                          }}
+                          className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer"
+                          title="Hapus Lampiran"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : docExtractError ? (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-200 text-xs text-red-700">
+                        <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                        <span className="truncate max-w-[300px]">{docExtractError}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDocExtractError(null);
+                            setAttachedFileName(null);
+                          }}
+                          className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
@@ -953,9 +1114,9 @@ export default function ModernAICopilotView({
                       <button
                         type="button"
                         onClick={() => void handleSendMessage()}
-                        disabled={!inputMessage.trim() && !attachedFileName}
+                        disabled={(!inputMessage.trim() && !attachedDoc) || isLoading || isExtractingDoc}
                         className={`px-3.5 py-1.5 rounded-xl font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
-                          inputMessage.trim() || attachedFileName
+                          (inputMessage.trim() || attachedDoc) && !isLoading && !isExtractingDoc
                             ? `${toneBtn} text-white shadow-xs`
                             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         }`}
@@ -1170,6 +1331,17 @@ export default function ModernAICopilotView({
                         isFinance ? 'bg-emerald-700 text-white' : 'bg-blue-700 text-white'
                       }`}
                     >
+                      {msg.attachment && (
+                        <div className="flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg bg-black/20 text-white/95 text-xs border border-white/15">
+                          <Paperclip className="w-3.5 h-3.5 shrink-0 text-emerald-300" />
+                          <span className="font-semibold truncate max-w-[240px]">{msg.attachment.name}</span>
+                          {msg.attachment.size && (
+                            <span className="text-[10px] opacity-75">
+                              ({Math.round(msg.attachment.size / 1024)} KB)
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className="whitespace-pre-wrap">{msg.text}</p>
                     </div>
                   </div>
@@ -1275,22 +1447,84 @@ export default function ModernAICopilotView({
         {messages.length > 0 && (
           <div className="p-3 sm:p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 shrink-0 z-20 shadow-xs">
             <div className="max-w-3xl mx-auto space-y-2">
+              {/* Attachment Pill Indicator */}
+              {(attachedFileName || isExtractingDoc || docExtractError) && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {isExtractingDoc ? (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-xs text-amber-800 animate-pulse">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                      <span>Mengekstrak isi dokumen ({attachedFileName})...</span>
+                    </div>
+                  ) : attachedDoc ? (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 shadow-2xs">
+                      <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span className="font-semibold truncate max-w-[240px] sm:max-w-[320px]">{attachedDoc.name}</span>
+                      {attachedDoc.size && (
+                        <span className="text-[10px] text-emerald-600">({Math.round(attachedDoc.size / 1024)} KB)</span>
+                      )}
+                      <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-medium">Siap Dianalisis</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAttachedDoc(null);
+                          setAttachedFileName(null);
+                        }}
+                        className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer"
+                        title="Hapus Lampiran"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : docExtractError ? (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-xs text-red-700">
+                      <AlertCircle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                      <span className="truncate max-w-[300px]">{docExtractError}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDocExtractError(null);
+                          setAttachedFileName(null);
+                        }}
+                        className="text-slate-400 hover:text-slate-700 ml-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               {/* Modern Input Box */}
-              <div className="relative flex items-center bg-white border border-slate-300 rounded-2xl focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all shadow-xs">
+              <div className="relative flex items-end bg-white border border-slate-300 rounded-2xl focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all shadow-xs pl-2 pr-12 py-1.5">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 mb-1 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                  title="Lampirkan Dokumen (PDF, Excel, Word, CSV, Foto)"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
+
                 <textarea
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ketik pertanyaan atau instruksi keuangan lanjutan..."
+                  placeholder={
+                    attachedDoc
+                      ? `Dokumen "${attachedDoc.name}" terlampir. Tulis instruksi atau langsung tekan kirim...`
+                      : isFinance
+                        ? 'Tanyakan rasio kas, audit invoice, simulasi laba, atau lampirkan dokumen...'
+                        : 'Tanyakan strategi, target Q4, ringkasan eksekutif, atau lampirkan dokumen...'
+                  }
                   rows={2}
-                  className="w-full resize-none bg-transparent py-3 pl-4 pr-14 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none max-h-36"
+                  className="w-full resize-none bg-transparent py-2 pl-2 pr-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none max-h-36"
                 />
 
                 <button
                   onClick={() => void handleSendMessage()}
-                  disabled={!inputMessage.trim() || isLoading}
-                  className={`absolute right-3 bottom-3 p-2 rounded-xl transition-all cursor-pointer ${
-                    inputMessage.trim() && !isLoading
+                  disabled={(!inputMessage.trim() && !attachedDoc) || isLoading || isExtractingDoc}
+                  className={`absolute right-3 bottom-2.5 p-2 rounded-xl transition-all cursor-pointer ${
+                    (inputMessage.trim() || attachedDoc) && !isLoading && !isExtractingDoc
                       ? `${toneBtn} text-white shadow-xs`
                       : 'text-slate-300 hover:text-slate-400 cursor-not-allowed'
                   }`}
@@ -1300,7 +1534,7 @@ export default function ModernAICopilotView({
                 </button>
               </div>
               <p className="text-center text-[10.5px] text-slate-400">
-                AI terhubung langsung dengan saldo kas, mutasi rekening, dan buku pembukuan aktif.
+                AI terhubung langsung dengan saldo kas, mutasi rekening, dan dokumen yang Anda unggah.
               </p>
             </div>
           </div>

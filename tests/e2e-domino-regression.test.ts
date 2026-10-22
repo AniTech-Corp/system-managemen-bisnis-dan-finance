@@ -5,7 +5,7 @@ import {
   cellToRawNumeric,
   sanitizeNulBytes,
 } from '@/lib/workspace-file-extraction';
-import { extractTextFromBuffer } from '@/app/api/v1/documents/extract-text/route';
+import { extractTextFromBuffer } from '@/lib/document-text-extractor';
 import {
   detectMenuCatalog,
   looksLikeMeetingNotes,

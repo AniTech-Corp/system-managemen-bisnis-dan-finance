@@ -20,6 +20,7 @@ import {
   Target,
   Sparkles,
   RefreshCw,
+  Plus,
   Send,
   SlidersHorizontal,
   ExternalLink,
@@ -38,6 +39,7 @@ import {
   AlertCircle,
   TrendingDown,
   Info,
+  ArrowUpDown,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -107,6 +109,36 @@ export default function MonitoringDashboard({
   const [transactions, setTransactions] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
 
+  // Inventory State & Manual Form
+  const [inventoryData, setInventoryData] = useState<{ products: any[]; summary: any } | null>(null);
+  const [inventoryLoading, setInventoryLoading] = useState<boolean>(false);
+  const [inventorySearch, setInventorySearch] = useState<string>('');
+  const [inventoryCategory, setInventoryCategory] = useState<string>('all');
+  const [addProductModalOpen, setAddProductModalOpen] = useState<boolean>(false);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    sku: '',
+    category: 'Bahan Baku',
+    unit: 'pcs',
+    costPrice: '',
+    sellPrice: '',
+    minStock: '',
+    openingStock: '',
+    supplierName: '',
+  });
+  const [submittingProduct, setSubmittingProduct] = useState(false);
+  const [productFormError, setProductFormError] = useState('');
+
+  // Stock Adjustment State (Ubah / Sesuaikan Stok)
+  const [adjustModalOpen, setAdjustModalOpen] = useState<boolean>(false);
+  const [selectedProductForAdjust, setSelectedProductForAdjust] = useState<any>(null);
+  const [adjustType, setAdjustType] = useState<'IN' | 'OUT'>('IN');
+  const [adjustQty, setAdjustQty] = useState<string>('');
+  const [adjustReason, setAdjustReason] = useState<string>('Restock / Pembelian tambahan');
+  const [adjustNote, setAdjustNote] = useState<string>('');
+  const [adjustSubmitting, setAdjustSubmitting] = useState<boolean>(false);
+  const [adjustError, setAdjustError] = useState<string>('');
+
   // Fetch all core backend data for Monitoring Usaha
   const fetchDashboardData = useCallback(async () => {
     setIsRefreshing(true);
@@ -154,9 +186,152 @@ export default function MonitoringDashboard({
     }
   }, [workspaceId, chartPeriod]);
 
+  const fetchInventory = useCallback(async () => {
+    setInventoryLoading(true);
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('klir_token') : null;
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/v1/inventory/products?limit=100', {
+        credentials: 'include',
+        headers,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInventoryData(data);
+      }
+    } catch (err) {
+      console.warn('[MonitoringDashboard] fetch inventory error:', err);
+    } finally {
+      setInventoryLoading(false);
+    }
+  }, []);
+
+  const handleSaveProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!productForm.name.trim()) {
+      setProductFormError('Nama barang / produk wajib diisi.');
+      return;
+    }
+    setSubmittingProduct(true);
+    setProductFormError('');
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('klir_token') : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/v1/inventory/products', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({
+          name: productForm.name.trim(),
+          sku: productForm.sku.trim() || undefined,
+          category: productForm.category.trim() || undefined,
+          unit: productForm.unit.trim() || 'pcs',
+          costPrice: Number(productForm.costPrice) || 0,
+          sellPrice: Number(productForm.sellPrice) || 0,
+          minStock: Number(productForm.minStock) || 0,
+          openingStock: Number(productForm.openingStock) || 0,
+          supplierName: productForm.supplierName.trim() || undefined,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        setProductFormError(json.message || 'Gagal menyimpan barang.');
+        return;
+      }
+
+      setAddProductModalOpen(false);
+      setProductForm({
+        name: '',
+        sku: '',
+        category: 'Bahan Baku',
+        unit: 'pcs',
+        costPrice: '',
+        sellPrice: '',
+        minStock: '',
+        openingStock: '',
+        supplierName: '',
+      });
+      void fetchInventory();
+      window.dispatchEvent(new CustomEvent('klir-inventory-updated'));
+    } catch (err: any) {
+      setProductFormError(err?.message || 'Terjadi kesalahan jaringan.');
+    } finally {
+      setSubmittingProduct(false);
+    }
+  };
+
+  const handleStockAdjust = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProductForAdjust) return;
+    const qtyNum = Number(adjustQty);
+    if (!qtyNum || qtyNum <= 0) {
+      setAdjustError('Jumlah penyesuaian stok harus berupa angka lebih dari 0.');
+      return;
+    }
+    if (!adjustReason || adjustReason.trim().length < 3) {
+      setAdjustError('Alasan perubahan stok wajib diisi (minimal 3 karakter).');
+      return;
+    }
+    setAdjustSubmitting(true);
+    setAdjustError('');
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('klir_token') : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const qtyChange = adjustType === 'IN' ? qtyNum : -qtyNum;
+      const res = await fetch('/api/v1/inventory/stock-adjustments', {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({
+          productId: selectedProductForAdjust.id,
+          qtyChange,
+          reason: adjustReason.trim(),
+          note: adjustNote.trim() || undefined,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        setAdjustError(json.message || 'Gagal memperbarui stok barang.');
+        return;
+      }
+
+      setAdjustModalOpen(false);
+      setSelectedProductForAdjust(null);
+      setAdjustQty('');
+      setAdjustNote('');
+      void fetchInventory();
+      window.dispatchEvent(new CustomEvent('klir-inventory-updated'));
+    } catch (err: any) {
+      setAdjustError(err?.message || 'Terjadi kesalahan jaringan.');
+    } finally {
+      setAdjustSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     void fetchDashboardData();
-  }, [fetchDashboardData]);
+    void fetchInventory();
+  }, [fetchDashboardData, fetchInventory]);
+
+  const filteredProducts = useMemo(() => {
+    const list = inventoryData?.products || [];
+    return list.filter((p: any) => {
+      const matchSearch =
+        !inventorySearch ||
+        p.name?.toLowerCase().includes(inventorySearch.toLowerCase()) ||
+        p.sku?.toLowerCase().includes(inventorySearch.toLowerCase());
+      const matchCat =
+        inventoryCategory === 'all' || (p.category && p.category.toLowerCase() === inventoryCategory.toLowerCase());
+      return matchSearch && matchCat;
+    });
+  }, [inventoryData?.products, inventorySearch, inventoryCategory]);
 
   // Format Helpers
   const formatRupiah = (val: number) => {
@@ -368,13 +543,14 @@ export default function MonitoringDashboard({
     ];
   }, [insightData]);
 
-  // Monitoring Navigation Items (5 Focused Executive Menus - AI dipusatkan di tombol atas)
+  // Monitoring Navigation Items (6 Focused Menus)
   const monitoringNavItems = [
     { id: 'overview', label: 'Overview Eksekutif', icon: LayoutDashboard },
     { id: 'growth', label: 'Tren & Proyeksi', icon: TrendingUp },
     { id: 'simulation', label: 'Simulasi & Skenario Usaha', icon: Target },
     { id: 'operations', label: 'Kesehatan & Operasional', icon: Activity },
-    { id: 'data-hub', label: 'Pusat Data & Legalitas', icon: Package },
+    { id: 'inventory', label: 'Katalog & Stok Barang', icon: Package },
+    { id: 'data-hub', label: 'Pusat Data & Legalitas', icon: FileText },
   ];
 
   return (
@@ -501,6 +677,7 @@ export default function MonitoringDashboard({
               {activeNav === 'growth' && 'Tren & Proyeksi Pertumbuhan'}
               {activeNav === 'simulation' && 'Simulasi & Skenario Usaha'}
               {activeNav === 'operations' && 'Kesehatan & Operasional Usaha'}
+              {activeNav === 'inventory' && 'Katalog & Stok Barang'}
               {activeNav === 'data-hub' && 'Pusat Data & Legalitas'}
             </h1>
 
@@ -515,6 +692,17 @@ export default function MonitoringDashboard({
 
           {/* Header Right: Actions, System Switcher, Search, Profile */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Quick Add Product Button */}
+            <button
+              onClick={() => setAddProductModalOpen(true)}
+              className="h-8 px-2.5 sm:px-3 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0"
+              title="Tambah Barang / SKU Manual"
+            >
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">+ Tambah Barang</span>
+              <span className="sm:hidden">+ Barang</span>
+            </button>
+
             {/* Quick Switch to Finance System */}
             <Link
               href="/finance"
@@ -1384,7 +1572,203 @@ export default function MonitoringDashboard({
           </main>
         )}
 
-        {/* 📁 TAB 5: PUSAT DATA & LEGALITAS */}
+        {/* 📦 TAB 5: KATALOG & STOK BARANG */}
+        {activeNav === 'inventory' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-5 overflow-y-auto">
+            {/* 3 Metric Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total SKU / Produk</span>
+                  <Package className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-slate-900 font-mono">
+                  {inventoryData?.summary?.productCount ?? (inventoryData?.products?.length || 0)} <span className="text-xs text-slate-500 font-sans font-normal">SKU</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">Total produk aktif yang terdaftar</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Nilai Total Aset Stok</span>
+                  <Wallet className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="text-xl sm:text-2xl font-bold text-emerald-700 font-mono">
+                  {formatRupiah(inventoryData?.summary?.stockValue || 0)}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">Valuasi stok berdasarkan harga modal (HPP)</p>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Peringatan Stok Menipis</span>
+                  <AlertTriangle className={`w-4 h-4 ${(inventoryData?.summary?.lowStockCount || 0) > 0 ? 'text-amber-500' : 'text-slate-400'}`} />
+                </div>
+                <div className={`text-xl sm:text-2xl font-bold font-mono ${(inventoryData?.summary?.lowStockCount || 0) > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                  {inventoryData?.summary?.lowStockCount || 0} <span className="text-xs text-slate-500 font-sans font-normal">Item</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">Barang di bawah batas stok minimum</p>
+              </div>
+            </div>
+
+            {/* Toolbar: Search, Filter, Action */}
+            <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 w-full sm:w-auto flex-1">
+                <div className="relative flex-1 sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={inventorySearch}
+                    onChange={(e) => setInventorySearch(e.target.value)}
+                    placeholder="Cari nama barang atau SKU..."
+                    className="w-full h-9 pl-9 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <select
+                  value={inventoryCategory}
+                  onChange={(e) => setInventoryCategory(e.target.value)}
+                  className="h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 font-medium focus:outline-none"
+                >
+                  <option value="all">Semua Kategori</option>
+                  <option value="Bahan Baku">Bahan Baku</option>
+                  <option value="Makanan">Makanan</option>
+                  <option value="Minuman">Minuman</option>
+                  <option value="Ritel">Ritel</option>
+                  <option value="Kemasan">Kemasan</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => void fetchInventory()}
+                  disabled={inventoryLoading}
+                  className="h-9 px-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${inventoryLoading ? 'animate-spin' : ''}`} />
+                  <span>Segarkan</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAddProductModalOpen(true)}
+                  className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Tambah Barang Manual</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Product Table */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <th className="py-3 px-4">Nama Produk & SKU</th>
+                      <th className="py-3 px-4">Kategori</th>
+                      <th className="py-3 px-4 text-right">Stok Fisik</th>
+                      <th className="py-3 px-4 text-center">Status</th>
+                      <th className="py-3 px-4 text-right">Harga Modal (HPP)</th>
+                      <th className="py-3 px-4 text-right">Harga Jual</th>
+                      <th className="py-3 px-4">Supplier</th>
+                      <th className="py-3 px-4 text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs text-slate-800">
+                    {inventoryLoading && !inventoryData ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-slate-400">
+                          <RefreshCw className="w-5 h-5 text-blue-600 animate-spin mx-auto mb-2" />
+                          <span>Memuat katalog stok barang...</span>
+                        </td>
+                      </tr>
+                    ) : filteredProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-slate-400">
+                          <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                          <p className="font-semibold text-slate-700">Belum ada barang yang tercatat</p>
+                          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                            Klik tombol <strong>"+ Tambah Barang Manual"</strong> di atas atau unggah file daftar produk/stok Excel Anda ke tab <strong>Pusat Data</strong>.
+                          </p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredProducts.map((p: any, idx: number) => {
+                        const isLow = p.currentStock <= p.minStock && p.minStock > 0;
+                        const isOut = p.currentStock <= 0;
+                        return (
+                          <tr key={p.id || idx} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-3 px-4">
+                              <p className="font-bold text-slate-900">{p.name}</p>
+                              <span className="font-mono text-[10px] text-slate-400">{p.sku || '-'}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                {p.category || 'Umum'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right font-mono font-bold">
+                              {p.currentStock} <span className="text-[10px] text-slate-500 font-sans font-normal">{p.unit || 'pcs'}</span>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {isOut ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                  Habis
+                                </span>
+                              ) : isLow ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                  Menipis (Min {p.minStock})
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  Aman
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-right font-mono text-slate-600">
+                              {formatRupiah(p.costPrice || 0)}
+                            </td>
+                            <td className="py-3 px-4 text-right font-mono font-semibold text-slate-900">
+                              {formatRupiah(p.sellPrice || 0)}
+                            </td>
+                            <td className="py-3 px-4 text-slate-600">
+                              {p.supplierName || '-'}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedProductForAdjust(p);
+                                  setAdjustType('IN');
+                                  setAdjustQty('');
+                                  setAdjustReason('Restock / Pembelian tambahan');
+                                  setAdjustNote('');
+                                  setAdjustError('');
+                                  setAdjustModalOpen(true);
+                                }}
+                                className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold text-[11px] border border-slate-200 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                title="Ubah atau sesuaikan stok barang ini"
+                              >
+                                <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                                <span>Ubah Stok</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </main>
+        )}
+
+        {/* 📁 TAB 6: PUSAT DATA & LEGALITAS */}
         {activeNav === 'data-hub' && (
           <main className="flex-1 p-4 sm:p-5 lg:p-6 overflow-y-auto">
             <WorkspaceDataHub workspaceId={workspaceId} onClose={() => setActiveNav('overview')} />
@@ -1475,7 +1859,364 @@ export default function MonitoringDashboard({
         </div>
       )}
 
-      {/* ⚙️ CEO APPROVAL & SETTINGS MODALS */}
+      {/* 📦 MODAL TAMBAH BARANG / SKU MANUAL */}
+      {addProductModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                  <Package className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900">Tambah Barang / SKU Manual</h3>
+                  <p className="text-[11px] text-slate-500">Catat produk atau bahan baku baru ke inventori usaha</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddProductModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {productFormError && (
+              <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{productFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProduct} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Nama Barang / Produk <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={productForm.name}
+                  onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                  placeholder="Contoh: Kopi Susu Aren 250ml / Beras Ramos 5kg"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    SKU / Kode Barang
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.sku}
+                    onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
+                    placeholder="Contoh: KSA-001"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Kategori
+                  </label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="Bahan Baku">Bahan Baku</option>
+                    <option value="Makanan">Makanan</option>
+                    <option value="Minuman">Minuman</option>
+                    <option value="Ritel">Ritel / Produk Jadi</option>
+                    <option value="Kemasan">Kemasan / Packaging</option>
+                    <option value="Operasional">Operasional</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Stok Awal
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={productForm.openingStock}
+                    onChange={(e) => setProductForm({ ...productForm, openingStock: e.target.value })}
+                    placeholder="0"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Batas Min. Stok
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={productForm.minStock}
+                    onChange={(e) => setProductForm({ ...productForm, minStock: e.target.value })}
+                    placeholder="5"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Satuan
+                  </label>
+                  <input
+                    type="text"
+                    value={productForm.unit}
+                    onChange={(e) => setProductForm({ ...productForm, unit: e.target.value })}
+                    placeholder="pcs / kg / box"
+                    className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Harga Modal / Beli (HPP)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={productForm.costPrice}
+                      onChange={(e) => setProductForm({ ...productForm, costPrice: e.target.value })}
+                      placeholder="15000"
+                      className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Harga Jual
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={productForm.sellPrice}
+                      onChange={(e) => setProductForm({ ...productForm, sellPrice: e.target.value })}
+                      placeholder="25000"
+                      className="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Nama Supplier / Vendor (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={productForm.supplierName}
+                  onChange={(e) => setProductForm({ ...productForm, supplierName: e.target.value })}
+                  placeholder="Contoh: CV Sumber Makmur / Toko Bahan Sejahtera"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAddProductModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingProduct}
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-70"
+                >
+                  {submittingProduct && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{submittingProduct ? 'Menyimpan...' : 'Simpan Barang'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 📦 MODAL UBAH / SESUAIKAN STOK BARANG */}
+      {adjustModalOpen && selectedProductForAdjust && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">Ubah / Sesuaikan Stok</h3>
+                <p className="text-[11px] text-slate-500">
+                  {selectedProductForAdjust.name} ({selectedProductForAdjust.sku || 'No SKU'})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAdjustModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {adjustError && (
+              <div className="mb-4 p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span>{adjustError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleStockAdjust} className="space-y-4">
+              {/* Info Stok Saat Ini */}
+              <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-600 font-medium">Stok Fisik Saat Ini:</span>
+                <span className="text-sm font-bold font-mono text-slate-900">
+                  {selectedProductForAdjust.currentStock} {selectedProductForAdjust.unit || 'pcs'}
+                </span>
+              </div>
+
+              {/* Tipe Aksi: Masuk vs Keluar */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Arah Perubahan Stok
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdjustType('IN');
+                      setAdjustReason('Restock / Pembelian tambahan');
+                    }}
+                    className={`h-9 px-3 rounded-lg text-xs font-bold border transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                      adjustType === 'IN'
+                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>+ Stok Masuk (Tambah)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdjustType('OUT');
+                      setAdjustReason('Barang rusak / kedaluwarsa');
+                    }}
+                    className={`h-9 px-3 rounded-lg text-xs font-bold border transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                      adjustType === 'OUT'
+                        ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>- Stok Keluar (Kurang)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Jumlah Perubahan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Jumlah Perubahan ({selectedProductForAdjust.unit || 'pcs'}) *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={adjustQty}
+                  onChange={(e) => setAdjustQty(e.target.value)}
+                  placeholder="Contoh: 10"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {adjustQty && Number(adjustQty) > 0 && (
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Estimasi stok akhir:{' '}
+                    <strong className="font-mono text-slate-800">
+                      {adjustType === 'IN'
+                        ? selectedProductForAdjust.currentStock + Number(adjustQty)
+                        : Math.max(0, selectedProductForAdjust.currentStock - Number(adjustQty))}{' '}
+                      {selectedProductForAdjust.unit || 'pcs'}
+                    </strong>
+                  </p>
+                )}
+              </div>
+
+              {/* Alasan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Alasan Perubahan *
+                </label>
+                <select
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {adjustType === 'IN' ? (
+                    <>
+                      <option value="Restock / Pembelian tambahan">Restock / Pembelian tambahan</option>
+                      <option value="Koreksi stok opname (stok fisik lebih)">Koreksi stok opname (stok fisik lebih)</option>
+                      <option value="Retur dari pelanggan">Retur dari pelanggan</option>
+                      <option value="Bonus supplier / kiriman sampel">Bonus supplier / kiriman sampel</option>
+                      <option value="Penyesuaian manual">Penyesuaian manual lainnya</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Barang rusak / kedaluwarsa">Barang rusak / kedaluwarsa</option>
+                      <option value="Barang hilang / selisih opname">Barang hilang / selisih opname</option>
+                      <option value="Pemakaian sendiri / sampel promosi">Pemakaian sendiri / sampel promosi</option>
+                      <option value="Retur ke supplier">Retur ke supplier</option>
+                      <option value="Penjualan manual">Penjualan manual</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              {/* Catatan Tambahan */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Catatan Tambahan (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={adjustNote}
+                  onChange={(e) => setAdjustNote(e.target.value)}
+                  placeholder="Mis. No. surat jalan / nota retur"
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setAdjustModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={adjustSubmitting}
+                  className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-70"
+                >
+                  {adjustSubmitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>{adjustSubmitting ? 'Memproses...' : 'Simpan Perubahan'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {approvalsOpen && (
         <CEOApprovalModal
           isOpen={approvalsOpen}

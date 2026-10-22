@@ -21,7 +21,7 @@
  * ke Postgres, ditolak, error mentah diteruskan verbatim ke client.
  */
 
-import { extractTextFromBuffer, listZipEntries, cellToDisplayString, cellToRawNumeric, sanitizeNulBytes } from '@/app/api/v1/documents/extract-text/route';
+import { extractTextFromBuffer, listZipEntries, cellToDisplayString, cellToRawNumeric, sanitizeNulBytes } from '@/lib/document-text-extractor';
 export { cellToDisplayString, cellToRawNumeric, sanitizeNulBytes };
 
 // ---------------------------------------------------------------------------
