@@ -30,9 +30,15 @@ Arsitektur data KLIR OS mengadopsi standar **Multi-Tenant Strict Isolation** men
 * **`ResourceGrant`**: Delegasi izin akses sumber daya departemen.
 
 ### 2. Domain Finance (Keuangan & Perpajakan)
-* **`CashTransaction`**: Pembukuan arus kas masuk/keluar harian.
-* **`Invoice`**: Penerbitan invoice pembayaran QRIS / transfer beserta status pembayarannya.
+* **`CashTransaction`**: Pembukuan arus kas masuk/keluar harian (memuat kolom pajak aditif `taxType`, `taxRate`, `taxAmount`, `dpp`).
+* **`Invoice`**: Penerbitan invoice pembayaran QRIS / transfer beserta status pembayarannya (memuat kolom pajak aditif `taxType`, `taxRate`, `taxAmount`, `dpp`, `fakturPajakNumber`).
 * **`Customer`**: Data kontak pelanggan/klien untuk faktur dan penjualan.
+* **`TaxPeriod`**: Masa pajak bulanan per jenis pajak (`TaxType`), status (`OPEN` → `READY` → `FILED` → `PAID` → `CLOSED`), tenggat setor/lapor, referensi NTPN/BPE, dan snapshot nominal saat dilaporkan.
+* **`ComplianceDeadline`**: Kalender tenggat kepatuhan (pajak, BPJS, perizinan). Sumber `TEMPLATE` (dibuat dari kode) atau `CUSTOM` (buatan workspace), dengan status dan pengingat in-app.
+* **`TaxDocument`**: Arsip bukti pajak (faktur, bukti potong, bukti setor, bukti lapor, pendukung). `fileId` merujuk lunak ke `WorkspaceFile.id`.
+* **`TaxWithholding`**: Bukti potong PPh 21/23/4(2)/26 untuk rekap dan checklist dokumen.
+* **`TaxAccountMap`**: Pemetaan jenis/komponen pajak ke akun COA untuk rekonsiliasi rekap vs jurnal.
+* Detail alur, API, dan batasan modul: lihat `docs/13_MODUL_PAJAK_DAN_KEPATUHAN.md`.
 
 ### 3. Domain Marketing (Pemasaran & Konten)
 * **`Campaign`**: Kampanye promosi dan pelacakan anggaran/performa.

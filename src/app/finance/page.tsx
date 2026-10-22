@@ -41,7 +41,7 @@ export default function FinanceStandalonePage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
-  const [user, setUser] = useState<{ email: string; fullName: string }>(DEFAULT_USER);
+  const [user, setUser] = useState<{ email: string; fullName: string; role?: string; id?: string }>(DEFAULT_USER);
   const [workspace, setWorkspace] = useState<{ id: string; name: string; enabledModules?: string[] }>(DEFAULT_WORKSPACE);
   const [availableWorkspaces, setAvailableWorkspaces] = useState<Array<{ id: string; name: string; enabledModules?: string[] }>>([]);
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
@@ -60,6 +60,8 @@ export default function FinanceStandalonePage() {
           setUser({
             email: userObj.email || DEFAULT_USER.email,
             fullName: userObj.fullName,
+            role: userObj.role || userObj.membership?.role,
+            id: userObj.id || userObj.userId,
           });
         }
         if (wsObj?.id) {
@@ -104,6 +106,13 @@ export default function FinanceStandalonePage() {
                 enabledModules: Array.isArray(data.activeWorkspace.enabledModules) && data.activeWorkspace.enabledModules.length > 0
                   ? data.activeWorkspace.enabledModules
                   : prev.enabledModules,
+              }));
+            }
+            if (data?.user) {
+              setUser(prev => ({
+                ...prev,
+                role: data.user.role || data.user.membership?.role,
+                id: data.user.id,
               }));
             }
           }
@@ -196,6 +205,8 @@ export default function FinanceStandalonePage() {
       userName={user.fullName}
       initialTab="cashflow"
       onOpenAI={handleOpenAIWithPrompt}
+      userRole={user.role || 'MEMBER'}
+      userId={user.id || ''}
     />
   );
 }

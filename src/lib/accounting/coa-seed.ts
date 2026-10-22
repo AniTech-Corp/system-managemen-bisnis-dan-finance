@@ -3,7 +3,9 @@ import {
   CashAccountType,
   NormalBalance,
   Prisma,
+  TaxComponent,
   TaxProfile,
+  TaxType,
   type Account,
 } from '@prisma/client';
 
@@ -59,6 +61,25 @@ export const DEFAULT_CATEGORY_MAPPINGS: Array<{
   { category: 'Pemasukan Lainnya', type: AccountType.REVENUE, accountCode: '4-1900' },
 ];
 
+/**
+ * Pemetaan bawaan akun pajak. Modul Pajak memakai ini untuk rekonsiliasi
+ * rekap (dokumen vs jurnal). Owner boleh mengganti akunnya lewat Pengaturan.
+ * Sengaja hanya diisi kalau belum ada, supaya pilihan owner tidak tertimpa.
+ */
+export const DEFAULT_TAX_ACCOUNT_MAPS: Array<{
+  taxType: TaxType;
+  component: TaxComponent;
+  accountCode: string;
+}> = [
+  { taxType: TaxType.PPN, component: TaxComponent.OUTPUT, accountCode: '2-1310' },
+  { taxType: TaxType.PPN, component: TaxComponent.INPUT, accountCode: '1-1600' },
+  { taxType: TaxType.PPH_21, component: TaxComponent.WITHHOLDING, accountCode: '2-1320' },
+  { taxType: TaxType.PPH_FINAL_UMKM, component: TaxComponent.PAYABLE, accountCode: '2-1330' },
+  { taxType: TaxType.BPJS, component: TaxComponent.PAYABLE, accountCode: '2-1340' },
+  { taxType: TaxType.PPH_23, component: TaxComponent.WITHHOLDING, accountCode: '2-1360' },
+  { taxType: TaxType.PPH_4_2, component: TaxComponent.WITHHOLDING, accountCode: '2-1370' },
+];
+
 export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   // ── ASET ────────────────────────────────────────────────────────────────
   { code: '1-1000', name: 'Aset Lancar', type: AccountType.ASSET, normalBalance: NormalBalance.DEBIT, isPostable: false },
@@ -78,6 +99,7 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '1-2200', name: 'Kendaraan', type: AccountType.ASSET, normalBalance: NormalBalance.DEBIT, parentCode: '1-2000' },
   { code: '1-2300', name: 'Bangunan', type: AccountType.ASSET, normalBalance: NormalBalance.DEBIT, parentCode: '1-2000' },
   { code: '1-2400', name: 'Akumulasi Penyusutan', type: AccountType.ASSET, normalBalance: NormalBalance.CREDIT, parentCode: '1-2000', isSystem: true },
+  { code: '1-2500', name: 'Akumulasi Penurunan Nilai Aset', type: AccountType.ASSET, normalBalance: NormalBalance.CREDIT, parentCode: '1-2000', isSystem: true },
   { code: '1-2900', name: 'Aset Tetap Lain-lain', type: AccountType.ASSET, normalBalance: NormalBalance.DEBIT, parentCode: '1-2000' },
 
   // ── LIABILITAS ──────────────────────────────────────────────────────────
@@ -90,6 +112,10 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '2-1330', name: 'PPh Final UMKM', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
   { code: '2-1340', name: 'Utang BPJS', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
   { code: '2-1350', name: 'Utang Karyawan (potongan lain)', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000', isSystem: true },
+  // Additive 22 Okt 2026 -- Modul Pajak: akun untuk potongan yang sebelumnya
+  // belum punya tempat di CoA (PPh 23 atas jasa/sewa dan PPh 4 ayat 2).
+  { code: '2-1360', name: 'PPh 23', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
+  { code: '2-1370', name: 'PPh 4 ayat (2)', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1300', isSystem: true },
   { code: '2-1400', name: 'Utang Bank Jangka Pendek', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },
   { code: '2-1500', name: 'Beban Masih Harus Dibayar', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },
   { code: '2-1900', name: 'Liabilitas Jangka Pendek Lain-lain', type: AccountType.LIABILITY, normalBalance: NormalBalance.CREDIT, parentCode: '2-1000' },
@@ -110,6 +136,7 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '4-1100', name: 'Pendapatan Jasa', type: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT, parentCode: '4-1000', isSystem: true },
   { code: '4-1200', name: 'Pendapatan Penjualan Barang', type: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT, parentCode: '4-1000', isSystem: true },
   { code: '4-1900', name: 'Pendapatan Lain-lain', type: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT, parentCode: '4-1000' },
+  { code: '4-1910', name: 'Keuntungan Pelepasan Aset Tetap', type: AccountType.REVENUE, normalBalance: NormalBalance.CREDIT, parentCode: '4-1000' },
   { code: '4-2000', name: 'Diskon & Retur Penjualan', type: AccountType.REVENUE, normalBalance: NormalBalance.DEBIT, parentCode: '4-1000' },
 
   // ── HARGA POKOK PENJUALAN ───────────────────────────────────────────────
@@ -133,6 +160,8 @@ export const DEFAULT_COA_TEMPLATE: CoaTemplateEntry[] = [
   { code: '6-2200', name: 'Beban Pajak & Retribusi', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
   { code: '6-9000', name: 'Beban Lain-lain', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
   { code: '6-9100', name: 'Selisih Persediaan', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000', isSystem: true },
+  { code: '6-9200', name: 'Kerugian Pelepasan Aset Tetap', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
+  { code: '6-9300', name: 'Kerugian Penurunan Nilai Aset', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, parentCode: '6-1000' },
 
   // ── PAJAK PENGHASILAN ───────────────────────────────────────────────────
   { code: '7-1000', name: 'Beban Pajak Penghasilan', type: AccountType.EXPENSE, normalBalance: NormalBalance.DEBIT, isSystem: true },
@@ -143,6 +172,7 @@ export interface SetupResult {
   accountsExisting: number;
   cashAccountsCreated: number;
   categoryMappingsCreated: number;
+  taxAccountMapsCreated: number;
   setting: {
     booksStartDate: Date;
     taxProfile: TaxProfile;
@@ -237,6 +267,34 @@ export async function seedChartOfAccounts(
     mappingsCreated += 1;
   }
 
+  // Pemetaan akun pajak bawaan (additive 22 Okt 2026). Idempoten: hanya dibuat
+  // kalau belum ada, supaya pilihan akun oleh owner tidak tertimpa.
+  let taxMapsCreated = 0;
+  for (const mapping of DEFAULT_TAX_ACCOUNT_MAPS) {
+    const account = byCode.get(mapping.accountCode);
+    if (!account) continue;
+    const existingMap = await tx.taxAccountMap.findUnique({
+      where: {
+        workspaceId_taxType_component: {
+          workspaceId,
+          taxType: mapping.taxType,
+          component: mapping.component,
+        },
+      },
+      select: { id: true },
+    });
+    if (existingMap) continue;
+    await tx.taxAccountMap.create({
+      data: {
+        workspaceId,
+        taxType: mapping.taxType,
+        component: mapping.component,
+        accountId: account.id,
+      },
+    });
+    taxMapsCreated += 1;
+  }
+
   // Awal bulan BERJALAN (bukan bulan depan). Tanggal mulai pembukuan yang jatuh
   // di masa depan membuat setiap jurnal yang dibuat hari ini tercatat sebelum
   // pembukuan dimulai -- membingungkan dan membuat periode berjalan kosong.
@@ -317,6 +375,7 @@ export async function seedChartOfAccounts(
     accountsExisting: existingBefore.length,
     cashAccountsCreated: cashCreated,
     categoryMappingsCreated: mappingsCreated,
+    taxAccountMapsCreated: taxMapsCreated,
     setting: {
       booksStartDate: setting.booksStartDate ?? defaultBooksStart,
       taxProfile: setting.taxProfile,

@@ -43,6 +43,7 @@ import { InventoryReportView } from './InventoryReportView';
 import SimpleBackupRecovery from './SimpleBackupRecovery';
 import ArApView from './ArApView';
 import ScenarioProjectionView from './ScenarioProjectionView';
+import { BankReconciliationView } from './bank-reconciliation';
 
 interface PermissionsResponse {
   role: string;
@@ -74,7 +75,8 @@ type ViewId =
   | 'journals'
   | 'opening'
   | 'backup'
-  | 'settings';
+  | 'settings'
+  | 'bank-reconciliation';
 
 const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   { id: 'summary', label: 'Ringkasan', icon: BarChart3 },
@@ -85,6 +87,7 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
   { id: 'arap', label: 'Utang & Piutang', icon: Wallet },
+  { id: 'bank-reconciliation', label: 'Rekonsiliasi Bank', icon: Wallet },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'budget', label: 'Anggaran', icon: Target },
   { id: 'proyeksi', label: 'Proyeksi Skenario', icon: TrendingUp },
@@ -265,6 +268,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {period && view === 'trial' && <TrialBalanceView {...reportProps} />}
           {period && view === 'aging' && <AgingView {...reportProps} />}
           {period && view === 'arap' && <ArApView canManage={can.manageArAp} />}
+          {view === 'bank-reconciliation' && <BankReconciliationView workspaceId={workspaceId} />}
           {period && view === 'tax' && <TaxView {...reportProps} />}
           {period && view === 'budget' && (
             <BudgetView {...reportProps} canEdit={can.manageSettings} fiscalStartMonth={fiscalStartMonth} />

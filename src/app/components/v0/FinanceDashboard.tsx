@@ -37,6 +37,9 @@ import {
   Download,
   AlertCircle,
   Filter,
+  ClipboardList,
+  Users,
+  Boxes,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -44,6 +47,9 @@ import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
 import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
 import ModernAICopilotView from './ModernAICopilotView';
 import AccountingTab from '../finance/accounting/AccountingTab';
+import TaxComplianceTab from '../finance/tax/TaxComplianceTab';
+import ExpenseApprovalTab from '../finance/expense/ExpenseApprovalTab';
+import AssetTab from '../finance/assets/AssetTab';
 
 const Chart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
@@ -60,6 +66,8 @@ interface FinanceDashboardProps {
   userName?: string;
   initialTab?: string;
   onOpenAI?: (prompt: string) => void;
+  userRole?: string;
+  userId?: string;
 }
 
 export default function FinanceDashboard({
@@ -68,6 +76,8 @@ export default function FinanceDashboard({
   userName = 'Finance Lead',
   initialTab = 'cashflow',
   onOpenAI,
+  userRole = 'MEMBER',
+  userId = '',
 }: FinanceDashboardProps) {
   // Navigation State - Khusus Sistem Finance
   const [activeNav, setActiveNav] = useState<string>(initialTab);
@@ -81,7 +91,7 @@ export default function FinanceDashboard({
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab');
-      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'ai-lead'].includes(tabParam)) {
+      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'expense-approval', 'ai-lead'].includes(tabParam)) {
         setActiveNav(tabParam);
       }
     }
@@ -119,9 +129,6 @@ export default function FinanceDashboard({
   const [oblAmount, setOblAmount] = useState<string>('');
   const [oblDue, setOblDue] = useState<string>('');
   const [oblSaving, setOblSaving] = useState<boolean>(false);
-
-  // Tax Calculator Input (PPh 55/2022)
-  const [taxAnnualTurnover, setTaxAnnualTurnover] = useState<number>(612500000);
 
   // WhatsApp Reminder State
   const [waModalOpen, setWaModalOpen] = useState<boolean>(false);
@@ -330,10 +337,6 @@ export default function FinanceDashboard({
     return list;
   }, [transactions, searchQuery, selectedCategory]);
 
-  // Tax calculation helpers (PP 55/2022)
-  const taxableTurnover = Math.max(0, taxAnnualTurnover - 500000000);
-  const finalTaxPayable = taxableTurnover * 0.005;
-
   // Cashflow Trend Chart Config (Responsive ApexChart)
   const cashflowChartConfig = useMemo(() => {
     const months =
@@ -490,11 +493,15 @@ export default function FinanceDashboard({
     { id: 'invoices', label: 'Faktur & Piutang (AR)', icon: FileText },
     { id: 'obligations', label: 'Kewajiban & Hutang (AP)', icon: Clock },
     { id: 'reconciliation', label: 'Rekonsiliasi Bank', icon: Building2 },
-    { id: 'tax', label: 'Pajak UMKM PP 55', icon: ShieldCheck },
+    { id: 'tax', label: 'Pajak & Kepatuhan', icon: ShieldCheck },
     // Modul Laporan Keuangan (double-entry). Terpisah dari "Buku Kas" karena
     // Buku Kas menampilkan arus kas mentah, sedangkan di sini semua angka
     // berasal dari jurnal yang sudah diposting.
     { id: 'laporan', label: 'Laporan Keuangan', icon: Layers },
+    // Pengeluaran Berjenjang (Tiered Expense Approval)
+    { id: 'expense-approval', label: 'Pengajuan Dana', icon: ClipboardList },
+    // Manajemen Aset & Penyusutan (asset register, depreciation, disposal)
+    { id: 'assets', label: 'Aset & Penyusutan', icon: Boxes },
   ];
 
   return (
@@ -622,8 +629,9 @@ export default function FinanceDashboard({
               {activeNav === 'invoices' && 'Faktur & Piutang (AR)'}
               {activeNav === 'obligations' && 'Kewajiban & Hutang (AP)'}
               {activeNav === 'reconciliation' && 'Rekonsiliasi Mutasi Bank'}
-              {activeNav === 'tax' && 'Pajak UMKM PP 55/2022'}
+              {activeNav === 'tax' && 'Pajak & Kalender Kepatuhan'}
               {activeNav === 'laporan' && 'Laporan Keuangan (Double-Entry)'}
+              {activeNav === 'assets' && 'Manajemen Aset & Penyusutan'}
               {activeNav === 'ai-lead' && 'AI Finance Lead Specialist'}
             </h1>
 
@@ -1367,63 +1375,10 @@ export default function FinanceDashboard({
           </main>
         )}
 
-        {/* 🛡️ TAB 6: PAJAK UMKM PP 55/2022 (Interactive Calculator) */}
+        {/* 🛡️ TAB 6: PAJAK & KALENDER KEPATUHAN */}
         {activeNav === 'tax' && (
           <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
-            <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs">
-              <h2 className="text-base font-bold text-slate-900 mb-1">Kalkulator Pajak UMKM (PP No. 55 Tahun 2022)</h2>
-              <p className="text-xs text-slate-500 mb-5">
-                Ketentuan tarif PPh Final 0.5% dari peredaran bruto untuk wajib pajak UMKM
-              </p>
-
-              {/* Interactive Turnover Input */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 mb-5">
-                <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                  Simulasikan Omset Bruto Tahunan (YTD):
-                </label>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <input
-                    type="number"
-                    value={taxAnnualTurnover}
-                    onChange={(e) => setTaxAnnualTurnover(Number(e.target.value) || 0)}
-                    className="w-full sm:w-72 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                  <span className="text-xs text-slate-500">
-                    Batas bebas pajak WP OP: <strong>Rp 500.000.000 / tahun</strong>
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Omset Bruto</span>
-                  <div className="text-base sm:text-lg font-bold text-slate-900 mt-1 font-mono whitespace-nowrap">
-                    {formatRupiah(taxAnnualTurnover)}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Peredaran bruto usaha</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Omset Kena Pajak</span>
-                  <div className="text-base sm:text-lg font-bold text-blue-900 mt-1 font-mono whitespace-nowrap">
-                    {formatRupiah(taxableTurnover)}
-                  </div>
-                  <p className="text-[10px] text-blue-600 mt-1">Setelah pembebasan 500jt</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                  <span className="text-[10px] font-semibold text-emerald-800 uppercase tracking-wider">Estimasi PPh Final (0.5%)</span>
-                  <div className="text-base sm:text-lg font-bold text-emerald-900 mt-1 font-mono whitespace-nowrap">
-                    {formatRupiah(finalTaxPayable)}
-                  </div>
-                  <p className="text-[10px] text-emerald-700 mt-1 font-semibold">Disetor via kode billing DJP</p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-600 leading-relaxed">
-                ℹ️ <strong>Ketentuan Pelaporan:</strong> PPh Final disetor paling lambat tanggal 15 bulan berikutnya melalui kode billing DJP Online (Akun Pajak 411128, Jenis Setoran 420).
-              </div>
-            </div>
+            <TaxComplianceTab workspaceId={workspaceId} />
           </main>
         )}
 
@@ -1434,7 +1389,25 @@ export default function FinanceDashboard({
           </main>
         )}
 
-        {/* 🤖 TAB 8: AI FINANCE LEAD ASSISTANT */}
+        {/* 📋 TAB 8: PENGAJUAN DANA (EXPENSE APPROVAL) */}
+        {activeNav === 'expense-approval' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
+            <ExpenseApprovalTab 
+              workspaceId={workspaceId}
+              userRole={userRole as any}
+              userId={userId}
+            />
+          </main>
+        )}
+
+        {/* 🏢 TAB 9: MANAJEMEN ASET & PENYUSUTAN */}
+        {activeNav === 'assets' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
+            <AssetTab workspaceId={workspaceId} />
+          </main>
+        )}
+
+        {/* 🤖 TAB 9: AI FINANCE LEAD ASSISTANT */}
         {activeNav === 'ai-lead' && (
           <main className="flex-1 overflow-hidden flex flex-col h-[calc(100vh-56px)]">
             <ModernAICopilotView
