@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle2, Loader2, Plus, RotateCcw, Trash2, X } from 'lucide-react';
 import { apiSend, formatMoney, periodLabel } from './client';
 import { ReportToolbar, useApi } from './ReportViews';
+import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
 
 interface AccountDto {
   id: string;
@@ -39,6 +40,16 @@ interface DraftLine {
   debit: string;
   credit: string;
   description: string;
+  costCenter: string;
+  projectId: string;
+}
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  code: string | null;
+  division: string | null;
+  status: string;
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -59,7 +70,14 @@ const SOURCE_LABELS: Record<string, string> = {
   ASSET_IMPAIRMENT: 'Penurunan Nilai Aset',
 };
 
-const emptyLine = (): DraftLine => ({ accountId: '', debit: '', credit: '', description: '' });
+const emptyLine = (): DraftLine => ({
+  accountId: '',
+  debit: '',
+  credit: '',
+  description: '',
+  costCenter: '',
+  projectId: '',
+});
 
 export function JournalView({
   period,
@@ -87,8 +105,13 @@ export function JournalView({
   const query = `/api/v1/accounting/journals?period=${period}&limit=100${statusFilter ? `&status=${statusFilter}` : ''}`;
   const { data: journals, loading, error, reload } = useApi<JournalDto[]>(query);
   const { data: accounts } = useApi<AccountDto[]>('/api/v1/accounting/accounts');
+  const { data: projects } = useApi<ProjectOption[]>('/api/v1/accounting/projects');
 
   const postableAccounts = useMemo(() => (accounts ?? []).filter((a) => a.isPostable), [accounts]);
+  const activeProjects = useMemo(
+    () => (projects ?? []).filter((project) => project.status !== 'ARCHIVED'),
+    [projects]
+  );
 
   async function handlePost(id: string) {
     setBusy(true);
@@ -305,6 +328,7 @@ export function JournalView({
       {showEditor && (
         <JournalEditor
           accounts={postableAccounts}
+          projects={activeProjects}
           onClose={() => setShowEditor(false)}
           onSaved={() => {
             setShowEditor(false);
@@ -363,10 +387,12 @@ function Modal({ title, children, onClose }: { title: string; children: React.Re
 
 function JournalEditor({
   accounts,
+  projects,
   onClose,
   onSaved,
 }: {
   accounts: AccountDto[];
+  projects: ProjectOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -401,6 +427,8 @@ function JournalEditor({
             debit: Number(l.debit) || 0,
             credit: Number(l.credit) || 0,
             description: l.description || undefined,
+            costCenter: l.costCenter || null,
+            projectId: l.projectId || null,
           })),
       };
       await apiSend('/api/v1/accounting/journals', 'POST', payload);
@@ -437,40 +465,84 @@ function JournalEditor({
 
       <div className="mt-4 space-y-2">
         {lines.map((line, index) => (
-          <div key={index} className="grid grid-cols-12 items-center gap-2">
-            <select
-              value={line.accountId}
-              onChange={(e) => updateLine(index, { accountId: e.target.value })}
-              className="col-span-5 rounded-lg border border-slate-300 px-2 py-2 text-xs text-slate-800"
-            >
-              <option value="">Pilih akun…</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.code} — {a.name}
-                </option>
-              ))}
-            </select>
-            <input
-              value={line.debit}
-              onChange={(e) => updateLine(index, { debit: e.target.value, credit: '' })}
-              placeholder="Debit"
-              inputMode="numeric"
-              className="col-span-3 rounded-lg border border-slate-300 px-2 py-2 text-right text-xs tabular-nums text-slate-800"
-            />
-            <input
-              value={line.credit}
-              onChange={(e) => updateLine(index, { credit: e.target.value, debit: '' })}
-              placeholder="Kredit"
-              inputMode="numeric"
-              className="col-span-3 rounded-lg border border-slate-300 px-2 py-2 text-right text-xs tabular-nums text-slate-800"
-            />
-            <button
-              onClick={() => setLines((prev) => prev.filter((_, i) => i !== index))}
-              disabled={lines.length <= 2}
-              className="col-span-1 rounded-lg border border-slate-200 py-2 text-slate-400 hover:bg-slate-50 disabled:opacity-30"
-            >
-              <X className="mx-auto h-3.5 w-3.5" />
-            </button>
+          <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/40 p-2">
+            <div className="grid grid-cols-12 items-center gap-2">
+              <select
+                value={line.accountId}
+                onChange={(e) => updateLine(index, { accountId: e.target.value })}
+                className="col-span-5 rounded-lg border border-slate-300 px-2 py-2 text-xs text-slate-800"
+              >
+                <option value="">Pilih akun…</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.code} — {a.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={line.debit}
+                onChange={(e) => updateLine(index, { debit: e.target.value, credit: '' })}
+                placeholder="Debit"
+                inputMode="numeric"
+                className="col-span-3 rounded-lg border border-slate-300 px-2 py-2 text-right text-xs tabular-nums text-slate-800"
+              />
+              <input
+                value={line.credit}
+                onChange={(e) => updateLine(index, { credit: e.target.value, debit: '' })}
+                placeholder="Kredit"
+                inputMode="numeric"
+                className="col-span-3 rounded-lg border border-slate-300 px-2 py-2 text-right text-xs tabular-nums text-slate-800"
+              />
+              <button
+                onClick={() => setLines((prev) => prev.filter((_, i) => i !== index))}
+                disabled={lines.length <= 2}
+                className="col-span-1 rounded-lg border border-slate-200 py-2 text-slate-400 hover:bg-slate-50 disabled:opacity-30"
+              >
+                <X className="mx-auto h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="mt-2 grid grid-cols-12 gap-2">
+              <input
+                value={line.description}
+                onChange={(e) => updateLine(index, { description: e.target.value })}
+                placeholder="Keterangan baris (opsional)"
+                className="col-span-12 rounded-lg border border-slate-300 px-2 py-2 text-xs text-slate-800 sm:col-span-4"
+              />
+              <select
+                value={line.costCenter}
+                onChange={(e) => updateLine(index, { costCenter: e.target.value })}
+                title="Divisi pemilik baris ini. Kosong = Tanpa Divisi."
+                className="col-span-6 rounded-lg border border-slate-300 px-2 py-2 text-xs text-slate-800 sm:col-span-3"
+              >
+                <option value="">Tanpa Divisi</option>
+                {DIVISIONS.map((value) => (
+                  <option key={value} value={value}>{divisionLabel(value)}</option>
+                ))}
+              </select>
+              <select
+                value={line.projectId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const project = projects.find((item) => item.id === id);
+                  updateLine(index, {
+                    projectId: id,
+                    ...(project?.division ? { costCenter: project.division } : {}),
+                  });
+                }}
+                title="Proyek pemilik baris ini. Kosong = Tanpa Proyek."
+                className="col-span-6 rounded-lg border border-slate-300 px-2 py-2 text-xs text-slate-800 sm:col-span-3"
+              >
+                <option value="">Tanpa Proyek</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.code ? `${project.code} · ` : ''}{project.name}
+                  </option>
+                ))}
+              </select>
+              <span className="col-span-12 self-center text-[10px] text-slate-400 sm:col-span-2">
+                Laba per unit bisnis
+              </span>
+            </div>
           </div>
         ))}
       </div>

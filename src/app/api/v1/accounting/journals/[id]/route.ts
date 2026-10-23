@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { guardAccounting, notFound, serializeJournal, serverError } from '@/lib/accounting/api';
 import { deleteDraftJournal, JournalValidationError } from '@/lib/accounting/journal-service';
+import { journalSnapshot, recordAudit } from '@/lib/audit/audit-trail';
 
 export const GET = withTenantGuard(
   async (_req: NextRequest, { auth, params }) => {
@@ -43,7 +45,31 @@ export const DELETE = withTenantGuard(
 
     try {
       const { id } = (await params) as { id: string };
+      const existing = await prisma.journalEntry.findFirst({
+        where: { id, workspaceId: auth.workspace.id },
+        include: { lines: true },
+      });
+      if (!existing) {
+        return NextResponse.json({ success: false, message: 'Jurnal tidak ditemukan.' }, { status: 404 });
+      }
+
       await deleteDraftJournal(auth.workspace.id, id);
+
+      const totalDebit = existing.lines.reduce((acc, line) => acc.plus(line.debit), new Prisma.Decimal(0));
+      await recordAudit({
+        workspaceId: auth.workspace.id,
+        userId: auth.user.id,
+        action: 'DELETE',
+        entityType: 'JOURNAL_ENTRY',
+        entityId: existing.id,
+        before: journalSnapshot({
+          ...existing,
+          lineCount: existing.lines.length,
+          totalDebit,
+        }),
+        reason: 'Jurnal draft dihapus',
+      });
+
       return NextResponse.json({ success: true, message: 'Jurnal draft berhasil dihapus.' });
     } catch (err) {
       if (err instanceof JournalValidationError) {

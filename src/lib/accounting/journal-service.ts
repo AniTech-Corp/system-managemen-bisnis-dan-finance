@@ -18,6 +18,7 @@ export interface JournalLineInput {
   cashAccountId?: string | null;
   partnerId?: string | null;
   costCenter?: string | null;
+  projectId?: string | null;
   currency?: string;
   exchangeRate?: MoneyInput;
 }
@@ -57,6 +58,7 @@ interface NormalizedLine {
   cashAccountId?: string | null;
   partnerId?: string | null;
   costCenter?: string | null;
+  projectId?: string | null;
   currency: string;
   exchangeRate: Prisma.Decimal;
 }
@@ -92,6 +94,7 @@ function normalizeLines(lines: JournalLineInput[]): NormalizedLine[] {
       cashAccountId: line.cashAccountId ?? null,
       partnerId: line.partnerId ?? null,
       costCenter: line.costCenter?.trim() || null,
+      projectId: line.projectId?.trim() || null,
       currency: (line.currency || 'IDR').toUpperCase().slice(0, 3),
       exchangeRate: toMoney(line.exchangeRate ?? 1, `Kurs baris ${index + 1}`),
     };
@@ -160,6 +163,17 @@ async function validateAccounts(
     }
     if (cashAccounts.some((c) => !c.isActive)) {
       throw new JournalValidationError('Rekening kas/bank yang dipilih sudah nonaktif.');
+    }
+  }
+
+  const projectIds = Array.from(new Set(lines.map((l) => l.projectId).filter(Boolean))) as string[];
+  if (projectIds.length > 0) {
+    const projects = await tx.project.findMany({
+      where: { workspaceId, id: { in: projectIds } },
+      select: { id: true },
+    });
+    if (projects.length !== projectIds.length) {
+      throw new JournalValidationError('Ada proyek yang tidak ditemukan di workspace ini.');
     }
   }
 }
@@ -250,6 +264,7 @@ export async function createJournalInTx(
       currency: line.currency,
       exchangeRate: line.exchangeRate,
       costCenter: line.costCenter ?? null,
+      projectId: line.projectId ?? null,
     })),
   });
 
@@ -375,6 +390,7 @@ export async function reverseJournalInTx(
       currency: line.currency,
       exchangeRate: line.exchangeRate,
       costCenter: line.costCenter,
+      projectId: line.projectId,
     })),
   });
 

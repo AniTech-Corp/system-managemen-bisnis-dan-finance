@@ -10,6 +10,7 @@ import {
   postInventoryJournalInTx,
   postObligationIssuedInTx,
   recordCashTransaction,
+  resolveProjectDimensionInTx,
 } from '@/lib/accounting/posting';
 import { applyOutgoingStock, isInventoryValued } from '@/lib/accounting/inventory';
 
@@ -66,6 +67,8 @@ export const POST = withTenantGuard(
       // yang belum terdaftar). Divalidasi milik workspace DI DALAM $transaction
       // di bawah (pola isolasi tenant sama seperti productId).
       const customerIdRaw: string | undefined = body?.customerId || undefined;
+      const projectIdRaw: string | undefined = body?.projectId || undefined;
+      const divisionRaw: string | undefined = body?.division || undefined;
 
       // Tanggal bisnis penjualan (opsional). Dipakai untuk baris kas DAN jurnal
       // utang konsinyasi, supaya penjualan yang dicatat mundur masuk ke periode
@@ -155,6 +158,12 @@ export const POST = withTenantGuard(
         const description = descriptionName
           ? `Penjualan ${itemCount} item (${descriptionName})`
           : `Penjualan ${itemCount} item`;
+        const dimension = await resolveProjectDimensionInTx(
+          tx,
+          workspaceId,
+          projectIdRaw ?? null,
+          divisionRaw ?? null
+        );
         const { transaction: cashTransaction } = await recordCashTransaction(tx, {
           workspaceId,
           userId: auth.user.id,
@@ -164,6 +173,8 @@ export const POST = withTenantGuard(
           description,
           paymentMethod,
           transactionDate,
+          division: dimension.division,
+          projectId: dimension.projectId,
           autoMapFallback: true,
         });
 
@@ -216,6 +227,8 @@ export const POST = withTenantGuard(
               type: StockMovementType.SALE_OUT,
               qtyChange: -item.qty,
               unitCost,
+              unitPrice: item.unitPrice,
+              occurredAt: transactionDate,
               sourceType: 'SALE',
               sourceId: cashTransaction.id,
               customerId: customerRecord?.id ?? null,
@@ -257,6 +270,8 @@ export const POST = withTenantGuard(
             description: `HPP penjualan (${cogsItems.length} baris barang)`,
             direction: 'COGS',
             entryDate: transactionDate,
+            costCenter: dimension.division,
+            projectId: dimension.projectId,
           });
         }
 
@@ -313,6 +328,8 @@ export const POST = withTenantGuard(
             userId: auth.user.id,
             obligation,
             entryDate: transactionDate,
+            division: dimension.division,
+            projectId: dimension.projectId,
           });
 
           consignmentLiabilityAmount += plan.obligation.amount;

@@ -78,6 +78,7 @@ export const POST = withTenantGuard(
           include: {
             approvals: { orderBy: { level: 'asc' }, include: { approver: { select: { id: true, fullName: true, email: true } } } },
             items: true,
+            requester: { select: { id: true, fullName: true, email: true } },
           },
         });
 

@@ -216,7 +216,9 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 | `/category-mapping` | GET, PUT | Lihat / simpan pemetaan kategori |
 | `/budgets` | GET, PUT | Lihat / simpan anggaran tahunan per akun, per divisi |
 | `/budget-alerts` | GET, POST, PATCH | Peringatan ambang: baca, nilai ulang, tandai sudah dibaca |
-| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget`, `inventory` |
+| `/projects` | GET, POST | Daftar / buat proyek (dimensi laba) |
+| `/projects/{id}` | PATCH, DELETE | Ubah proyek / arsipkan (histori jurnal tetap utuh) |
+| `/reports/{jenis}` | GET | `income-statement`, `balance-sheet`, `cash-flow`, `equity`, `trial-balance`, `ledger`, `aging`, `tax`, `budget`, `inventory`, `profitability` |
 | `/kas/transactions` | POST | Terima `invoiceId` tunggal **atau** `allocations[]` (split payment, pembayaran sebagian). |
 | `/reports/summary` | GET | KPI + rasio + peringatan |
 | `/reports/export` | GET | Unduh satu berkas Excel berisi semua laporan |
@@ -224,6 +226,7 @@ dijalankan lewat `withTenantGuard` (isolasi antar-workspace).
 Parameter laporan: `period=YYYY-MM`, atau `startDate` + `endDate`.
 Pembanding: `comparative=none|prev_month|prev_year|ytd`.
 Khusus aging: `type=AR|AP` dan `asOf=YYYY-MM-DD` (default akhir periode).
+Khusus profitability: `trend=3..24` (jumlah bulan grafik tren, default 12).
 
 Contoh:
 
@@ -530,6 +533,144 @@ boleh membatalkan pencatatan pengeluaran. Idempoten: `BudgetAlert` punya unique
 constraint yang berperan sebagai dedup, dan alert yang sudah tidak berlaku ikut
 dihapus. Peringatan hanya menampilkan, tidak pernah memblokir transaksi.
 
+**Profitabilitas per divisi, proyek, dan produk.** Sumbernya sama dengan Laba
+Rugi: `journal_lines` berstatus `POSTED`, jurnal `OPENING`/`CLOSING`
+dikecualikan, hanya akun `REVENUE`/`EXPENSE`.
+
+```
+Pendapatan unit   = saldo pendapatan baris ber-costCenter/projectId tersebut
+HPP unit          = saldo akun 5-xxxx baris tersebut
+Beban operasional = saldo akun EXPENSE selain 5-xxxx/7-xxxx baris tersebut
+Beban pajak       = saldo akun 7-xxxx baris tersebut
+Laba unit         = Pendapatan - (HPP + Beban Operasional + Beban Pajak)
+Margin unit       = Laba unit / Pendapatan unit
+Porsi laba        = Laba unit / total laba seluruh unit
+```
+
+Karena tidak ada alokasi otomatis, **total semua divisi + "Tanpa Divisi" harus
+sama dengan Laba Rugi tanpa filter**. Hal yang sama berlaku untuk proyek.
+Laba proyek adalah **laba langsung**: hanya baris yang benar-benar ditandai ke
+proyek itu. Overhead bersama tetap berada di "Tanpa Divisi/Proyek" dan
+ditampilkan sebagai peringatan — laporan tidak menebak pembaginya.
+
+Dimensi diisi dari dokumen sumber:
+
+| Dokumen | Kolom dimensi | Jurnal yang membawa dimensi |
+| --- | --- | --- |
+| Transaksi kas | `CashTransaction.division`, `CashTransaction.projectId` | Baris pendapatan/beban (bukan baris kas) |
+| Faktur | `Invoice.division`, `Invoice.projectId` | Baris pendapatan (bukan piutang/PPN) |
+| Penjualan stok | `projectId`/`division` dari API penjualan | Baris HPP, plus utang konsinyasi |
+| Jurnal manual | `costCenter`, `projectId` per baris | Sesuai baris yang diisi |
+
+Proyek yang diarsipkan tidak bisa dipakai transaksi baru, tetapi histori
+jurnalnya tetap dihitung. Divisi proyek harus sama dengan divisi transaksi;
+perbedaan ditolak agar laporan divisi dan proyek tidak saling bertentangan.
+
+**Produk.** Laba kotor produk dihitung dari `stock_movements` bertipe
+`SALE_OUT` pada periode `occurredAt` (fallback `createdAt` untuk data lama):
+
+```
+Pendapatan produk = qty x unitPrice
+HPP produk        = qty x unitCost (biaya rata-rata saat keluar)
+Laba kotor        = Pendapatan - HPP
+```
+
+Penjualan lama yang belum menyimpan `unitPrice` **tidak dianggap pendapatan
+nol**. Unitnya dikumpulkan di kolom "Qty Tanpa Harga" dan diberi peringatan,
+supaya margin tidak terlihat lebih baik atau lebih buruk dari kenyataan.
+
+**Audit trail & riwayat perubahan.** Audit memakai tabel `audit_logs` yang sudah
+ada (bukan tabel baru), ditambah kolom `reason`. Setiap baris menyimpan
+`action`, `entity_type`, `entity_id`, `changes` (`before`, `after`, `diff`),
+`metadata`, `reason`, `user_id`, dan `timestamp`. Tabel ini **append-only dari
+aplikasi**: tidak ada update/delete audit.
+
+Aksi yang dicatat:
+
+| Aksi | Entitas | Alasan wajib? |
+| --- | --- | --- |
+| Buat transaksi kas / batch import | `CASH_TRANSACTION` | Tidak |
+| Koreksi transaksi kas (`PATCH /kas/transactions/{id}`) | `CASH_TRANSACTION` | **Ya** |
+| Hapus transaksi kas | `CASH_TRANSACTION` | **Ya** |
+| Buat / ubah / batalkan / lunasi faktur | `INVOICE` | **Ya** untuk pembatalan dan membuka status `PAID`/`PARTIAL` |
+| Buat / hapus draft / posting / balik jurnal | `JOURNAL_ENTRY` | **Ya** untuk pembalikan |
+| Setujui / tolak / batalkan pengajuan pengeluaran | `EXPENSE_REQUEST` | **Ya** |
+| Tutup / kunci / buka periode | `PERIOD` | **Ya** untuk buka kembali |
+| Buat / ubah / arsipkan proyek | `PROJECT` | Tidak |
+
+Aturan koreksi:
+
+- Koreksi in-place hanya untuk **transaksi kas standalone**. Transaksi yang
+  terhubung ke faktur, kewajiban, payroll, akun settlement, atau punya
+  `payment_allocation` ditolak; koreksi harus lewat dokumen induk atau hapus +
+  catat ulang.
+- Jurnal lama dibalik (`reverseJournalInTx`) lalu jurnal baru dibuat dari nilai
+  hasil koreksi, semuanya dalam satu transaksi database.
+- Periode `CLOSED`/`LOCKED` tidak bisa dikoreksi. Jurnal `POSTED` tidak boleh
+  diedit; hanya boleh dibalik.
+- Faktur yang sudah diterbitkan tidak boleh diubah nominalnya. Pembatalan
+  (`CANCELLED`) dan pembukaan kembali status lunas wajib alasan; koreksi nilai
+  dilakukan dengan membatalkan lalu menerbitkan faktur baru.
+- OWNER/ADMIN melihat seluruh audit workspace. Peran lain hanya melihat audit
+  yang dibuat oleh dirinya sendiri. Server tetap memaksa scope ini, bukan UI.
+
+Endpoint: `GET /api/v1/accounting/audit-trail` dengan filter `action`,
+`entityType`, `entityId`, `userId` (khusus OWNER/ADMIN), `startDate`, `endDate`,
+`limit`, dan `offset`. UI ada di tab **Laporan Keuangan → Audit Trail**.
+
+**Financial Health Score.** Skor 0–100 dari lima komponen berbobot:
+
+| Komponen | Bobot | Metrik utama |
+| --- | --- | --- |
+| Likuiditas | 25 | (kas + piutang) / total liabilitas; runway kas |
+| Profitabilitas | 25 | margin laba bersih 3 bulan + tren vs 3 bulan sebelumnya |
+| Beban utang | 15 | total liabilitas / total aset; pendapatan bulanan / kewajiban 30 hari |
+| Perputaran piutang | 20 | DSO dan rasio piutang jatuh tempo |
+| Stabilitas arus kas | 15 | variasi arus kas 6 bulan dan rasio bulan positif |
+
+Rumus skor total memakai normalisasi bobot komponen yang punya data. Bila data
+belum cukup, komponen diberi skor `null` dan UI menampilkan **"Belum Ada Data"**
+— tidak ada angka contoh. Grade: `>=85 Sangat Sehat`, `>=70 Sehat`, `>=55
+Cukup`, `>=40 Berisiko`, `<40 Kritis`. Setiap komponen menyertakan ringkasan
+faktor, faktor positif/risiko, dan rekomendasi tindakan yang deterministik.
+
+Sumber data: jurnal `POSTED`, Neraca, Laba Rugi 3 bulan terakhir, umur piutang,
+dan kewajiban terjadwal 30 hari. Endpoint:
+`GET /api/v1/accounting/financial-health?asOf=YYYY-MM-DD`. Endpoint lama
+`/api/v1/kas/financial-health` tetap dipertahankan untuk dashboard/AI. UI ada di
+tab **Laporan Keuangan → Kesehatan Keuangan**.
+
+**Cash Crisis Early Warning.** Proyeksi saldo kas harian untuk horizon 7/14/30/
+60/90 hari. Rumus:
+
+```
+Saldo proyeksi(hari n) = kas saat ini
+                       + piutang tertimbang yang diharapkan masuk s.d. hari n
+                       - kewajiban jatuh tempo s.d. hari n
+                       - beban operasional harian x n
+```
+
+Piutang tidak dianggap pasti tertagih. Probabilitas penagihan berdasarkan umur:
+
+| Umur piutang | Probabilitas | Perkiraan masuk |
+| --- | --- | --- |
+| Belum jatuh tempo | 90% | tanggal jatuh tempo |
+| Telat 1–30 hari | 75% | H+7 |
+| Telat 31–60 hari | 55% | H+14 |
+| Telat >60 hari | 30% | H+30 |
+
+Status: `SAFE`, `WATCH`, `WARNING`, `CRITICAL`. `CRITICAL` bila kas negatif atau
+shortfall dalam 7 hari; `WARNING` bila shortfall dalam 30 hari; `WATCH` bila
+shortfall dalam horizon, kas di bawah satu bulan beban, atau rasio piutang telat
+di atas 30%. Rekomendasi memprioritaskan penagihan piutang, penjadwalan ulang
+kewajiban, dan dana penutup kekurangan. Bila riwayat pelunasan belum ada,
+proyeksi tetap memakai asumsi konservatif dan UI menampilkan peringatan.
+
+Endpoint: `GET /api/v1/accounting/cash-crisis?horizon=30&asOf=YYYY-MM-DD` (hanya
+7/14/30/60/90). Saldo kas memakai jurnal kas `POSTED`; bila workspace belum
+punya jurnal kas, API memakai Buku Kas sebagai fallback dan menandainya di
+`warnings`. UI ada di tab **Laporan Keuangan → Peringatan Dini Kas**.
+
 ---
 
 ## 6. Bagan akun bawaan
@@ -609,12 +750,24 @@ src/lib/accounting/inventory-report.ts  ← nilai persediaan + kartu stok
 src/lib/accounting/settlement.ts        ← validasi pembayaran sebagian & alokasi (murni)
 src/lib/accounting/settlement-service.ts ← update paidAmount/status + alokasi dalam transaksi
 src/lib/accounting/period-actions.ts    ← tutup/kunci/buka periode
+src/lib/accounting/profitability.ts     ← laba per divisi/proyek/produk
+src/lib/accounting/financial-health.ts  ← skor kesehatan keuangan (5 komponen)
+src/lib/accounting/cash-crisis.ts       ← proyeksi kas & peringatan dini
+src/lib/accounting/mutation-guards.ts   ← guard periode & koreksi standalone
+src/lib/audit/audit-trail.ts            ← snapshot before/after + penulisan audit
 src/lib/accounting/rbac.ts              ← izin modul
 src/app/api/v1/accounting/**            ← endpoint
 src/app/components/finance/accounting/** ← UI (tab "Laporan Keuangan")
 src/app/components/finance/accounting/BudgetView.tsx ← tab Anggaran (input per divisi + realisasi)
 src/app/components/finance/accounting/BudgetAlertsPanel.tsx ← panel peringatan ambang anggaran
+src/app/components/finance/accounting/AuditTrailView.tsx ← tab Audit Trail
+src/app/components/finance/accounting/FinancialHealthView.tsx ← tab Kesehatan Keuangan
+src/app/components/finance/accounting/CashCrisisView.tsx ← tab Peringatan Dini Kas
 tests/accounting-core.test.ts           ← 80 tes (uang, periode, agregasi, anggaran, anggaran per divisi, payroll, persediaan, angsuran)
+tests/profitability.test.ts             ← laba per divisi/proyek + validasi dimensi
+tests/audit-trail.test.ts               ← snapshot & penulisan audit
+tests/financial-health.test.ts          ← bobot, grade, no-data, rekomendasi
+tests/cash-crisis.test.ts               ← probabilitas, proyeksi, status, risiko piutang
 scripts/accounting-smoke.mjs            ← 237 pemeriksaan end-to-end (butuh server + DB kosong)
 ```
 

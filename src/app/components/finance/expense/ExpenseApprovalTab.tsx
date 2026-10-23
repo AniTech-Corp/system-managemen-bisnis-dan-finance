@@ -56,12 +56,17 @@ export default function ExpenseApprovalTab({
   }, []);
 
   const handleCancel = useCallback(async (requestId: string) => {
-    if (!confirm('Yakin ingin membatalkan pengajuan ini?')) return;
+    const reason = window.prompt('Alasan membatalkan pengajuan (wajib diisi):', '');
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert('Alasan pembatalan wajib diisi agar tercatat di audit trail.');
+      return;
+    }
     const res = await fetch(`/api/v1/expense-requests/${requestId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ action: 'CANCEL' }),
+      body: JSON.stringify({ action: 'CANCEL', reason: reason.trim() }),
     });
     const data = await res.json();
     if (data.success) {

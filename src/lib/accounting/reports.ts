@@ -30,6 +30,8 @@ export interface JournalLineRow {
   description: string | null;
   /** Divisi pemilik baris ini, atau null bila "Tanpa Divisi". */
   costCenter: string | null;
+  /** Proyek pemilik baris ini, atau null bila "Tanpa Proyek". */
+  projectId?: string | null;
   account: {
     id: string;
     code: string;
@@ -56,6 +58,7 @@ const LINE_SELECT = {
   credit: true,
   description: true,
   costCenter: true,
+  projectId: true,
   account: {
     select: { id: true, code: true, name: true, type: true, normalBalance: true },
   },
@@ -67,19 +70,21 @@ const LINE_SELECT = {
 /**
  * Opsi penyaringan baris jurnal.
  *
- * `costCenter` memilih baris milik SATU divisi (nilai persis, sesuai yang
- * ditulis `postCashTransaction`). Tidak ada opsi "baris tanpa divisi" karena
- * anggaran Perusahaan berarti TANPA penyaringan: `null` di Prisma memang
- * berarti "tanpa penyaringan", bukan "yang nilainya null". Menambahkan opsi
- * itu hanya akan menyesatkan pembaca berikutnya.
+ * `costCenter` memilih baris milik SATU divisi dan `projectId` memilih baris
+ * milik SATU proyek. Keduanya boleh dipakai bersama. Tidak ada opsi "baris
+ * tanpa divisi/proyek" karena `null` di Prisma berarti "tanpa penyaringan".
  */
 export interface JournalLineFilter {
   costCenter?: string | null;
+  projectId?: string | null;
 }
 
 function divisionWhere(filter?: JournalLineFilter): Prisma.JournalLineWhereInput {
-  if (!filter?.costCenter) return {};
-  return { costCenter: filter.costCenter };
+  if (!filter?.costCenter && !filter?.projectId) return {};
+  return {
+    ...(filter.costCenter ? { costCenter: filter.costCenter } : {}),
+    ...(filter.projectId ? { projectId: filter.projectId } : {}),
+  };
 }
 
 async function fetchPostedLines(

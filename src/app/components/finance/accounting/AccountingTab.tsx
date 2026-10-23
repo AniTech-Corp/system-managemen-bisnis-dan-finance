@@ -8,6 +8,7 @@ import {
   Clock,
   Coins,
   FileSpreadsheet,
+  Gauge,
   Layers,
   ListTree,
   Package,
@@ -16,6 +17,8 @@ import {
   Receipt,
   Scale,
   Settings,
+  ShieldAlert,
+  ShieldCheck,
   Target,
   TrendingUp,
   Wallet,
@@ -44,6 +47,10 @@ import SimpleBackupRecovery from './SimpleBackupRecovery';
 import ArApView from './ArApView';
 import ScenarioProjectionView from './ScenarioProjectionView';
 import { BankReconciliationView } from './bank-reconciliation';
+import { ProfitabilityView } from './ProfitabilityView';
+import { AuditTrailView } from './AuditTrailView';
+import { FinancialHealthView } from './FinancialHealthView';
+import { CashCrisisView } from './CashCrisisView';
 
 interface PermissionsResponse {
   role: string;
@@ -66,6 +73,10 @@ type ViewId =
   | 'trial'
   | 'aging'
   | 'arap'
+  | 'profitability'
+  | 'financial-health'
+  | 'cash-crisis'
+  | 'audit-trail'
   | 'tax'
   | 'budget'
   | 'proyeksi'
@@ -87,6 +98,10 @@ const NAV: Array<{ id: ViewId; label: string; icon: React.ComponentType<{ classN
   { id: 'trial', label: 'Neraca Saldo', icon: ListTree },
   { id: 'aging', label: 'Umur Piutang/Utang', icon: Clock },
   { id: 'arap', label: 'Utang & Piutang', icon: Wallet },
+  { id: 'profitability', label: 'Profitabilitas', icon: Target },
+  { id: 'financial-health', label: 'Kesehatan Keuangan', icon: Gauge },
+  { id: 'cash-crisis', label: 'Peringatan Dini Kas', icon: ShieldAlert },
+  { id: 'audit-trail', label: 'Audit Trail', icon: ShieldCheck },
   { id: 'bank-reconciliation', label: 'Rekonsiliasi Bank', icon: Wallet },
   { id: 'tax', label: 'Ringkasan PPN', icon: Receipt },
   { id: 'budget', label: 'Anggaran', icon: Target },
@@ -163,6 +178,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
       manageAccounts: Boolean(p.manage_accounts),
       lock: Boolean(p.lock_period),
       manageArAp: Boolean(p.manage_ar_ap),
+      manageProjects: Boolean(p.manage_projects),
     };
   }, [permissions]);
 
@@ -255,7 +271,7 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
 
       {permissions !== null && can.view && (
         <>
-          {!period && view !== 'settings' && view !== 'backup' && view !== 'proyeksi' && (
+          {!period && view !== 'settings' && view !== 'backup' && view !== 'proyeksi' && view !== 'financial-health' && view !== 'cash-crisis' && view !== 'audit-trail' && (
             <p className="flex items-center gap-2 text-xs text-slate-500">
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Memuat periode laporan…
             </p>
@@ -268,6 +284,12 @@ export default function AccountingTab({ workspaceId }: { workspaceId: string }) 
           {period && view === 'trial' && <TrialBalanceView {...reportProps} />}
           {period && view === 'aging' && <AgingView {...reportProps} />}
           {period && view === 'arap' && <ArApView canManage={can.manageArAp} />}
+          {period && view === 'profitability' && (
+            <ProfitabilityView {...reportProps} canManageProjects={can.manageProjects} />
+          )}
+          {view === 'financial-health' && <FinancialHealthView />}
+          {view === 'cash-crisis' && <CashCrisisView />}
+          {view === 'audit-trail' && <AuditTrailView />}
           {view === 'bank-reconciliation' && <BankReconciliationView workspaceId={workspaceId} />}
           {period && view === 'tax' && <TaxView {...reportProps} />}
           {period && view === 'budget' && (

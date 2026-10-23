@@ -291,19 +291,44 @@ model FeatureCost {
   @@map("feature_costs")
 }
 
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+/// Proyek / unit kerja yang bisa menjadi dimensi laba.
+///
+/// Sebelum modul Profitabilitas, model ini hanya menyimpan nama & deskripsi.
+/// Kolom baru di bawah bersifat additive: baris lama otomatis ACTIVE tanpa
+/// divisi, dan laporan menampilkannya sebagai "Tanpa Divisi" sampai ditandai.
 model Project {
-  id          String   @id @default(uuid()) @db.Uuid
-  workspaceId String   @map("workspace_id") @db.Uuid
-  name        String   @db.VarChar(255)
-  description String?  @db.Text
-  createdBy   String   @map("created_by") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id          String        @id @default(uuid()) @db.Uuid
+  workspaceId String        @map("workspace_id") @db.Uuid
+  name        String        @db.VarChar(255)
+  description String?       @db.Text
+  code        String?       @db.VarChar(50)
+  clientName  String?       @map("client_name") @db.VarChar(150)
+  /// Divisi pemilik proyek (nilai dari enum DivisionRole / daftar DIVISIONS).
+  division    String?       @db.VarChar(30)
+  status      ProjectStatus @default(ACTIVE)
+  startDate   DateTime?     @map("start_date")
+  endDate     DateTime?     @map("end_date")
+  createdBy   String        @map("created_by") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  creator   User      @relation("ProjectCreator", fields: [createdBy], references: [id])
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator          User              @relation("ProjectCreator", fields: [createdBy], references: [id])
+  journalLines     JournalLine[]
+  invoices         Invoice[]
+  cashTransactions CashTransaction[]
 
+  @@unique([workspaceId, code])
   @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, division])
   @@map("projects")
 }
 
@@ -516,6 +541,9 @@ model CashTransaction {
   /// dan transaksi yang memang tidak terkait divisi). Ikut turun ke
   /// `JournalLine.costCenter` supaya realisasi per divisi berasal dari jurnal.
   division            String?         @db.VarChar(30)
+  /// Proyek yang memakai dana ini. Ikut turun ke `JournalLine.projectId` pada
+  /// baris pendapatan/beban saja (bukan baris kas).
+  projectId           String?         @map("project_id") @db.Uuid
   createdAt           DateTime        @default(now()) @map("created_at")
 
   workspace          Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -524,6 +552,7 @@ model CashTransaction {
   obligation         ScheduledObligation? @relation(fields: [obligationId], references: [id], onDelete: SetNull)
   payroll            EmployeePayroll?     @relation(fields: [payrollId], references: [id], onDelete: SetNull)
   settlementAccount  Account?             @relation("CashSettlementAccount", fields: [settlementAccountId], references: [id], onDelete: SetNull)
+  project            Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
   paymentAllocations PaymentAllocation[]  @relation("CashAllocations")
   bankMatchedLines   BankMatchedLine[]
 
@@ -534,6 +563,7 @@ model CashTransaction {
   @@index([workspaceId, obligationId])
   @@index([workspaceId, payrollId])
   @@index([workspaceId, settlementAccountId])
+  @@index([workspaceId, projectId])
   @@map("cash_transactions")
 }
 
@@ -589,12 +619,18 @@ model Invoice {
   agingBucket    String?       @map("aging_bucket") @db.VarChar(20)
   overdueSince   DateTime?     @map("overdue_since")
   lastReminderAt DateTime?     @map("last_reminder_at")
+  /// Divisi pemilik pendapatan faktur. Dipakai saat posting agar baris
+  /// pendapatan membawa `JournalLine.costCenter`. Nullable untuk data lama.
+  division       String?       @db.VarChar(30)
+  /// Proyek pemilik pendapatan faktur; ikut turun ke `JournalLine.projectId`.
+  projectId      String?       @map("project_id") @db.Uuid
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
   workspace            Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user                 User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   partner              Partner?             @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  project              Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
   // Pelunasan faktur (kalau modul laporan keuangan aktif).
   cashTransactions     CashTransaction[]
   // Alokasi pembayaran per baris kas (pembayaran sebagian & split).
@@ -605,6 +641,7 @@ model Invoice {
   @@index([workspaceId, status])
   @@index([workspaceId, dueDate])
   @@index([workspaceId, partnerId])
+  @@index([workspaceId, projectId])
   @@map("invoices")
 }
 
@@ -1082,6 +1119,13 @@ model StockMovement {
   // Signed: positif = IN, negatif = OUT. Meniru pola CreditLedger.amount.
   qtyChange   Float             @map("qty_change")
   unitCost    Float?            @map("unit_cost")
+  /// Harga jual aktual per unit saat SALE_OUT. Nullable: penjualan lama belum
+  /// menyimpan harga jual, sehingga laporan produk menandainya terpisah dan
+  /// tidak menganggapnya pendapatan nol.
+  unitPrice   Float?            @map("unit_price")
+  /// Tanggal bisnis mutasi (mis. penjualan yang dicatat mundur). Nullable:
+  /// baris lama memakai `createdAt` sebagai fallback di laporan.
+  occurredAt  DateTime?         @map("occurred_at")
   // Soft-reference (bukan relasi Prisma), meniru pola WorkspaceFile.linkedRecordIds --
   // mis. sourceType="purchase_order", sourceId=<PurchaseOrder.id>.
   sourceType  String?           @map("source_type") @db.VarChar(50)
@@ -1676,17 +1720,22 @@ model JournalLine {
   currency      String  @default("IDR") @db.VarChar(3)
   exchangeRate  Decimal @default(1) @map("exchange_rate") @db.Decimal(18, 6)
   costCenter    String? @map("cost_center") @db.VarChar(50)
+  /// Dimensi proyek untuk analisis laba per proyek. Nullable: baris lama dan
+  /// baris yang memang tidak terkait proyek tetap sah ("Tanpa Proyek").
+  projectId     String? @map("project_id") @db.Uuid
 
   workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   entry       JournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
   account     Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
   cashAccount CashAccount? @relation(fields: [cashAccountId], references: [id], onDelete: SetNull)
   partner     Partner?     @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@unique([entryId, lineNo])
   @@index([workspaceId, accountId])
   @@index([workspaceId, partnerId])
   @@index([workspaceId, cashAccountId])
+  @@index([workspaceId, projectId])
   @@map("journal_lines")
 }
 
@@ -1881,6 +1930,9 @@ model AuditLog {
   entityId    String?  @map("entity_id") @db.Uuid
   changes     Json?
   metadata    Json?
+  /// Alasan koreksi/pembatalan. Wajib diisi pada aksi yang mengubah atau
+  /// membatalkan dokumen keuangan; null untuk aksi create murni.
+  reason      String?  @db.Text
   timestamp   DateTime @default(now()) @map("timestamp")
 
   workspace Workspace @relation("WorkspaceAuditLogs", fields: [workspaceId], references: [id], onDelete: Cascade)

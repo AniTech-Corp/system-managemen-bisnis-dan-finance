@@ -184,6 +184,7 @@ export const POST = withTenantGuard(
             },
           },
           include: {
+            requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
             items: true,
             approvals: true,
           },

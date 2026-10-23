@@ -46,6 +46,7 @@ export interface PostingContext {
     | 'payrollId'
     | 'settlementAccountId'
     | 'division'
+    | 'projectId'
   >;
   /**
    * Kalau diisi, uang KELUAR didebit ke akun ini alih-alih akun kategori.
@@ -259,7 +260,15 @@ export interface InvoicePostingContext {
   userId: string;
   invoice: Pick<
     Invoice,
-    'id' | 'invoiceNumber' | 'clientName' | 'subtotal' | 'taxAmount' | 'totalAmount' | 'issueDate'
+    | 'id'
+    | 'invoiceNumber'
+    | 'clientName'
+    | 'subtotal'
+    | 'taxAmount'
+    | 'totalAmount'
+    | 'issueDate'
+    | 'division'
+    | 'projectId'
   >;
 }
 
@@ -298,6 +307,12 @@ export async function postInvoiceIssuedInTx(
       ? await resolveAccountIdByCode(tx, ctx.workspaceId, PPN_OUTPUT_ACCOUNT_CODE)
       : null;
 
+  // Dimensi hanya menempel pada baris PENDAPATAN, bukan piutang/PPN. Ini yang
+  // membuat laba per divisi/proyek dari faktur tidak menghitung piutang sebagai
+  // pendapatan dan tidak mengalokasikan pajak keluaran ke unit bisnis.
+  const costCenter = journalCostCenter(invoice.division);
+  const projectId = invoice.projectId ?? null;
+
   const lines: JournalLineInput[] = [
     {
       accountId: receivableId,
@@ -313,6 +328,8 @@ export async function postInvoiceIssuedInTx(
       debit: 0,
       credit: subtotal,
       description: `Pendapatan faktur ${invoice.invoiceNumber}`,
+      costCenter,
+      projectId,
     });
     lines.push({
       accountId: ppnAccountId,
@@ -326,6 +343,8 @@ export async function postInvoiceIssuedInTx(
       debit: 0,
       credit: total,
       description: `Pendapatan faktur ${invoice.invoiceNumber}`,
+      costCenter,
+      projectId,
     });
   }
 
@@ -360,6 +379,9 @@ export async function postObligationIssuedInTx(
     obligation: Pick<ScheduledObligation, 'id' | 'name' | 'amount' | 'category' | 'createdAt'>;
     /** Tanggal pengakuan beban. Default: saat kewajiban dicatat. */
     entryDate?: Date;
+    /** Dimensi divisi/proyek untuk baris beban (opsional). */
+    division?: string | null;
+    projectId?: string | null;
   }
 ): Promise<JournalWithLines | null> {
   const setting = await getAccountingSetting(tx, ctx.workspaceId);
@@ -392,6 +414,8 @@ export async function postObligationIssuedInTx(
         debit: amount,
         credit: 0,
         description: `Beban ${category}`,
+        costCenter: journalCostCenter(ctx.division),
+        projectId: ctx.projectId ?? null,
       },
       {
         accountId: payableId,
@@ -545,17 +569,18 @@ export async function postCashTransaction(
   // divisi berasal dari jurnal yang SAMA dengan Laba Rugi dan tidak mungkin
   // menyimpang darinya.
   const costCenter = journalCostCenter(transaction.division);
+  const projectId = transaction.projectId ?? null;
 
   const lines =
     transaction.type === TransactionType.INCOME
       ? [
           // Uang masuk: Kas bertambah (debit), Pendapatan bertambah (kredit)
           { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: amount, credit: 0 },
-          { accountId: target.accountId, debit: 0, credit: amount, costCenter },
+          { accountId: target.accountId, debit: 0, credit: amount, costCenter, projectId },
         ]
       : [
           // Uang keluar: Beban bertambah (debit), Kas berkurang (kredit)
-          { accountId: target.accountId, debit: amount, credit: 0, costCenter },
+          { accountId: target.accountId, debit: amount, credit: 0, costCenter, projectId },
           { accountId: cashAccount.account.id, cashAccountId: cashAccount.id, debit: 0, credit: amount },
         ];
 
@@ -811,6 +836,8 @@ export async function recordCashTransaction(
      * Divisi". Nilai di luar daftar divisi akan melempar Error.
      */
     division?: string | null;
+    /** Proyek pemakai dana. Kosong = "Tanpa Proyek". */
+    projectId?: string | null;
     /** Akun debit pengganti akun kategori (mis. '1-1400' untuk pembelian stok). */
     debitAccountCode?: string;
     autoMapFallback?: boolean;
@@ -849,6 +876,7 @@ export async function recordCashTransaction(
       payrollId: ctx.payrollId ?? null,
       settlementAccountId: ctx.settlementAccountId ?? null,
       division,
+      projectId: ctx.projectId ?? null,
     },
   });
 
@@ -861,6 +889,49 @@ export async function recordCashTransaction(
   });
 
   return { transaction: created, journal, warning };
+}
+
+/* ─────────────────── DIMENSI PROYEK ─────────────────── */
+
+/**
+ * Validasi proyek + turunkan divisinya.
+ *
+ * Aturan:
+ * - Proyek wajib milik workspace yang sama.
+ * - Proyek yang sudah ARCHIVED tidak boleh dipakai transaksi baru.
+ * - Bila divisi kosong, divisi proyek dipakai otomatis.
+ * - Bila divisi diisi tetapi berbeda dari divisi proyek, tolak supaya laporan
+ *   divisi dan proyek tidak saling bertentangan.
+ */
+export async function resolveProjectDimensionInTx(
+  tx: Prisma.TransactionClient,
+  workspaceId: string,
+  projectId: string | null | undefined,
+  division: string | null | undefined
+): Promise<{ projectId: string | null; division: string | null }> {
+  const normalizedDivision = normalizeCashDivision(division);
+  const id = typeof projectId === 'string' ? projectId.trim() : '';
+  if (!id) return { projectId: null, division: normalizedDivision };
+
+  const project = await tx.project.findFirst({
+    where: { id, workspaceId },
+    select: { id: true, division: true, status: true, name: true },
+  });
+  if (!project) {
+    throw new JournalValidationError('Proyek tidak ditemukan di workspace ini.');
+  }
+  if (project.status === 'ARCHIVED') {
+    throw new JournalValidationError(`Proyek "${project.name}" sudah diarsipkan dan tidak bisa dipakai transaksi baru.`);
+  }
+
+  const projectDivision = normalizeCashDivision(project.division);
+  if (normalizedDivision && projectDivision && normalizedDivision !== projectDivision) {
+    throw new JournalValidationError(
+      `Divisi transaksi (${normalizedDivision}) berbeda dengan divisi proyek "${project.name}" (${projectDivision}). Samakan dulu supaya laporan tidak bertentangan.`
+    );
+  }
+
+  return { projectId: project.id, division: normalizedDivision ?? projectDivision };
 }
 
 /* ─────────────────── PERSEDIAAN (INVENTORY) ─────────────────── */
@@ -921,6 +992,12 @@ export async function postInventoryJournalInTx(
     /** 'COGS' = Dr HPP / Cr Persediaan, 'RETURN_IN' = kebalikannya, dst. */
     direction: 'COGS' | 'RETURN_IN' | 'SHRINKAGE' | 'GAIN';
     entryDate: Date;
+    /**
+     * Dimensi laba untuk baris HPP (bukan baris persediaan). Dipakai penjualan
+     * stok yang ditandai ke proyek/divisi.
+     */
+    costCenter?: string | null;
+    projectId?: string | null;
   }
 ): Promise<JournalWithLines | null> {
   const setting = await getAccountingSetting(tx, ctx.workspaceId);
@@ -962,8 +1039,22 @@ export async function postInventoryJournalInTx(
     source: JournalSource.INVENTORY,
     sourceId: ctx.sourceId,
     lines: [
-      { accountId: debitId, debit: amount, credit: 0 },
-      { accountId: creditId, debit: 0, credit: amount },
+      {
+        accountId: debitId,
+        debit: amount,
+        credit: 0,
+        ...(debitId === cogsId
+          ? { costCenter: journalCostCenter(ctx.costCenter), projectId: ctx.projectId ?? null }
+          : {}),
+      },
+      {
+        accountId: creditId,
+        debit: 0,
+        credit: amount,
+        ...(creditId === cogsId
+          ? { costCenter: journalCostCenter(ctx.costCenter), projectId: ctx.projectId ?? null }
+          : {}),
+      },
     ],
     postImmediately: true,
   });

@@ -13,6 +13,7 @@ const ACTIONS: AccountingAction[] = [
   'manage_settings',
   'opening_balance',
   'manage_ar_ap',
+  'manage_projects',
 ];
 
 /**

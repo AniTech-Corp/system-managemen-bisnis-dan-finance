@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { InvoiceStatus, JournalSource, TransactionType } from '@prisma/client';
-import { INVOICE_SETTLEMENT_CATEGORY, postCashTransaction, postInvoiceIssuedInTx } from '@/lib/accounting/posting';
+import { INVOICE_SETTLEMENT_CATEGORY, postCashTransaction, postInvoiceIssuedInTx, resolveProjectDimensionInTx } from '@/lib/accounting/posting';
 import { JournalValidationError, reverseJournalBySourceInTx } from '@/lib/accounting/journal-service';
 import { PeriodClosedError } from '@/lib/accounting/period';
 import { encryptField, decryptFields } from '@/lib/crypto';
 import { publicApiError } from '@/lib/api-error';
 import { computeRemaining, planDocumentSettlement } from '@/lib/accounting/settlement';
 import { allocateInvoiceInTx, revertAllocationsInTx } from '@/lib/accounting/settlement-service';
+import { invoiceSnapshot, cashTransactionSnapshot, recordAuditInTx } from '@/lib/audit/audit-trail';
+import { assertPeriodWritableForDate, MutationGuardError } from '@/lib/accounting/mutation-guards';
 
 // V4f, 8 Sep 2026 (validasi ringan input keuangan -- kasus Pak Fajrul): cek
 // tanggal masuk akal untuk bisnis (bukan validasi generik Date.parse). DIDUPLIKASI
@@ -79,7 +81,7 @@ export const GET = withTenantGuard(
 export const POST = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes, issueDate, partnerId, termDays } = await req.json();
+      const { clientName, clientEmail, clientPhone, items = [], taxRate = 0, dueDate, notes, issueDate, partnerId, termDays, division, projectId } = await req.json();
 
       if (!clientName || !items.length) {
         return NextResponse.json({ message: 'Nama klien dan minimal 1 item tagihan wajib diisi.' }, { status: 400 });
@@ -176,6 +178,13 @@ export const POST = withTenantGuard(
         : new Date(invoiceIssueDate.getTime() + effectiveTermDays * 24 * 60 * 60 * 1000);
 
       const invoice = await prisma.$transaction(async (tx) => {
+        const dimension = await resolveProjectDimensionInTx(
+          tx,
+          auth.workspace.id,
+          typeof projectId === 'string' ? projectId : null,
+          division
+        );
+
         const created = await tx.invoice.create({
           data: {
             workspaceId: auth.workspace.id,
@@ -193,6 +202,8 @@ export const POST = withTenantGuard(
             dueDate: invoiceDueDate,
             partnerId: resolvedPartnerId,
             termDays: resolvedTermDays,
+            division: dimension.division,
+            projectId: dimension.projectId,
             items,
             qrisString,
             virtualAccount,
@@ -208,6 +219,16 @@ export const POST = withTenantGuard(
           workspaceId: auth.workspace.id,
           userId: auth.user.id,
           invoice: created,
+        });
+
+        await recordAuditInTx(tx, {
+          workspaceId: auth.workspace.id,
+          userId: auth.user.id,
+          action: 'CREATE',
+          entityType: 'INVOICE',
+          entityId: created.id,
+          after: invoiceSnapshot({ ...created, itemCount: Array.isArray(items) ? items.length : null }),
+          metadata: { source: 'invoice_form' },
         });
 
         return created;
@@ -232,7 +253,8 @@ export const POST = withTenantGuard(
 export const PUT = withTenantGuard(
   async (req: NextRequest, { auth }) => {
     try {
-      const { invoiceId, status, paidAt } = await req.json();
+      const { invoiceId, status, paidAt, reason } = await req.json();
+      const normalizedReason = typeof reason === 'string' ? reason.trim() : '';
 
       if (!invoiceId || !status) {
         return NextResponse.json({ message: 'Invoice ID dan status baru wajib diisi.' }, { status: 400 });
@@ -240,6 +262,10 @@ export const PUT = withTenantGuard(
 
       if (!['DRAFT', 'UNPAID', 'PAID', 'CANCELLED', 'OVERDUE'].includes(status)) {
         return NextResponse.json({ message: 'Status invoice tidak valid.' }, { status: 400 });
+      }
+
+      if (status === 'CANCELLED' && !normalizedReason) {
+        return NextResponse.json({ message: 'Alasan pembatalan faktur wajib diisi.' }, { status: 400 });
       }
 
       // Tanggal bisnis pelunasan. Kalau tidak diisi, pakai waktu sekarang --
@@ -257,6 +283,29 @@ export const PUT = withTenantGuard(
       const result = await prisma.$transaction(async (tx) => {
         const existingInvoice = await tx.invoice.findUnique({ where: { id: invoiceId } });
         if (!existingInvoice || existingInvoice.workspaceId !== auth.workspace.id) return null;
+
+        const reopeningPaid =
+          (existingInvoice.status === InvoiceStatus.PAID || existingInvoice.status === InvoiceStatus.PARTIAL) &&
+          status !== 'PAID';
+        if (reopeningPaid && !normalizedReason) {
+          throw new MutationGuardError(
+            'Faktur yang sudah dibayar tidak boleh dibuka statusnya tanpa alasan. Isi alasan koreksi/pembatalan.'
+          );
+        }
+
+        // Pembatalan/pembukaan status mengubah dokumen sumber. Bila periode
+        // faktur sudah ditutup, perubahan harus ditolak -- terbitkan faktur baru
+        // atau reversal di periode terbuka sesuai prosedur akuntansi.
+        if (status === 'CANCELLED' || reopeningPaid) {
+          await assertPeriodWritableForDate(
+            tx,
+            auth.workspace.id,
+            existingInvoice.issueDate,
+            'Tanggal faktur'
+          );
+        }
+
+        let settlementId: string | null = null;
 
         // Pelunasan tidak boleh bertanggal sebelum fakturnya diterbitkan --
         // kalau tanggal pembayaran tidak diisi dan faktur bertanggal masa depan,
@@ -319,6 +368,7 @@ export const PUT = withTenantGuard(
               invoiceId: existingInvoice.id,
             },
           });
+          settlementId = settlement.id;
 
           // Catat alokasinya supaya `paidAmount` dan laporan umur konsisten
           // dengan pembayaran sebagian dari pintu kas.
@@ -340,6 +390,16 @@ export const PUT = withTenantGuard(
             userId: auth.user.id,
             transaction: settlement,
           });
+
+          await recordAuditInTx(tx, {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            action: 'CREATE',
+            entityType: 'CASH_TRANSACTION',
+            entityId: settlement.id,
+            after: cashTransactionSnapshot(settlement),
+            metadata: { source: 'invoice_payment', invoiceId: existingInvoice.id },
+          });
         }
 
         // Faktur dibatalkan: piutang yang sudah diakui harus dibatalkan juga.
@@ -356,9 +416,15 @@ export const PUT = withTenantGuard(
 
           const settlementRows = await tx.cashTransaction.findMany({
             where: { workspaceId: auth.workspace.id, invoiceId: existingInvoice.id },
-            select: { id: true },
+            select: { id: true, transactionDate: true },
           });
           for (const row of settlementRows) {
+            await assertPeriodWritableForDate(
+              tx,
+              auth.workspace.id,
+              row.transactionDate,
+              'Tanggal pelunasan'
+            );
             await reverseJournalBySourceInTx(
               tx,
               auth.workspace.id,
@@ -384,9 +450,14 @@ export const PUT = withTenantGuard(
               invoiceId: existingInvoice.id,
               category: INVOICE_SETTLEMENT_CATEGORY,
             },
-            select: { id: true },
           });
           for (const row of settlementRows) {
+            await assertPeriodWritableForDate(
+              tx,
+              auth.workspace.id,
+              row.transactionDate,
+              'Tanggal pelunasan'
+            );
             await reverseJournalBySourceInTx(
               tx,
               auth.workspace.id,
@@ -399,11 +470,51 @@ export const PUT = withTenantGuard(
               workspaceId: auth.workspace.id,
               cashTxId: row.id,
             });
+            await recordAuditInTx(tx, {
+              workspaceId: auth.workspace.id,
+              userId: auth.user.id,
+              action: 'DELETE',
+              entityType: 'CASH_TRANSACTION',
+              entityId: row.id,
+              before: cashTransactionSnapshot(row),
+              after: null,
+              reason: normalizedReason,
+              metadata: {
+                source: 'invoice_reopen',
+                invoiceId: existingInvoice.id,
+                invoiceNumber: existingInvoice.invoiceNumber,
+              },
+            });
             await tx.cashTransaction.delete({ where: { id: row.id } });
           }
         }
 
         const updated = await tx.invoice.findUnique({ where: { id: invoiceId } });
+
+        if (updated) {
+          await recordAuditInTx(tx, {
+            workspaceId: auth.workspace.id,
+            userId: auth.user.id,
+            action:
+              status === 'CANCELLED'
+                ? 'CANCEL'
+                : existingInvoice.status === InvoiceStatus.PAID && status !== 'PAID'
+                  ? 'REOPEN'
+                  : 'UPDATE',
+            entityType: 'INVOICE',
+            entityId: updated.id,
+            before: invoiceSnapshot(existingInvoice),
+            after: invoiceSnapshot(updated),
+            reason: normalizedReason || null,
+            metadata: {
+              statusFrom: existingInvoice.status,
+              statusTo: status,
+              postedCash: shouldPostCash,
+              settlementCashTransactionId: settlementId,
+            },
+          });
+        }
+
         return { invoice: updated, postedCash: shouldPostCash, alreadyPaid: false };
       });
 
@@ -425,7 +536,7 @@ export const PUT = withTenantGuard(
         invoice: decryptFields(updatedInvoice, ['clientEmail', 'clientPhone']),
       });
     } catch (err: any) {
-      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError || err instanceof MutationGuardError) {
         return NextResponse.json({ message: err.message }, { status: 400 });
       }
       return NextResponse.json({ message: publicApiError('Status invoice gagal diperbarui. Coba lagi beberapa saat.') }, { status: 400 });

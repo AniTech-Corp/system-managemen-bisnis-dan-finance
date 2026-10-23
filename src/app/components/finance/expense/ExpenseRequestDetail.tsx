@@ -103,7 +103,7 @@ export default function ExpenseRequestDetail({
   const [financeNotes, setFinanceNotes] = useState('');
   const [processingAction, setProcessingAction] = useState<string | null>(null);
 
-  const isRequester = request.requester.id === userId;
+  const isRequester = request.requester?.id === userId;
   const isFinance = ['FINANCE', 'ADMIN', 'OWNER'].includes(userRole);
   const isApprover = request.status === 'PENDING_APPROVAL' && 
     request.approvals[request.currentLevel - 1]?.requiredRole &&
@@ -198,7 +198,7 @@ export default function ExpenseRequestDetail({
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pengaju</p>
               <div className="mt-1 flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-medium text-slate-900">{request.requester.fullName}</span>
+                <span className="text-sm font-medium text-slate-900">{request.requester?.fullName || 'Tidak diketahui'}</span>
               </div>
             </div>
             <div className="bg-slate-50 rounded-lg p-4">

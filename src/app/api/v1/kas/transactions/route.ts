@@ -7,7 +7,7 @@ import { publicApiError } from '@/lib/api-error';
 import { createApprovalRequest } from '@/lib/security-guardrail';
 import { invalidateContextCache } from '@/lib/ai-brain/context-engine';
 import { invalidateDashboardInsightCache } from '@/lib/ai-brain/dashboard-insight';
-import { postCashTransaction } from '@/lib/accounting/posting';
+import { postCashTransaction, resolveProjectDimensionInTx } from '@/lib/accounting/posting';
 import { normalizeCashDivision } from '@/lib/accounting/budget-divisions';
 import { evaluateBudgetAlerts } from '@/lib/accounting/budget-alerts';
 import { JournalValidationError, reverseJournalInTx } from '@/lib/accounting/journal-service';
@@ -18,6 +18,11 @@ import {
   revertAllocationsInTx,
 } from '@/lib/accounting/settlement-service';
 import { PeriodClosedError } from '@/lib/accounting/period';
+import {
+  assertPeriodWritableForDate,
+  MutationGuardError,
+} from '@/lib/accounting/mutation-guards';
+import { cashTransactionSnapshot, recordAuditInTx } from '@/lib/audit/audit-trail';
 
 // V4f, 8 Sep 2026 (validasi ringan input keuangan -- kasus Pak Fajrul): DIDUPLIKASI
 // inline persis sama di kas/invoices/route.ts (bukan diekstrak ke lib terpisah) --
@@ -270,15 +275,32 @@ export const POST = withTenantGuard(
         );
 
         if (!accountingEnabled) {
-          const created = await prisma.cashTransaction.createMany({ data: validRows });
+          const createdCount = await prisma.$transaction(async (tx) => {
+            let count = 0;
+            for (const row of validRows) {
+              await assertPeriodWritableForDate(tx, auth.workspace.id, row.transactionDate);
+              const created = await tx.cashTransaction.create({ data: row });
+              await recordAuditInTx(tx, {
+                workspaceId: auth.workspace.id,
+                userId: auth.user.id,
+                action: 'CREATE',
+                entityType: 'CASH_TRANSACTION',
+                entityId: created.id,
+                after: cashTransactionSnapshot(created),
+                metadata: { source: 'batch_import', sourceFileId: row.sourceFileId ?? null },
+              });
+              count += 1;
+            }
+            return count;
+          });
 
           invalidateContextCache(auth.workspace.id);
           void invalidateDashboardInsightCache(auth.workspace.id);
 
           return NextResponse.json({
             success: true,
-            message: `${created.count} transaksi kas berhasil diimpor ke database.`,
-            count: created.count,
+            message: `${createdCount} transaksi kas berhasil diimpor ke database.`,
+            count: createdCount,
           });
         }
 
@@ -286,11 +308,21 @@ export const POST = withTenantGuard(
           async (tx) => {
             let count = 0;
             for (const row of validRows) {
+              await assertPeriodWritableForDate(tx, auth.workspace.id, row.transactionDate);
               const created = await tx.cashTransaction.create({ data: row });
               await postCashTransaction(tx, {
                 workspaceId: auth.workspace.id,
                 userId: auth.user.id,
                 transaction: created,
+              });
+              await recordAuditInTx(tx, {
+                workspaceId: auth.workspace.id,
+                userId: auth.user.id,
+                action: 'CREATE',
+                entityType: 'CASH_TRANSACTION',
+                entityId: created.id,
+                after: cashTransactionSnapshot(created),
+                metadata: { source: 'batch_import', sourceFileId: row.sourceFileId ?? null },
               });
               count += 1;
             }
@@ -321,6 +353,7 @@ export const POST = withTenantGuard(
         sourceFileId,
         invoiceId,
         division,
+        projectId,
       } = body;
 
       if (!type || !category || !amount || !description) {
@@ -360,6 +393,13 @@ export const POST = withTenantGuard(
       const transaction = await prisma.$transaction(async (tx) => {
         const cashType = type === 'INCOME' ? TransactionType.INCOME : TransactionType.EXPENSE;
         const businessDate = transactionDate ? new Date(transactionDate) : new Date();
+        await assertPeriodWritableForDate(tx, auth.workspace.id, businessDate);
+        const dimension = await resolveProjectDimensionInTx(
+          tx,
+          auth.workspace.id,
+          typeof projectId === 'string' ? projectId : null,
+          cashDivision
+        );
 
         // Rencana alokasi. Dua bentuk didukung:
         //  - `invoiceId` tunggal (cara lama) -> satu faktur, boleh sebagian.
@@ -486,7 +526,8 @@ export const POST = withTenantGuard(
             paymentMethod,
             transactionDate: businessDate,
             invoiceId: linkedInvoiceId,
-            division: cashDivision,
+            division: dimension.division,
+            projectId: dimension.projectId,
           },
         });
 
@@ -523,6 +564,19 @@ export const POST = withTenantGuard(
           payableSettlement: plans.some((p) => p.kind === 'obligation'),
         });
 
+        await recordAuditInTx(tx, {
+          workspaceId: auth.workspace.id,
+          userId: auth.user.id,
+          action: 'CREATE',
+          entityType: 'CASH_TRANSACTION',
+          entityId: created.id,
+          after: cashTransactionSnapshot(created),
+          metadata: {
+            source: 'cash_form',
+            allocations: plans.map((p) => ({ kind: p.kind, amount: p.amount })),
+          },
+        });
+
         return created;
       });
 
@@ -540,7 +594,7 @@ export const POST = withTenantGuard(
         transaction,
       });
     } catch (err: any) {
-      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError || err instanceof MutationGuardError) {
         return NextResponse.json({ message: err.message }, { status: 400 });
       }
       return NextResponse.json({ message: publicApiError('Transaksi kas gagal disimpan. Periksa data dan coba lagi.') }, { status: 400 });
@@ -584,12 +638,26 @@ export const DELETE = withTenantGuard(
       // sudah diposting. Jurnal posted TIDAK boleh hilang begitu saja, jadi kita
       // balik dulu jurnalnya (jejak audit tetap ada) baru hapus baris kasnya.
       // Bila periode sudah ditutup, penghapusan ditolak dengan pesan jelas.
+      let reason = searchParams.get('reason') || '';
+      if (!reason) {
+        const body = await req.json().catch(() => ({}));
+        reason = typeof body?.reason === 'string' ? body.reason : '';
+      }
+      const normalizedReason = reason.trim();
+      if (!normalizedReason) {
+        return NextResponse.json(
+          { message: 'Alasan hapus transaksi wajib diisi agar perubahan tercatat di audit trail.' },
+          { status: 400 }
+        );
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         const existing = await tx.cashTransaction.findFirst({
           where: { id, workspaceId: auth.workspace.id },
-          select: { id: true, invoiceId: true, obligationId: true, payrollId: true },
         });
         if (!existing) return { deleted: false, reversed: false };
+
+        await assertPeriodWritableForDate(tx, auth.workspace.id, existing.transactionDate);
 
         const journal = await tx.journalEntry.findFirst({
           where: {
@@ -608,7 +676,7 @@ export const DELETE = withTenantGuard(
             auth.workspace.id,
             journal.id,
             auth.user.id,
-            'Transaksi kas dihapus'
+            `Transaksi kas dihapus: ${normalizedReason}`
           );
           reversed = true;
         }
@@ -618,6 +686,23 @@ export const DELETE = withTenantGuard(
         await revertAllocationsInTx(tx, {
           workspaceId: auth.workspace.id,
           cashTxId: existing.id,
+        });
+
+        await recordAuditInTx(tx, {
+          workspaceId: auth.workspace.id,
+          userId: auth.user.id,
+          action: 'DELETE',
+          entityType: 'CASH_TRANSACTION',
+          entityId: existing.id,
+          before: cashTransactionSnapshot(existing),
+          after: null,
+          reason: normalizedReason,
+          metadata: {
+            journalReversed: reversed,
+            linkedInvoiceId: existing.invoiceId,
+            linkedObligationId: existing.obligationId,
+            linkedPayrollId: existing.payrollId,
+          },
         });
 
         await tx.cashTransaction.delete({ where: { id: existing.id, workspaceId: auth.workspace.id } });
@@ -686,7 +771,7 @@ export const DELETE = withTenantGuard(
           : 'Transaksi berhasil dihapus.',
       });
     } catch (err: any) {
-      if (err instanceof JournalValidationError || err instanceof PeriodClosedError) {
+      if (err instanceof JournalValidationError || err instanceof PeriodClosedError || err instanceof MutationGuardError) {
         return NextResponse.json({ message: err.message }, { status: 400 });
       }
       return NextResponse.json({ message: publicApiError('Transaksi kas gagal dihapus. Coba lagi beberapa saat.') }, { status: 500 });
