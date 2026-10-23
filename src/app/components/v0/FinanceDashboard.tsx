@@ -985,21 +985,21 @@ export default function FinanceDashboard({
                 className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors whitespace-nowrap"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Catat Transaksi Kas</span>
+                <span>Catat Transaksi Kas</span>
               </button>
               <button
                 onClick={() => setNewInvModalOpen(true)}
                 className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>+ Buat Faktur Baru</span>
+                <span>Buat Faktur Baru</span>
               </button>
               <button
                 onClick={() => setNewOblModalOpen(true)}
                 className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap"
               >
                 <Clock className="w-3.5 h-3.5" />
-                <span>+ Tambah Kewajiban</span>
+                <span>Tambah Kewajiban</span>
               </button>
             </div>
 
@@ -1466,7 +1466,7 @@ export default function FinanceDashboard({
                   className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors whitespace-nowrap self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Buat Faktur Baru</span>
+                  <span>Buat Faktur Baru</span>
                 </button>
               </div>
 
@@ -1578,7 +1578,7 @@ export default function FinanceDashboard({
                   className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors whitespace-nowrap self-start sm:self-auto"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Tambah Kewajiban</span>
+                  <span>Tambah Kewajiban</span>
                 </button>
               </div>
 

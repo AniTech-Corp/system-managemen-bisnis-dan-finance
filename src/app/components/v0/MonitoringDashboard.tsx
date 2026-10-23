@@ -699,8 +699,8 @@ export default function MonitoringDashboard({
               title="Tambah Barang / SKU Manual"
             >
               <Plus className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">+ Tambah Barang</span>
-              <span className="sm:hidden">+ Barang</span>
+              <span className="hidden sm:inline">Tambah Barang</span>
+              <span className="sm:hidden">Barang</span>
             </button>
 
             {/* Quick Switch to Finance System */}
@@ -1657,7 +1657,7 @@ export default function MonitoringDashboard({
                   className="h-9 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer whitespace-nowrap"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Tambah Barang Manual</span>
+                  <span>Tambah Barang Manual</span>
                 </button>
               </div>
             </div>
@@ -1692,7 +1692,7 @@ export default function MonitoringDashboard({
                           <Package className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                           <p className="font-semibold text-slate-700">Belum ada barang yang tercatat</p>
                           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                            Klik tombol <strong>"+ Tambah Barang Manual"</strong> di atas atau unggah file daftar produk/stok Excel Anda ke tab <strong>Pusat Data</strong>.
+                            Klik tombol <strong>"Tambah Barang Manual"</strong> di atas atau unggah file daftar produk/stok Excel Anda ke tab <strong>Pusat Data</strong>.
                           </p>
                         </td>
                       </tr>
