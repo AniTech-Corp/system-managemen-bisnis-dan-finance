@@ -692,16 +692,6 @@ export default function MonitoringDashboard({
 
           {/* Header Right: Actions, System Switcher, Search, Profile */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Quick Add Product Button */}
-            <button
-              onClick={() => setAddProductModalOpen(true)}
-              className="h-8 px-2.5 sm:px-3 inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0"
-              title="Tambah Barang / SKU Manual"
-            >
-              <Plus className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">Tambah Barang</span>
-              <span className="sm:hidden">Barang</span>
-            </button>
 
             {/* Quick Switch to Finance System */}
             <Link
