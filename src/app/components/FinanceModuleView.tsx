@@ -85,6 +85,15 @@ import {
 import InCardVisualDrilldown from './shared/InCardVisualDrilldown';
 import TaxFeatureLock from './TaxFeatureLock';
 import { getHistoricalMultiYearSummary } from '@/lib/demo-historical-generator';
+import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  code: string | null;
+  division: string | null;
+  status: string;
+}
 
 interface FinanceModuleViewProps {
   workspaceId?: string;
@@ -459,6 +468,11 @@ export default function FinanceModuleView({
   // menjurnal sebagai pelunasan PIUTANG (bukan pendapatan baru) dan menandai
   // fakturnya lunas.
   const [txInvoiceId, setTxInvoiceId] = useState('');
+  // Dimensi laba opsional. Proyek menurunkan divisinya otomatis di server,
+  // tetapi UI menampilkan divisi juga supaya pengguna sadar ke unit mana
+  // transaksi akan masuk. Kosong = "Tanpa Divisi/Proyek" (data lama sah).
+  const [txDivision, setTxDivision] = useState('');
+  const [txProjectId, setTxProjectId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -596,6 +610,17 @@ export default function FinanceModuleView({
   // tombolnya belum) -- per-baris supaya baris lain tetap aktif saat 1 diproses.
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Fitur 10 -- koreksi transaksi kas standalone. Form ini sengaja hanya
+  // mengirim field yang boleh diubah; tipe INCOME/EXPENSE dan tautan dokumen
+  // tidak bisa diubah dari UI. Alasan wajib diisi dan ikut tersimpan di audit.
+  const [correctingTx, setCorrectingTx] = useState<any | null>(null);
+  const [correctAmount, setCorrectAmount] = useState('');
+  const [correctCategory, setCorrectCategory] = useState('');
+  const [correctDescription, setCorrectDescription] = useState('');
+  const [correctDate, setCorrectDate] = useState('');
+  const [correctReason, setCorrectReason] = useState('');
+  const [isCorrecting, setIsCorrecting] = useState(false);
+
   // Kewajiban terjadwal (item 4.8 roadmap 7 Sep) -- dulu hardcode array kosong,
   // sekarang state asli diisi dari /api/v1/kas/obligations.
   const [obligations14, setObligations14] = useState<any[]>([]);
@@ -637,9 +662,15 @@ export default function FinanceModuleView({
   // Dikosongkan = hari ini.
   const [newInvoiceIssueDate, setNewInvoiceIssueDate] = useState('');
   const [newInvoiceNotes, setNewInvoiceNotes] = useState('');
+  const [newInvoiceDivision, setNewInvoiceDivision] = useState('');
+  const [newInvoiceProjectId, setNewInvoiceProjectId] = useState('');
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [isInvoiceSubmitting, setIsInvoiceSubmitting] = useState(false);
   // Per-baris loading state saat menandai invoice LUNAS (meniru pola deletingId/deletingObligId).
   const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+  // Fitur 10 -- aksi dokumen yang mengubah status faktur (batal / buka lunas).
+  // Selalu meminta alasan karena perubahan ini masuk audit trail.
+  const [invoiceActionId, setInvoiceActionId] = useState<string | null>(null);
   // LENGKAPI #1 audit Finance 10 Sep (10 Sep 2026 Fable) -- per-baris loading state
   // saat tombol "Tagih" memanggil piutang-reminder yang sungguhan (dulu instan
   // karena cuma setState lokal, sekarang genuinely fetch+POST).
@@ -1214,12 +1245,22 @@ export default function FinanceModuleView({
       const txQs = workspaceId
         ? `?workspaceId=${encodeURIComponent(workspaceId)}&${new URLSearchParams(periodParams).toString()}`
         : `?${new URLSearchParams(periodParams).toString()}`;
-      const [txRes, invRes, healthRes, obligRes] = await Promise.all([
+      const [txRes, invRes, healthRes, obligRes, projectRes] = await Promise.all([
         fetch(`/api/v1/kas/transactions${txQs}`, { credentials: 'include' }),
         fetch(`/api/v1/kas/invoices${qs}`, { credentials: 'include' }),
         fetch(`/api/v1/kas/financial-health${qs}`, { credentials: 'include' }),
         fetch(`/api/v1/kas/obligations${qs}`, { credentials: 'include' }),
+        fetch('/api/v1/accounting/projects', { credentials: 'include' }),
       ]);
+
+      if (projectRes.ok) {
+        const projectData = await projectRes.json().catch(() => ({}));
+        setProjectOptions(
+          Array.isArray(projectData.projects)
+            ? projectData.projects.filter((project: ProjectOption) => project.status !== 'ARCHIVED')
+            : []
+        );
+      }
 
       if (obligRes.ok) {
         const obligData = await obligRes.json();
@@ -1280,6 +1321,11 @@ export default function FinanceModuleView({
               amount: t.amount,
               description: t.description,
               createdAt: t.transactionDate ? new Date(t.transactionDate).toLocaleDateString('id-ID') : '',
+              transactionDateRaw: t.transactionDate ?? null,
+              paymentMethod: t.paymentMethod ?? null,
+              division: t.division ?? null,
+              projectId: t.projectId ?? null,
+              linkedDocument: Boolean(t.invoiceId || t.obligationId || t.payrollId || t.settlementAccountId),
             }))
           );
         }
@@ -1289,11 +1335,12 @@ export default function FinanceModuleView({
         const invData = await invRes.json();
         const reminderSentIds = loadReminderSentIds();
         const invList = Array.isArray(invData.invoices) ? invData.invoices : [];
-        if (invList.length === 0 && isDevLocalhost) {
+        const activeInvoices = invList.filter((i: any) => i.status !== 'CANCELLED');
+        if (activeInvoices.length === 0 && isDevLocalhost) {
           setInvoices(DEMO_FINANCE_INVOICES);
         } else {
           setInvoices(
-            invList.map((i: any) => ({
+            activeInvoices.map((i: any) => ({
               id: i.id,
               invoiceNumber: i.invoiceNumber,
               clientName: i.clientName,
@@ -1354,6 +1401,8 @@ export default function FinanceModuleView({
           amount: numAmount,
           description: notes.trim() || (txType === 'INCOME' ? 'Pemasukan Kas Baru' : 'Pengeluaran Kas Baru'),
           ...(txType === 'INCOME' && txInvoiceId ? { invoiceId: txInvoiceId } : {}),
+          division: txDivision || null,
+          projectId: txProjectId || null,
           workspaceId,
         }),
       });
@@ -1366,6 +1415,8 @@ export default function FinanceModuleView({
       setAmount('');
       setNotes('');
       setTxInvoiceId('');
+      setTxDivision('');
+      setTxProjectId('');
       setToastMsg(`Transaksi ${txType === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'} Rp ${numAmount.toLocaleString('id-ID')} berhasil dicatat.`);
       setTimeout(() => setToastMsg(null), 4000);
 
@@ -1384,26 +1435,107 @@ export default function FinanceModuleView({
   // Hapus transaksi kas (item 4.3 roadmap 7 Sep) -- backend DELETE sudah ada dan
   // tenant-guarded, ini menyambungkannya ke UI.
   const handleDeleteTransaction = async (txId: string, txDescription: string) => {
-    const confirmed = window.confirm(`Yakin hapus transaksi "${txDescription}"? Tindakan ini tidak bisa dibatalkan.`);
-    if (!confirmed) return;
+    // Fitur 10 -- hapus transaksi adalah koreksi, jadi alasannya wajib dicatat.
+    const reason = window.prompt(
+      `Alasan menghapus transaksi "${txDescription}":`,
+      ''
+    );
+    if (reason === null) return;
+    if (!reason.trim()) {
+      setToastMsg('Alasan hapus wajib diisi agar perubahan tercatat di audit trail.');
+      setTimeout(() => setToastMsg(null), 4000);
+      return;
+    }
     setDeletingId(txId);
     try {
       const delQs = workspaceId ? `&workspaceId=${encodeURIComponent(workspaceId)}` : '';
-      const res = await fetch(`/api/v1/kas/transactions?id=${txId}${delQs}`, {
-        method: 'DELETE',
-        headers: workspaceId ? { 'x-workspace-id': workspaceId } : {},
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Gagal hapus transaksi');
-      setToastMsg('Transaksi berhasil dihapus.');
+      const res = await fetch(
+        `/api/v1/kas/transactions?id=${txId}${delQs}&reason=${encodeURIComponent(reason.trim())}`,
+        {
+          method: 'DELETE',
+          headers: workspaceId ? { 'x-workspace-id': workspaceId } : {},
+          credentials: 'include',
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Gagal hapus transaksi');
+      }
+      setToastMsg('Transaksi berhasil dihapus dan alasannya tercatat di audit trail.');
       setTimeout(() => setToastMsg(null), 4000);
       await loadRealData();
       window.dispatchEvent(new CustomEvent('klir-kas-updated'));
-    } catch (err) {
-      setToastMsg('Gagal hapus transaksi, coba lagi.');
+    } catch (err: any) {
+      setToastMsg(err?.message || 'Gagal hapus transaksi, coba lagi.');
       setTimeout(() => setToastMsg(null), 4000);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const openCorrection = (tx: any) => {
+    setCorrectingTx(tx);
+    setCorrectAmount(String(tx.amount ?? ''));
+    setCorrectCategory(tx.category ?? '');
+    setCorrectDescription(tx.description ?? '');
+    setCorrectDate(
+      tx.transactionDateRaw ? String(tx.transactionDateRaw).slice(0, 10) : new Date().toISOString().slice(0, 10)
+    );
+    setCorrectReason('');
+  };
+
+  const closeCorrection = () => {
+    if (isCorrecting) return;
+    setCorrectingTx(null);
+    setCorrectReason('');
+  };
+
+  const handleCorrectTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!correctingTx) return;
+
+    const amount = Number(correctAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setToastMsg('Nominal koreksi harus lebih besar dari 0.');
+      setTimeout(() => setToastMsg(null), 4000);
+      return;
+    }
+    if (!correctReason.trim()) {
+      setToastMsg('Alasan koreksi wajib diisi.');
+      setTimeout(() => setToastMsg(null), 4000);
+      return;
+    }
+
+    setIsCorrecting(true);
+    try {
+      const res = await fetch(`/api/v1/kas/transactions/${correctingTx.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(workspaceId ? { 'x-workspace-id': workspaceId } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          amount,
+          category: correctCategory.trim(),
+          description: correctDescription.trim(),
+          transactionDate: correctDate || undefined,
+          reason: correctReason.trim(),
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message || 'Gagal mengoreksi transaksi.');
+      setToastMsg('Transaksi berhasil dikoreksi. Nilai sebelum/sesudah tercatat di audit trail.');
+      setTimeout(() => setToastMsg(null), 4500);
+      setCorrectingTx(null);
+      setCorrectReason('');
+      await loadRealData();
+      window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+    } catch (err: any) {
+      setToastMsg(err?.message || 'Gagal mengoreksi transaksi.');
+      setTimeout(() => setToastMsg(null), 5000);
+    } finally {
+      setIsCorrecting(false);
     }
   };
 
@@ -1645,6 +1777,8 @@ export default function FinanceModuleView({
           issueDate: newInvoiceIssueDate || undefined,
           dueDate: newInvoiceDueDate || undefined,
           notes: newInvoiceNotes.trim() || undefined,
+          division: newInvoiceDivision || null,
+          projectId: newInvoiceProjectId || null,
         }),
       });
 
@@ -1664,6 +1798,8 @@ export default function FinanceModuleView({
       setNewInvoiceIssueDate('');
       setNewInvoiceDueDate('');
       setNewInvoiceNotes('');
+      setNewInvoiceDivision('');
+      setNewInvoiceProjectId('');
       setNewInvoiceOpen(false);
       setToastMsg(`Invoice ${data.invoice?.invoiceNumber ?? ''} untuk ${clientName} berhasil diterbitkan.`);
       setTimeout(() => setToastMsg(null), 4000);
@@ -1682,7 +1818,7 @@ export default function FinanceModuleView({
   // PUT), yang otomatis mencatat CashTransaction pelunasan ke buku kas di server.
   // loadRealData() setelah sukses supaya Riwayat Kas & KPI ikut refresh dari data asli.
   const handleMarkInvoicePaid = async (invoiceId: string, invoiceLabel: string) => {
-    const confirmed = window.confirm(`Tandai invoice "${invoiceLabel}" LUNAS? Ini akan otomatis mencatat pemasukan kas dan tidak bisa dibatalkan dari sini.`);
+    const confirmed = window.confirm(`Tandai invoice "${invoiceLabel}" LUNAS? Ini akan otomatis mencatat pemasukan kas. Status bisa dibuka kembali dengan alasan bila salah.`);
     if (!confirmed) return;
     setMarkingPaidId(invoiceId);
     try {
@@ -1706,6 +1842,61 @@ export default function FinanceModuleView({
       setTimeout(() => setToastMsg(null), 4000);
     } finally {
       setMarkingPaidId(null);
+    }
+  };
+
+  /**
+   * Fitur 10 -- perubahan status faktur yang bersifat koreksi/pembatalan wajib
+   * beralasan. Faktur yang sudah terbit tidak diubah nominalnya; koreksi nilai
+   * dilakukan dengan membatalkan faktur lalu menerbitkan yang baru.
+   */
+  const handleInvoiceStatusCorrection = async (
+    invoiceId: string,
+    invoiceLabel: string,
+    nextStatus: 'CANCELLED' | 'UNPAID'
+  ) => {
+    const isCancel = nextStatus === 'CANCELLED';
+    const reason = window.prompt(
+      isCancel
+        ? `Alasan membatalkan faktur "${invoiceLabel}":`
+        : `Alasan membuka kembali status lunas faktur "${invoiceLabel}":`,
+      ''
+    );
+    if (reason === null) return;
+    if (!reason.trim()) {
+      setToastMsg('Alasan wajib diisi agar perubahan tercatat di audit trail.');
+      setTimeout(() => setToastMsg(null), 4000);
+      return;
+    }
+
+    setInvoiceActionId(invoiceId);
+    try {
+      const res = await fetch('/api/v1/kas/invoices', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          invoiceId,
+          status: nextStatus,
+          reason: reason.trim(),
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message || 'Gagal mengubah status faktur.');
+      setToastMsg(
+        isCancel
+          ? 'Faktur dibatalkan. Jurnal pendapatan dan pelunasan terkait sudah dibalik sesuai aturan.'
+          : 'Status lunas dibuka kembali. Pelunasan kas terkait ditarik dan tercatat di audit trail.'
+      );
+      setTimeout(() => setToastMsg(null), 5000);
+      setSelectedInvoiceDetail(null);
+      await loadRealData();
+      window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+    } catch (err: any) {
+      setToastMsg(err?.message || 'Gagal mengubah status faktur.');
+      setTimeout(() => setToastMsg(null), 5000);
+    } finally {
+      setInvoiceActionId(null);
     }
   };
 
@@ -3712,6 +3903,45 @@ export default function FinanceModuleView({
                     </select>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-slate-700 font-semibold text-xs">Proyek (opsional)</label>
+                      <select
+                        value={txProjectId}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setTxProjectId(id);
+                          const project = projectOptions.find((item) => item.id === id);
+                          if (project?.division) setTxDivision(project.division);
+                        }}
+                        className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg px-3 py-2 text-slate-900 text-xs font-medium focus:outline-none transition-all cursor-pointer"
+                      >
+                        <option value="">Tanpa Proyek</option>
+                        {projectOptions.map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.code ? `${project.code} · ` : ''}{project.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-slate-700 font-semibold text-xs">Divisi (opsional)</label>
+                      <select
+                        value={txDivision}
+                        onChange={(e) => setTxDivision(e.target.value)}
+                        className="w-full bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-lg px-3 py-2 text-slate-900 text-xs font-medium focus:outline-none transition-all cursor-pointer"
+                      >
+                        <option value="">Tanpa Divisi</option>
+                        {DIVISIONS.map((value) => (
+                          <option key={value} value={value}>{divisionLabel(value)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <span className="text-[10.5px] text-slate-400 leading-snug">
+                    Pilih proyek untuk menghitung laba proyek. Divisi mengikuti proyek; biaya bersama tanpa proyek tetap tampil di “Tanpa Proyek”.
+                  </span>
+
                   {calcTab === 'IN' && (
                     <div className="flex flex-col gap-1.5">
                       <label className="text-slate-700 font-semibold text-xs">Lunasi faktur (opsional)</label>
@@ -3958,15 +4188,43 @@ export default function FinanceModuleView({
                         </div>
                       </div>
 
-                      {/* Right Amount */}
-                      <div className="text-right shrink-0 pl-2">
-                        <span
-                          className={`font-mono font-bold text-xs sm:text-sm [font-variant-numeric:tabular-nums] ${
-                            isIncome ? 'text-emerald-700' : 'text-rose-700'
-                          }`}
+                      {/* Right Amount + aksi koreksi/hapus */}
+                      <div className="flex shrink-0 items-center gap-1.5 pl-2">
+                        <div className="text-right">
+                          <span
+                            className={`font-mono font-bold text-xs sm:text-sm [font-variant-numeric:tabular-nums] ${
+                              isIncome ? 'text-emerald-700' : 'text-rose-700'
+                            }`}
+                          >
+                            {isIncome ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openCorrection(tx)}
+                          disabled={Boolean(tx.linkedDocument)}
+                          title={
+                            tx.linkedDocument
+                              ? 'Transaksi terhubung ke faktur/kewajiban. Batalkan dokumen induknya dulu.'
+                              : 'Koreksi transaksi (alasan wajib diisi)'
+                          }
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-35"
                         >
-                          {isIncome ? '+' : '-'}Rp {tx.amount.toLocaleString('id-ID')}
-                        </span>
+                          <Sliders className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTransaction(tx.id, tx.description)}
+                          disabled={deletingId === tx.id}
+                          title="Hapus transaksi (alasan wajib diisi)"
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {deletingId === tx.id ? (
+                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   );
@@ -4186,6 +4444,44 @@ export default function FinanceModuleView({
                   className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE] [color-scheme:light]"
                 />
               </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-medium text-slate-500">Proyek (opsional)</span>
+                  <select
+                    value={newInvoiceProjectId}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setNewInvoiceProjectId(id);
+                      const project = projectOptions.find((item) => item.id === id);
+                      if (project?.division) setNewInvoiceDivision(project.division);
+                    }}
+                    className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE] cursor-pointer"
+                  >
+                    <option value="">Tanpa Proyek</option>
+                    {projectOptions.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.code ? `${project.code} · ` : ''}{project.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-medium text-slate-500">Divisi (opsional)</span>
+                  <select
+                    value={newInvoiceDivision}
+                    onChange={(e) => setNewInvoiceDivision(e.target.value)}
+                    className="h-9 px-3 rounded-lg bg-white border-slate-300 border border-slate-300 text-[13px] text-slate-900 outline-none focus:border-[#0058BE] cursor-pointer"
+                  >
+                    <option value="">Tanpa Divisi</option>
+                    {DIVISIONS.map((value) => (
+                      <option key={value} value={value}>{divisionLabel(value)}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <p className="text-[10.5px] text-slate-400 -mt-1">
+                Pendapatan faktur masuk ke divisi/proyek ini saat faktur diterbitkan. Kosongkan bila belum diketahui; jangan menebak.
+              </p>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-slate-500">Rincian item / jasa *</span>
                 <input
@@ -4420,12 +4716,51 @@ export default function FinanceModuleView({
                           e.stopPropagation();
                           handleMarkInvoicePaid(inv.id, `${inv.clientName} (${inv.invoiceNumber})`);
                         }}
-                        disabled={markingPaidId === inv.id}
+                        disabled={markingPaidId === inv.id || invoiceActionId === inv.id}
                         className="h-8 px-2.5 inline-flex items-center gap-1.5 bg-[#3FBF8F] hover:brightness-110 text-[#0B0E14] font-bold text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap disabled:opacity-50 shadow-sm"
                         title="Tandai invoice lunas dan catat pemasukan kas"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>{markingPaidId === inv.id ? 'Proses...' : 'Lunas'}</span>
+                      </button>
+                    )}
+
+                    {/* Fitur 10 -- koreksi status wajib alasan, tercatat di audit trail */}
+                    {isPaid ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleInvoiceStatusCorrection(
+                            inv.id,
+                            `${inv.clientName} (${inv.invoiceNumber})`,
+                            'UNPAID'
+                          );
+                        }}
+                        disabled={invoiceActionId === inv.id}
+                        className="h-8 px-2.5 inline-flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                        title="Buka kembali status lunas dengan alasan (audit trail)"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${invoiceActionId === inv.id ? 'animate-spin' : ''}`} />
+                        <span>{invoiceActionId === inv.id ? 'Proses...' : 'Buka Lunas'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleInvoiceStatusCorrection(
+                            inv.id,
+                            `${inv.clientName} (${inv.invoiceNumber})`,
+                            'CANCELLED'
+                          );
+                        }}
+                        disabled={invoiceActionId === inv.id}
+                        className="h-8 px-2.5 inline-flex items-center gap-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 font-semibold text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                        title="Batalkan faktur dengan alasan; koreksi nilai dilakukan dengan terbit ulang"
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        <span>{invoiceActionId === inv.id ? 'Proses...' : 'Batalkan'}</span>
                       </button>
                     )}
                   </div>
@@ -6156,6 +6491,109 @@ export default function FinanceModuleView({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {correctingTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+          <form
+            onSubmit={handleCorrectTransaction}
+            className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 className="m-0 text-sm font-bold text-slate-900">Koreksi Transaksi Kas</h3>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Nilai sebelum dan sesudah, waktu, pengguna, serta alasan akan tersimpan permanen di audit trail.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCorrection}
+                disabled={isCorrecting}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Nominal (Rp) *
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  value={correctAmount}
+                  onChange={(e) => setCorrectAmount(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-300 px-3 text-xs font-normal text-slate-900 outline-none focus:border-[#0058BE]"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Kategori *
+                <input
+                  value={correctCategory}
+                  onChange={(e) => setCorrectCategory(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-300 px-3 text-xs font-normal text-slate-900 outline-none focus:border-[#0058BE]"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600 sm:col-span-2">
+                Deskripsi *
+                <input
+                  value={correctDescription}
+                  onChange={(e) => setCorrectDescription(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-300 px-3 text-xs font-normal text-slate-900 outline-none focus:border-[#0058BE]"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Tanggal transaksi *
+                <input
+                  type="date"
+                  value={correctDate}
+                  onChange={(e) => setCorrectDate(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-300 px-3 text-xs font-normal text-slate-900 outline-none focus:border-[#0058BE] [color-scheme:light]"
+                  required
+                />
+              </label>
+              <div className="flex flex-col justify-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-800">
+                Tipe {correctingTx.type === 'INCOME' ? 'pemasukan' : 'pengeluaran'} tidak bisa diubah. Bila tipe salah,
+                hapus lalu catat ulang.
+              </div>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600 sm:col-span-2">
+                Alasan koreksi *
+                <textarea
+                  value={correctReason}
+                  onChange={(e) => setCorrectReason(e.target.value)}
+                  rows={3}
+                  placeholder="Contoh: nominal salah input, seharusnya Rp 1.250.000 bukan Rp 12.500.000."
+                  className="resize-none rounded-lg border border-slate-300 px-3 py-2 text-xs font-normal text-slate-900 outline-none focus:border-[#0058BE]"
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
+              <button
+                type="button"
+                onClick={closeCorrection}
+                disabled={isCorrecting}
+                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isCorrecting}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0058BE] px-4 text-xs font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCorrecting ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Simpan Koreksi
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </>

@@ -5,6 +5,7 @@ import { publicApiError } from '@/lib/api-error';
 import { hasMinRole, getRoleHierarchy } from '@/lib/expense-approval-engine';
 import { ExpenseRequestStatus, ExpenseApprovalStatus, ExpenseDecision, Role, TransactionType } from '@prisma/client';
 import { recordCashTransaction } from '@/lib/accounting/posting';
+import { cashTransactionSnapshot, recordAuditInTx } from '@/lib/audit/audit-trail';
 
 interface ApproveBody {
   decision: 'APPROVED' | 'REJECTED';
@@ -96,7 +97,28 @@ export const POST = withTenantGuard(
             include: {
               approvals: { orderBy: { level: 'asc' }, include: { approver: { select: { id: true, fullName: true, email: true } } } },
               items: true,
+              requester: { select: { id: true, fullName: true, email: true } },
             },
+          });
+
+          await recordAuditInTx(tx, {
+            workspaceId,
+            userId,
+            action: 'REJECT',
+            entityType: 'EXPENSE_REQUEST',
+            entityId: id,
+            before: {
+              status: expenseRequest.status,
+              currentLevel: expenseRequest.currentLevel,
+              totalAmount: expenseRequest.totalAmount,
+            },
+            after: {
+              status: request.status,
+              currentLevel: request.currentLevel,
+              totalAmount: request.totalAmount,
+            },
+            reason: reason.trim(),
+            metadata: { level: currentLevel, requiredRole: currentApproval.requiredRole },
           });
 
           return request;
@@ -153,6 +175,26 @@ export const POST = withTenantGuard(
           },
         });
 
+        await recordAuditInTx(tx, {
+          workspaceId,
+          userId,
+          action: 'APPROVE',
+          entityType: 'EXPENSE_REQUEST',
+          entityId: id,
+          before: {
+            status: expenseRequest.status,
+            currentLevel: expenseRequest.currentLevel,
+            totalAmount: expenseRequest.totalAmount,
+          },
+          after: {
+            status: request.status,
+            currentLevel: request.currentLevel,
+            totalAmount: request.totalAmount,
+          },
+          reason: reason.trim(),
+          metadata: { level: currentLevel, requiredRole: currentApproval.requiredRole, isLastLevel },
+        });
+
         // If fully approved, create CashTransaction
         if (isLastLevel) {
           // Determine payment method from items or default
@@ -171,6 +213,17 @@ export const POST = withTenantGuard(
               paymentMethod,
               debitAccountCode,
               autoMapFallback: true,
+            });
+
+            await recordAuditInTx(tx, {
+              workspaceId,
+              userId,
+              action: 'CREATE',
+              entityType: 'CASH_TRANSACTION',
+              entityId: cashTransaction.id,
+              after: cashTransactionSnapshot(cashTransaction),
+              metadata: { source: 'expense_approval', expenseRequestId: id },
+              reason: `Pengajuan ${request.requestNumber} disetujui penuh`,
             });
 
             // Optionally link cash transaction to expense request

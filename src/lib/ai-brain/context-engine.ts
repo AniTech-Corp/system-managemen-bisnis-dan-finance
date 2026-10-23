@@ -120,7 +120,7 @@ async function executeBuildBusinessContext(
   // (lihat BusinessContextOptions di atas) -- cara baca [COMPANY_PROFILE] di elemen kedua
   // (profileMemory) TIDAK disentuh/digabung sama sekali, tetap query+parsing persis seperti
   // sebelumnya untuk SEMUA pemanggil, diminta company knowledge atau tidak.
-  const [workspace, profileMemory, companyKnowledgeSummary] = await Promise.all([
+  const [workspace, profileMemory, companyKnowledgeSummary, membersCount] = await Promise.all([
     prisma.workspace.findUnique({
       where: { id: workspaceId },
     }),
@@ -138,6 +138,7 @@ async function executeBuildBusinessContext(
     // kosong = urut kebaruan), bukan cuma 10 MemoryItem terpotong. Fallback ke
     // getAccumulatedCompanyKnowledge kalau Pusat Data kosong / modul gagal (non-fatal).
     includeCompanyKnowledge ? buildContextCompanyKnowledge(workspaceId) : Promise.resolve(''),
+    prisma.workspaceMember.count({ where: { workspaceId } }).catch(() => 0),
   ]);
 
   let workspaceName = workspace?.name || 'Workspace Bisnis';
@@ -428,6 +429,7 @@ async function executeBuildBusinessContext(
     workspaceName,
     generatedAt: new Date().toISOString(),
     cacheTtlSeconds: CACHE_TTL_MS / 1000,
+    teamMemberCount: membersCount || undefined,
     financials,
     marketing,
     operations,

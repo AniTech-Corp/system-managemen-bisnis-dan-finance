@@ -37,6 +37,45 @@ export function useApi<T>(url: string | null) {
   return { data, loading, error, reload };
 }
 
+/**
+ * Seperti `useApi`, tetapi mempertahankan `meta` dari envelope API. Dipakai
+ * endpoint berpaginasi seperti audit trail yang butuh total dan scope RBAC.
+ */
+export function useApiWithMeta<T, M = Record<string, unknown>>(url: string | null) {
+  const [data, setData] = useState<T | null>(null);
+  const [meta, setMeta] = useState<M | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nonce, setNonce] = useState(0);
+
+  useEffect(() => {
+    if (!url) return;
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    apiGet<{ success: boolean; data: T; meta?: M }>(url)
+      .then((res) => {
+        if (alive) {
+          setData(res.data);
+          setMeta(res.meta ?? null);
+        }
+      })
+      .catch((err) => {
+        if (alive) setError(err?.message || 'Gagal memuat data.');
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [url, nonce]);
+
+  const reload = useCallback(() => setNonce((n) => n + 1), []);
+
+  return { data, meta, loading, error, reload };
+}
+
 /* ── Komponen tampilan bersama ────────────────────────────────────────── */
 
 export function ReportToolbar({

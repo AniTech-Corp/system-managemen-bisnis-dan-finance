@@ -58,6 +58,7 @@ Tidak boleh dilanggar, karena inilah yang membuat angka bisa dipercaya:
 | 3.3 | PPh 21 & BPJS pada slip gaji + setoran kewajiban | `payroll.ts`, tab Gaji & Pajak |
 | 3.1 | Persediaan & HPP rata-rata bergerak + kartu stok & kontrol akun 1-1400 | `inventory.ts`, `inventory-report.ts`, tab Persediaan |
 | 3.2 | Pembayaran sebagian & alokasi dokumen (split payment, status PARTIAL) | `settlement.ts`, `settlement-service.ts`, `PaymentAllocation` |
+| 3.8 | Profitabilitas per divisi, proyek, dan produk + tren & perbandingan periode | `profitability.ts`, model `Project`, tab Profitabilitas |
 
 Yang **belum** dari cita-cita "lengkap": uang muka pelanggan (lebih bayar),
 multi-mata uang, PDF server-side, rekonsiliasi bank, dan pengerasan produksi.
@@ -535,7 +536,7 @@ Wajib sebelum dipakai bisnis nyata.
 | --- | --- | --- |
 | Migrasi database | `prisma db push` (tidak ada riwayat) | Baseline `prisma/migrations` + prosedur deploy |
 | Backup & restore | Belum didefinisikan | Backup harian + uji restore bulanan |
-| Audit trail | `activity_events` ada, tanpa UI | Layar audit (siapa, kapan, apa) + filter |
+| Audit trail | `audit_logs` + tab Audit Trail (fitur 10) | Retensi + ekspor audit |
 | Retensi | Belum ada | Kebijakan retensi jurnal & berkas |
 | Monitoring | Log server saja | Alert error rate, job gagal, selisih neraca |
 | Kinerja | Laporan muat semua baris | Index + pagination + uji 100 ribu baris |
@@ -549,6 +550,134 @@ Wajib sebelum dipakai bisnis nyata.
 - Uji beban: laporan 12 bulan < 3 detik untuk 100 ribu baris.
 
 **Estimasi.** 5–7 hari.
+
+---
+
+## 9b. Fase 3.8 — Profitabilitas per divisi, proyek & produk ✅ SELESAI
+
+**Tujuan.** Owner bisa melihat unit bisnis mana yang benar-benar menghasilkan
+laba, tanpa menebak pembagian overhead.
+
+**Keputusan.**
+
+- Divisi tetap memakai `JournalLine.costCenter` (tidak ada tabel divisi baru).
+- Proyek memakai `JournalLine.projectId`, `CashTransaction.projectId`, dan
+  `Invoice.projectId`. Model `Project` hanya ditambah kolom, bukan diganti.
+- `Invoice.division` ditambahkan agar pendapatan faktur punya divisi.
+- Produk memakai `StockMovement.unitPrice` + `occurredAt`. Penjualan lama tanpa
+  harga jual ditandai "Qty Tanpa Harga", tidak dianggap pendapatan nol.
+- Proyek diarsipkan (`ARCHIVED`), tidak dihapus, supaya histori jurnal utuh.
+- Data lama tanpa tanda tetap "Tanpa Divisi/Proyek" — **tidak ada backfill
+  otomatis dan tidak ada tebakan**.
+- Laba proyek adalah laba langsung. Overhead bersama tidak dialokasikan.
+
+**Kriteria diterima.**
+
+- Total semua divisi + "Tanpa Divisi" = Laba Rugi tanpa filter.
+- Total semua proyek + "Tanpa Proyek" = Laba Rugi tanpa filter.
+- Perubahan divisi/proyek pada transaksi baru tidak mengubah jurnal lama.
+- Ada peringatan eksplisit saat data belum ditandai atau harga jual produk
+  belum tersedia.
+- `npm test` dan `npx tsc --noEmit` hijau.
+
+**Bukti.** `src/lib/accounting/profitability.ts`,
+`src/app/api/v1/accounting/projects/**`, `ProfitabilityView.tsx`,
+`tests/profitability.test.ts`.
+
+---
+
+## 9c. Fase 3.9 — Audit Trail & Riwayat Perubahan ✅ SELESAI
+
+**Tujuan.** Setiap pembuatan, perubahan, persetujuan, pembatalan, dan penutupan
+dokumen keuangan bisa dipertanggungjawabkan: siapa, kapan, nilai sebelum/sesudah,
+dan alasannya.
+
+**Keputusan.**
+
+- Memakai `audit_logs` yang sudah ada + kolom `reason`, bukan tabel audit kedua.
+- `changes` menyimpan `before`/`after`/`diff`; audit tidak pernah di-update/dihapus.
+- Mutasi uang menulis audit di transaksi database yang sama. Kegagalan audit
+  membatalkan mutasi, bukan sebaliknya.
+- Koreksi kas hanya untuk transaksi standalone. Faktur memakai pembatalan +
+  terbit ulang; jurnal `POSTED` hanya bisa dibalik.
+- OWNER/ADMIN melihat semua audit; peran lain hanya miliknya sendiri. Scope
+  dipaksa server.
+- `activity_events` tetap dipakai feed AI/aktivitas, tidak digantikan.
+
+**Kriteria diterima.**
+
+- Tidak ada perubahan nilai tanpa entri `before`/`after`.
+- Koreksi/hapus/pembatalan tanpa alasan ditolak atau ditandai eksplisit.
+- Periode tertutup dan dokumen yang sudah lunas tidak bisa diubah diam-diam.
+- Audit approval, tutup buku, dan proyek tersedia di UI.
+- `npm test`, `npx tsc --noEmit`, dan build hijau.
+
+**Bukti.** `src/lib/audit/audit-trail.ts`,
+`src/lib/accounting/mutation-guards.ts`,
+`src/app/api/v1/accounting/audit-trail/route.ts`, `AuditTrailView.tsx`,
+`tests/audit-trail.test.ts`.
+
+---
+
+## 9d. Fase 3.10 — Financial Health Score ✅ SELESAI
+
+**Tujuan.** Owner mendapat satu skor 0–100 yang bisa dijelaskan, bukan angka
+mistis: komponen apa yang menekan skor dan tindakan apa yang harus dilakukan.
+
+**Keputusan.**
+
+- Bobot: likuiditas 25, profitabilitas 25, beban utang 15, perputaran piutang 20,
+  stabilitas arus kas 15.
+- Grade: 85/70/55/40 (Sangat Sehat/Sehat/Cukup/Berisiko/Kritis); tanpa data =
+  "Belum Ada Data".
+- Komponen tanpa data diberi `null`, bukan nol atau angka contoh. Skor total
+  menormalisasi bobot komponen yang tersedia dan menandai data `PARTIAL`.
+- Rekomendasi deterministik dari komponen terlemah, bukan panggilan AI.
+- Endpoint lama `/api/v1/kas/financial-health` tidak diubah agar dashboard/AI
+  tetap berjalan.
+
+**Kriteria diterima.**
+
+- Angka berasal dari jurnal `POSTED`, Neraca, Laba Rugi, umur piutang, dan
+  kewajiban terjadwal.
+- Tidak ada data → skor `null` + grade "Belum Ada Data".
+- Setiap komponen menampilkan skor, metrik, faktor, dan rekomendasi.
+- `npm test` dan `npx tsc --noEmit` hijau.
+
+**Bukti.** `src/lib/accounting/financial-health.ts`,
+`src/app/api/v1/accounting/financial-health/route.ts`,
+`FinancialHealthView.tsx`, `tests/financial-health.test.ts`.
+
+---
+
+## 9e. Fase 3.11 — Cash Crisis Early Warning ✅ SELESAI
+
+**Tujuan.** Peringatan dini sebelum kas benar-benar minus: kapan, berapa besar,
+dan apa yang bisa dilakukan.
+
+**Keputusan.**
+
+- Proyeksi harian 7/14/30/60/90 hari dari kas aktual, kewajiban jatuh tempo,
+  piutang terbuka, dan beban operasional rata-rata 3 bulan.
+- Piutang diberi probabilitas 90/75/55/30% berdasarkan umur; tidak ada piutang
+  yang dianggap pasti cair.
+- Status `SAFE`/`WATCH`/`WARNING`/`CRITICAL`, dengan ambang 7/30 hari.
+- Rekomendasi: percepat penagihan, jadwalkan ulang kewajiban, siapkan dana
+  penutup, tahan belanja non-esensial.
+- Bila belum ada jurnal kas, saldo memakai Buku Kas sebagai fallback dan
+  peringatan ditampilkan eksplisit.
+
+**Kriteria diterima.**
+
+- Proyeksi menampilkan saldo minimum, tanggal shortfall pertama, runway, dan
+  komponen kas masuk/keluar.
+- Ada daftar kewajiban terdekat, piutang berisiko, dan rekomendasi.
+- Tanpa data → status aman tidak diklaim; kualitas data ditandai.
+- `npm test` dan `npx tsc --noEmit` hijau.
+
+**Bukti.** `src/lib/accounting/cash-crisis.ts`,
+`src/app/api/v1/accounting/cash-crisis/route.ts`, `CashCrisisView.tsx`,
+`tests/cash-crisis.test.ts`.
 
 ---
 

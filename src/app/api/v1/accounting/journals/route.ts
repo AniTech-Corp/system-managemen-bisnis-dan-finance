@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { JournalSource, JournalStatus } from '@prisma/client';
+import { JournalSource, JournalStatus, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { withTenantGuard } from '@/lib/tenant-guard';
 import { badRequest, guardAccounting, serializeJournal, serverError } from '@/lib/accounting/api';
 import { createJournal, JournalValidationError } from '@/lib/accounting/journal-service';
 import { PeriodClosedError, monthRange, parsePeriodParam } from '@/lib/accounting/period';
+import { journalSnapshot, recordAudit } from '@/lib/audit/audit-trail';
 
 export const GET = withTenantGuard(
   async (req: NextRequest, { auth }) => {
@@ -84,6 +85,22 @@ export const POST = withTenantGuard(
         source: JournalSource.MANUAL,
         lines: body.lines,
         status: JournalStatus.DRAFT,
+      });
+
+      const totalDebit = entry.lines.reduce((acc, line) => acc.plus(line.debit), new Prisma.Decimal(0));
+
+      await recordAudit({
+        workspaceId: auth.workspace.id,
+        userId: auth.user.id,
+        action: 'CREATE',
+        entityType: 'JOURNAL_ENTRY',
+        entityId: entry.id,
+        after: journalSnapshot({
+          ...entry,
+          lineCount: entry.lines.length,
+          totalDebit,
+        }),
+        metadata: { source: 'manual_journal_form' },
       });
 
       return NextResponse.json({ success: true, data: serializeJournal(entry) }, { status: 201 });

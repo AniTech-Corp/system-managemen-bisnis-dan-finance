@@ -2,6 +2,7 @@ import { AccountType, JournalSource, JournalStatus, PeriodStatus, Prisma } from 
 import { prisma } from '../prisma';
 import { createJournalInTx, JournalValidationError } from './journal-service';
 import { fiscalYearRange, jakartaEndOfMonth } from './period';
+import { recordAudit } from '@/lib/audit/audit-trail';
 
 export interface PeriodActionResult {
   id: string;
@@ -45,6 +46,17 @@ export async function closePeriod(workspaceId: string, periodId: string, userId:
       type: 'ACCOUNTING_PERIOD_CLOSED',
       payload: { periodId: period.id, year: period.year, month: period.month },
     },
+  });
+
+  await recordAudit({
+    workspaceId,
+    userId,
+    action: 'CLOSE',
+    entityType: 'PERIOD',
+    entityId: period.id,
+    before: { status: period.status, year: period.year, month: period.month },
+    after: { status: updated.status, year: updated.year, month: updated.month },
+    metadata: { periodId: period.id },
   });
 
   return { id: updated.id, year: updated.year, month: updated.month, status: updated.status };
@@ -323,6 +335,16 @@ export async function lockPeriod(workspaceId: string, periodId: string, userId: 
     },
   });
 
+  await recordAudit({
+    workspaceId,
+    userId,
+    action: 'LOCK',
+    entityType: 'PERIOD',
+    entityId: period.id,
+    before: { status: period.status, year: period.year, month: period.month },
+    after: { status: updated.status, year: updated.year, month: updated.month },
+  });
+
   return { id: updated.id, year: updated.year, month: updated.month, status: updated.status };
 }
 
@@ -354,6 +376,17 @@ export async function reopenPeriod(
       type: 'ACCOUNTING_PERIOD_REOPENED',
       payload: { periodId: period.id, year: period.year, month: period.month, reason: reason.trim() },
     },
+  });
+
+  await recordAudit({
+    workspaceId,
+    userId,
+    action: 'REOPEN',
+    entityType: 'PERIOD',
+    entityId: period.id,
+    before: { status: period.status, year: period.year, month: period.month },
+    after: { status: updated.status, year: updated.year, month: updated.month },
+    reason: reason.trim(),
   });
 
   return { id: updated.id, year: updated.year, month: updated.month, status: updated.status };

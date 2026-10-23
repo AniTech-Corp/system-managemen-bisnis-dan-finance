@@ -14,6 +14,7 @@ import {
 } from '@/lib/accounting/reports';
 import { getAgingReport, getTaxSummary } from '@/lib/accounting/aux-reports';
 import { getBudgetReport } from '@/lib/accounting/budgets';
+import { getProfitabilityReport } from '@/lib/accounting/profitability';
 
 function num(value: unknown): number {
   const n = Number(value ?? 0);
@@ -36,7 +37,7 @@ export const GET = withTenantGuard(
         endDate: sp.get('endDate'),
       });
 
-      const [income, balance, cashFlow, equity, trial, entries, agingAr, agingAp, tax, budget] = await Promise.all([
+      const [income, balance, cashFlow, equity, trial, entries, agingAr, agingAp, tax, budget, profitability] = await Promise.all([
         getIncomeStatement(workspaceId, range),
         getBalanceSheet(workspaceId, range.endDate, setting?.fiscalYearStartMonth ?? 1),
         getCashFlowStatement(workspaceId, range),
@@ -56,6 +57,10 @@ export const GET = withTenantGuard(
         getAgingReport(workspaceId, 'AP', range.endDate),
         getTaxSummary(workspaceId, range, setting?.taxProfile ?? 'UMKM_NON_PKP'),
         getBudgetReport(workspaceId, range, setting?.fiscalYearStartMonth ?? 1),
+        getProfitabilityReport(workspaceId, range, {
+          fiscalStartMonth: setting?.fiscalYearStartMonth ?? 1,
+          trendMonths: 12,
+        }),
       ]);
 
       const workbook = new ExcelJS.Workbook();
@@ -259,6 +264,88 @@ export const GET = withTenantGuard(
       ]).font = { bold: true };
       budgetSheet.getColumn(1).width = 40;
       for (const col of [2, 3, 4]) budgetSheet.getColumn(col).numFmt = '#,##0';
+
+      /* ── Profitabilitas per Divisi/Proyek/Produk ── */
+      const profitSheet = workbook.addWorksheet('Profitabilitas');
+      headerRow(profitSheet, 'Profitabilitas per Divisi, Proyek & Produk', range.label);
+      profitSheet.addRow([]);
+
+      profitSheet.addRow(['DIVISI', 'Pendapatan', 'HPP', 'Beban Ops', 'Pajak', 'Total Biaya', 'Laba', 'Margin %', 'Porsi Laba %']);
+      profitSheet.getRow(4).font = { bold: true };
+      for (const row of profitability.current.divisions) {
+        profitSheet.addRow([
+          row.label,
+          num(row.revenue),
+          num(row.cogs),
+          num(row.operatingExpenses),
+          num(row.taxExpenses),
+          num(row.totalCost),
+          num(row.profit),
+          row.marginPct ?? '',
+          row.profitSharePct ?? '',
+        ]);
+      }
+      profitSheet.addRow([
+        'TOTAL',
+        num(profitability.current.totals.revenue),
+        num(profitability.current.totals.cogs),
+        num(profitability.current.totals.operatingExpenses),
+        num(profitability.current.totals.taxExpenses),
+        num(profitability.current.totals.totalCost),
+        num(profitability.current.totals.profit),
+        profitability.current.totals.marginPct ?? '',
+        '',
+      ]).font = { bold: true };
+
+      profitSheet.addRow([]);
+      profitSheet.addRow(['PROYEK', 'Kode', 'Divisi', 'Status', 'Pendapatan', 'Total Biaya', 'Laba', 'Margin %']);
+      profitSheet.getRow(profitSheet.rowCount).font = { bold: true };
+      for (const row of profitability.current.projects) {
+        profitSheet.addRow([
+          row.label,
+          row.code ?? '',
+          row.divisionLabel,
+          row.status ?? '',
+          num(row.revenue),
+          num(row.totalCost),
+          num(row.profit),
+          row.marginPct ?? '',
+        ]);
+      }
+
+      profitSheet.addRow([]);
+      profitSheet.addRow(['PRODUK', 'SKU', 'Qty Berharga', 'Qty Tanpa Harga', 'Pendapatan', 'HPP', 'Laba Kotor', 'Margin %']);
+      profitSheet.getRow(profitSheet.rowCount).font = { bold: true };
+      for (const row of profitability.products.items) {
+        profitSheet.addRow([
+          row.name,
+          row.sku ?? '',
+          row.pricedQty,
+          row.unpricedQty,
+          row.revenue,
+          row.cogs,
+          row.grossProfit,
+          row.marginPct ?? '',
+        ]);
+      }
+
+      profitSheet.addRow([]);
+      profitSheet.addRow(['TREN BULANAN', 'Pendapatan', 'Total Biaya', 'Laba', 'Margin %']);
+      profitSheet.getRow(profitSheet.rowCount).font = { bold: true };
+      for (const row of profitability.trend.months) {
+        profitSheet.addRow([
+          row.label,
+          num(row.revenue),
+          num(row.totalCost),
+          num(row.profit),
+          row.marginPct ?? '',
+        ]);
+      }
+
+      profitSheet.getColumn(1).width = 34;
+      profitSheet.getColumn(2).width = 22;
+      for (let col = 3; col <= 9; col += 1) profitSheet.getColumn(col).width = 16;
+      for (let col = 2; col <= 9; col += 1) profitSheet.getColumn(col).numFmt = '#,##0';
 
       const buffer = await workbook.xlsx.writeBuffer();
       const fileName = `laporan-keuangan-${range.periodKey ?? range.endDate.toISOString().slice(0, 10)}.xlsx`;

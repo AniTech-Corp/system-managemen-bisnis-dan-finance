@@ -14,6 +14,7 @@ import {
 import { getAgingReport, getTaxSummary, type AgingType } from '@/lib/accounting/aux-reports';
 import { getBudgetReport } from '@/lib/accounting/budgets';
 import { getInventoryReport, getStockCard } from '@/lib/accounting/inventory-report';
+import { getProfitabilityReport } from '@/lib/accounting/profitability';
 
 const SUPPORTED = new Set([
   'income-statement',
@@ -26,6 +27,7 @@ const SUPPORTED = new Set([
   'tax',
   'budget',
   'inventory',
+  'profitability',
 ]);
 
 export const GET = withTenantGuard(
@@ -171,6 +173,21 @@ export const GET = withTenantGuard(
             setting?.taxProfile ?? 'UMKM_NON_PKP'
           );
           return NextResponse.json({ success: true, data: serializeReportValue({ period: range, current }) });
+        }
+
+        case 'profitability': {
+          // `trend` = jumlah bulan yang ditampilkan di grafik tren (3–24).
+          const trendRaw = Number(sp.get('trend'));
+          const trendMonths = Number.isFinite(trendRaw) && trendRaw > 0 ? trendRaw : 12;
+          const current = await getProfitabilityReport(workspaceId, range, {
+            comparativeMode,
+            fiscalStartMonth: fiscalYearStartMonth,
+            trendMonths,
+          });
+          return NextResponse.json({
+            success: true,
+            data: serializeReportValue({ ...current, period: range }),
+          });
         }
 
         default:

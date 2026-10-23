@@ -84,6 +84,8 @@ export interface BusinessContextSnapshot {
   workspaceName: string;
   generatedAt: string;
   cacheTtlSeconds: number;
+  /** Jumlah anggota workspace aktif; dipakai simulator untuk metrik per karyawan. */
+  teamMemberCount?: number;
   financials: FinancialHealthMetrics;
   marketing: MarketingHealthMetrics;
   operations: OperationsHealthMetrics;

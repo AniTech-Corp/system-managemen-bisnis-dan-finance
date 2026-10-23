@@ -4,6 +4,7 @@ import { withTenantGuard } from '@/lib/tenant-guard';
 import { publicApiError } from '@/lib/api-error';
 import { evaluateExpenseApproval, generateRequestNumber } from '@/lib/expense-approval-engine';
 import { ExpenseCategory, ExpenseRequestStatus, Role } from '@prisma/client';
+import { recordAudit } from '@/lib/audit/audit-trail';
 
 interface ExpenseRequestItemInput {
   description: string;
@@ -101,7 +102,11 @@ export const PATCH = withTenantGuard(
 
       const expenseRequest = await prisma.expenseRequest.findFirst({
         where: { id, workspaceId },
-        include: { items: true, approvals: true },
+        include: {
+          requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+          items: true,
+          approvals: true,
+        },
       });
 
       if (!expenseRequest) {
@@ -170,7 +175,11 @@ export const PATCH = withTenantGuard(
                   })),
                 },
               },
-              include: { items: true, approvals: true },
+              include: {
+                requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+                items: true,
+                approvals: true,
+              },
             });
 
             return request;
@@ -218,7 +227,11 @@ export const PATCH = withTenantGuard(
                 submittedAt: new Date(),
                 approvedAt: newStatus === 'APPROVED' ? new Date() : null,
               },
-              include: { items: true, approvals: { orderBy: { level: 'asc' } } },
+              include: {
+                requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+                items: true,
+                approvals: { orderBy: { level: 'asc' } },
+              },
             });
 
             return request;
@@ -238,11 +251,37 @@ export const PATCH = withTenantGuard(
           if (['APPROVED', 'REJECTED', 'CANCELLED'].includes(expenseRequest.status)) {
             return NextResponse.json({ success: false, message: 'Pengajuan sudah final, tidak bisa dibatalkan.' }, { status: 400 });
           }
+          const cancelReason = typeof body?.reason === 'string' ? body.reason.trim() : '';
+          if (!cancelReason) {
+            return NextResponse.json(
+              { success: false, message: 'Alasan pembatalan wajib diisi agar tercatat di audit trail.' },
+              { status: 400 }
+            );
+          }
 
           const updated = await prisma.expenseRequest.update({
             where: { id },
             data: { status: 'CANCELLED' },
-            include: { items: true, approvals: true },
+            include: {
+              requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+              items: true,
+              approvals: true,
+            },
+          });
+
+          await recordAudit({
+            workspaceId,
+            userId,
+            action: 'CANCEL',
+            entityType: 'EXPENSE_REQUEST',
+            entityId: id,
+            before: {
+              status: expenseRequest.status,
+              currentLevel: expenseRequest.currentLevel,
+              totalAmount: expenseRequest.totalAmount,
+            },
+            after: { status: updated.status, currentLevel: updated.currentLevel, totalAmount: updated.totalAmount },
+            reason: cancelReason,
           });
 
           return NextResponse.json({
@@ -298,7 +337,11 @@ export const PATCH = withTenantGuard(
                 rejectedAt: newStatus === 'REJECTED' ? new Date() : null,
                 approvedAt: newStatus === 'APPROVED' ? new Date() : null,
               },
-              include: { items: true, approvals: { orderBy: { level: 'asc' } } },
+              include: {
+                requester: { select: { id: true, fullName: true, email: true, avatarUrl: true } },
+                items: true,
+                approvals: { orderBy: { level: 'asc' } },
+              },
             });
 
             // If rejected, mark all approvals as SKIPPED

@@ -15,6 +15,7 @@ export * from './context-engine';
 export * from './prediction-engine';
 export * from './decision-engine';
 export * from './simulator-engine';
+export * from './simulator-engine-enhanced';
 export * from './why-engine';
 export * from './decision-memory-engine';
 export * from './feedback-loop-engine';
@@ -25,6 +26,7 @@ export * from './data-trust-engine';
 export * from './hpp-calculator';
 export * from './kur-calculator';
 export * from './sales-target-engine';
+export * from './simulator-engine-enhanced';
 // BUILD Fase 1 wiring (roadmap inventory-ai-distributor 2026-09-10): analitik stok
 // deterministik (restock, low-stock, anomali retur, kontributor margin) dipakai dari
 // brain/chat/route.ts supaya jawaban stok/restock berbasis angka riil, bukan tebakan.

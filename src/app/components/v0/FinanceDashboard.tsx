@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
   Wallet,
@@ -40,16 +40,23 @@ import {
   ClipboardList,
   Users,
   Boxes,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 import { FinanceSettingsModal } from '../settings/FinanceSettingsModal';
 import { DIVISIONS, divisionLabel } from '@/lib/accounting/budget-divisions';
+import {
+  canCorrectCashTransaction,
+  getInvoiceDashboardActionState,
+} from '@/lib/finance/dashboard-actions';
 import ModernAICopilotView from './ModernAICopilotView';
 import AccountingTab from '../finance/accounting/AccountingTab';
 import TaxComplianceTab from '../finance/tax/TaxComplianceTab';
 import ExpenseApprovalTab from '../finance/expense/ExpenseApprovalTab';
 import AssetTab from '../finance/assets/AssetTab';
+import FinancialDecisionSimulator from '../finance/FinancialDecisionSimulator';
 
 const Chart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
@@ -59,6 +66,14 @@ const Chart = dynamic(() => import('react-apexcharts'), {
     </div>
   ),
 });
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  code: string | null;
+  division: string | null;
+  status: string;
+}
 
 interface FinanceDashboardProps {
   workspaceId: string;
@@ -91,7 +106,7 @@ export default function FinanceDashboard({
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       const tabParam = urlParams.get('tab');
-      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'expense-approval', 'ai-lead'].includes(tabParam)) {
+      if (tabParam && ['cashflow', 'ledger', 'invoices', 'obligations', 'reconciliation', 'tax', 'laporan', 'expense-approval', 'assets', 'simulator', 'ai-lead'].includes(tabParam)) {
         setActiveNav(tabParam);
       }
     }
@@ -114,6 +129,7 @@ export default function FinanceDashboard({
   // realisasi anggaran per divisi dihitung dari jurnal yang sama dengan
   // Laba Rugi. Lihat src/lib/accounting/budget-divisions.ts.
   const [txDivision, setTxDivision] = useState<string>('');
+  const [txProjectId, setTxProjectId] = useState<string>('');
   const [txSaving, setTxSaving] = useState<boolean>(false);
 
   // Form states for Buat Faktur Baru
@@ -121,7 +137,23 @@ export default function FinanceDashboard({
   const [invPhone, setInvPhone] = useState<string>('');
   const [invAmount, setInvAmount] = useState<string>('');
   const [invDue, setInvDue] = useState<string>('');
+  const [invDivision, setInvDivision] = useState<string>('');
+  const [invProjectId, setInvProjectId] = useState<string>('');
   const [invSaving, setInvSaving] = useState<boolean>(false);
+
+  // Aksi koreksi (fitur 10) di UI live. Sebelumnya tombol hanya ada di
+  // FinanceModuleView yang tidak dirender oleh /finance.
+  const [correctingTx, setCorrectingTx] = useState<any | null>(null);
+  const [correctAmount, setCorrectAmount] = useState<string>('');
+  const [correctCategory, setCorrectCategory] = useState<string>('');
+  const [correctDescription, setCorrectDescription] = useState<string>('');
+  const [correctDate, setCorrectDate] = useState<string>('');
+  const [correctReason, setCorrectReason] = useState<string>('');
+  const [isCorrecting, setIsCorrecting] = useState<boolean>(false);
+  const [deletingTxId, setDeletingTxId] = useState<string | null>(null);
+  const [invoiceActionId, setInvoiceActionId] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const actionNoticeTimer = useRef<number | null>(null);
 
   // Form states for Tambah Kewajiban Baru
   const [oblName, setOblName] = useState<string>('');
@@ -141,16 +173,18 @@ export default function FinanceDashboard({
   const [invoices, setInvoices] = useState<any[]>([]);
   const [obligations, setObligations] = useState<any[]>([]);
   const [trendsData, setTrendsData] = useState<any>(null);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
 
   // Fetch core finance data
   const fetchFinanceData = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const [txRes, invRes, oblRes, trdRes] = await Promise.allSettled([
+      const [txRes, invRes, oblRes, trdRes, projectRes] = await Promise.allSettled([
         fetch(`/api/v1/kas/transactions?limit=25`, { credentials: 'include' }).then((r) => r.json()),
         fetch(`/api/v1/kas/invoices?limit=20`, { credentials: 'include' }).then((r) => r.json()),
         fetch(`/api/v1/kas/obligations`, { credentials: 'include' }).then((r) => r.json()),
         fetch(`/api/v1/analytics/financial-trends?months=6`, { credentials: 'include' }).then((r) => r.json()),
+        fetch(`/api/v1/accounting/projects`, { credentials: 'include' }).then((r) => r.json()),
       ]);
 
       if (txRes.status === 'fulfilled' && txRes.value?.transactions) {
@@ -165,6 +199,11 @@ export default function FinanceDashboard({
       if (trdRes.status === 'fulfilled' && trdRes.value?.success) {
         setTrendsData(trdRes.value.data);
       }
+      if (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.projects)) {
+        setProjects(
+          projectRes.value.projects.filter((project: ProjectOption) => project.status !== 'ARCHIVED')
+        );
+      }
     } catch (err) {
       console.warn('[FinanceDashboard] Fetch error:', err);
     } finally {
@@ -175,6 +214,25 @@ export default function FinanceDashboard({
   useEffect(() => {
     void fetchFinanceData();
   }, [fetchFinanceData]);
+
+  const notifyAction = useCallback((text: string, tone: 'success' | 'error' = 'success') => {
+    if (actionNoticeTimer.current !== null) {
+      window.clearTimeout(actionNoticeTimer.current);
+    }
+    setActionNotice({ text, tone });
+    actionNoticeTimer.current = window.setTimeout(() => {
+      setActionNotice(null);
+      actionNoticeTimer.current = null;
+    }, 6000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (actionNoticeTimer.current !== null) {
+        window.clearTimeout(actionNoticeTimer.current);
+      }
+    };
+  }, []);
 
   // Format Helpers
   const formatRupiah = (val: number) => {
@@ -218,28 +276,170 @@ export default function FinanceDashboard({
           transactionDate: new Date().toISOString(),
           paymentMethod: txBank,
           division: txDivision || null,
+          projectId: txProjectId || null,
         }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Gagal menyimpan transaksi.');
+      }
 
-      const newTxItem = {
-        id: `tx-${Date.now()}`,
-        type: txType,
-        amount: num,
-        category: txCategory,
-        description: txDesc,
-        transactionDate: new Date().toISOString(),
-      };
-      setTransactions((prev) => [newTxItem, ...prev]);
+      await fetchFinanceData();
       setNewTxModalOpen(false);
       setTxAmount('');
       setTxDesc('');
       setTxDivision('');
+      setTxProjectId('');
     } catch (err) {
       console.warn('Gagal menyimpan transaksi:', err);
+      notifyAction(err instanceof Error ? err.message : 'Gagal menyimpan transaksi.', 'error');
     } finally {
       setTxSaving(false);
     }
   };
+
+  const openCorrectionModal = useCallback((tx: any) => {
+    setCorrectingTx(tx);
+    setCorrectAmount(String(tx.amount ?? ''));
+    setCorrectCategory(tx.category ?? '');
+    setCorrectDescription(tx.description ?? '');
+    const rawDate = tx.transactionDate ? new Date(tx.transactionDate) : new Date();
+    setCorrectDate(rawDate.toISOString().slice(0, 10));
+    setCorrectReason('');
+  }, []);
+
+  const closeCorrectionModal = useCallback(() => {
+    if (isCorrecting) return;
+    setCorrectingTx(null);
+    setCorrectReason('');
+  }, [isCorrecting]);
+
+  const handleCorrectTransaction = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!correctingTx) return;
+
+      const amount = Number(correctAmount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        notifyAction('Nominal koreksi harus lebih besar dari 0.', 'error');
+        return;
+      }
+      if (!correctCategory.trim() || !correctDescription.trim()) {
+        notifyAction('Kategori dan deskripsi wajib diisi.', 'error');
+        return;
+      }
+      if (!correctReason.trim()) {
+        notifyAction('Alasan koreksi wajib diisi agar perubahan tercatat di audit trail.', 'error');
+        return;
+      }
+
+      setIsCorrecting(true);
+      try {
+        const res = await fetch(`/api/v1/kas/transactions/${correctingTx.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            amount,
+            category: correctCategory.trim(),
+            description: correctDescription.trim(),
+            transactionDate: correctDate || undefined,
+            reason: correctReason.trim(),
+          }),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(payload.message || 'Gagal mengoreksi transaksi kas.');
+        }
+        notifyAction('Transaksi berhasil dikoreksi dan alasan tercatat di audit trail.');
+        setCorrectingTx(null);
+        setCorrectReason('');
+        await fetchFinanceData();
+        window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+      } catch (err) {
+        notifyAction(err instanceof Error ? err.message : 'Gagal mengoreksi transaksi kas.', 'error');
+      } finally {
+        setIsCorrecting(false);
+      }
+    },
+    [correctAmount, correctCategory, correctDate, correctDescription, correctReason, correctingTx, fetchFinanceData, notifyAction]
+  );
+
+  const handleDeleteTransaction = useCallback(
+    async (tx: any) => {
+      const reason = window.prompt(`Alasan menghapus transaksi "${tx.description}":`, '');
+      if (reason === null) return;
+      if (!reason.trim()) {
+        notifyAction('Alasan hapus wajib diisi agar perubahan tercatat di audit trail.', 'error');
+        return;
+      }
+
+      setDeletingTxId(tx.id);
+      try {
+        const res = await fetch(
+          `/api/v1/kas/transactions?id=${tx.id}&reason=${encodeURIComponent(reason.trim())}`,
+          {
+            method: 'DELETE',
+            credentials: 'include',
+          }
+        );
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(payload.message || 'Gagal menghapus transaksi kas.');
+        }
+        notifyAction('Transaksi berhasil dihapus dan alasan tercatat di audit trail.');
+        await fetchFinanceData();
+        window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+      } catch (err) {
+        notifyAction(err instanceof Error ? err.message : 'Gagal menghapus transaksi kas.', 'error');
+      } finally {
+        setDeletingTxId(null);
+      }
+    },
+    [fetchFinanceData, notifyAction]
+  );
+
+  const handleInvoiceStatusChange = useCallback(
+    async (inv: any, nextStatus: 'CANCELLED' | 'UNPAID') => {
+      const isCancel = nextStatus === 'CANCELLED';
+      const label = inv.invoiceNumber ? `${inv.clientName} (${inv.invoiceNumber})` : inv.clientName;
+      const reason = window.prompt(
+        isCancel ? `Alasan membatalkan faktur "${label}":` : `Alasan membuka kembali status lunas faktur "${label}":`,
+        ''
+      );
+      if (reason === null) return;
+      if (!reason.trim()) {
+        notifyAction('Alasan wajib diisi agar perubahan tercatat di audit trail.', 'error');
+        return;
+      }
+
+      setInvoiceActionId(inv.id);
+      try {
+        const res = await fetch('/api/v1/kas/invoices', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ invoiceId: inv.id, status: nextStatus, reason: reason.trim() }),
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(payload.message || 'Gagal mengubah status faktur.');
+        }
+        notifyAction(
+          isCancel
+            ? 'Faktur dibatalkan. Jurnal pendapatan dan pelunasan terkait sudah dibalik sesuai aturan.'
+            : 'Status lunas dibuka kembali. Pelunasan kas terkait ditarik dan dicatat di audit trail.'
+        );
+        await fetchFinanceData();
+        window.dispatchEvent(new CustomEvent('klir-kas-updated'));
+      } catch (err) {
+        notifyAction(err instanceof Error ? err.message : 'Gagal mengubah status faktur.', 'error');
+      } finally {
+        setInvoiceActionId(null);
+      }
+    },
+    [fetchFinanceData, notifyAction]
+  );
 
   // Handle Save New Invoice
   const handleSaveInvoice = async (e: React.FormEvent) => {
@@ -249,20 +449,47 @@ export default function FinanceDashboard({
 
     setInvSaving(true);
     try {
-      const newInvItem = {
-        id: `inv-${Date.now()}`,
-        invoiceNumber: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`,
-        clientName: invClient,
-        clientPhone: invPhone,
-        amount: num,
-        dueDate: invDue || new Date(Date.now() + 14 * 86400000).toISOString(),
-        status: 'UNPAID',
-      };
-      setInvoices((prev) => [newInvItem, ...prev]);
+      // Sebelumnya form ini hanya membuat objek lokal tanpa memanggil API,
+      // sehingga faktur tidak pernah tersimpan dan tidak masuk jurnal. Sekarang
+      // benar-benar POST agar pendapatan faktur membawa divisi/proyek.
+      const res = await fetch('/api/v1/kas/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          clientName: invClient.trim(),
+          clientPhone: invPhone.trim() || undefined,
+          items: [{ name: 'Jasa/Produk', price: num, qty: 1 }],
+          dueDate: invDue || undefined,
+          division: invDivision || null,
+          projectId: invProjectId || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Gagal menerbitkan faktur.');
+      }
+      const payload = await res.json().catch(() => ({}));
+      const created = payload.invoice;
+      if (created) {
+        setInvoices((prev) => [
+          {
+            ...created,
+            amount: created.totalAmount ?? num,
+          },
+          ...prev,
+        ]);
+      } else {
+        await fetchFinanceData();
+      }
       setNewInvModalOpen(false);
       setInvClient('');
       setInvAmount('');
       setInvPhone('');
+      setInvDivision('');
+      setInvProjectId('');
+    } catch (err) {
+      console.error('Gagal menerbitkan faktur:', err);
     } finally {
       setInvSaving(false);
     }
@@ -502,6 +729,8 @@ export default function FinanceDashboard({
     { id: 'expense-approval', label: 'Pengajuan Dana', icon: ClipboardList },
     // Manajemen Aset & Penyusutan (asset register, depreciation, disposal)
     { id: 'assets', label: 'Aset & Penyusutan', icon: Boxes },
+    // Simulator Keputusan Finansial (rekrutmen, beli aset, harga, efisiensi biaya)
+    { id: 'simulator', label: 'Simulator Keputusan', icon: Target },
   ];
 
   return (
@@ -632,6 +861,7 @@ export default function FinanceDashboard({
               {activeNav === 'tax' && 'Pajak & Kalender Kepatuhan'}
               {activeNav === 'laporan' && 'Laporan Keuangan (Double-Entry)'}
               {activeNav === 'assets' && 'Manajemen Aset & Penyusutan'}
+              {activeNav === 'simulator' && 'Simulator Keputusan Finansial'}
               {activeNav === 'ai-lead' && 'AI Finance Lead Specialist'}
             </h1>
 
@@ -1139,50 +1369,77 @@ export default function FinanceDashboard({
 
               {/* Transactions Table */}
               <div className="overflow-x-auto -mx-4 sm:-mx-5 px-4 sm:px-5 pb-2 klir-custom-scrollbar">
-                <table className="w-full min-w-[620px] text-left text-xs border-collapse">
+                <table className="w-full min-w-[720px] text-left text-xs border-collapse">
                   <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
                     <tr>
                       <th className="py-2.5 px-3.5">Tanggal</th>
                       <th className="py-2.5 px-3.5">Uraian / Deskripsi</th>
                       <th className="py-2.5 px-3.5">Kategori</th>
                       <th className="py-2.5 px-3.5">Jenis</th>
-                      <th className="py-2.5 px-3.5 text-right pr-5">Nominal</th>
+                      <th className="py-2.5 px-3.5 text-right">Nominal</th>
+                      <th className="py-2.5 px-3.5 text-right pr-5">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredTransactions.length > 0 ? (
-                      filteredTransactions.map((t) => (
-                        <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-2.5 px-3.5 text-slate-600 font-mono whitespace-nowrap">
-                            {new Date(t.transactionDate).toLocaleDateString('id-ID')}
-                          </td>
-                          <td className="py-2.5 px-3.5 font-semibold text-slate-900">{t.description}</td>
-                          <td className="py-2.5 px-3.5">
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-medium whitespace-nowrap">
-                              {t.category || 'Umum'}
-                            </span>
-                          </td>
-                          <td className="py-2.5 px-3.5">
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
-                                t.type === 'INCOME' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                      filteredTransactions.map((t) => {
+                        const canCorrect = canCorrectCashTransaction(t);
+                        const isLinked = !canCorrect;
+                        return (
+                          <tr key={t.id} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-2.5 px-3.5 text-slate-600 font-mono whitespace-nowrap">
+                              {new Date(t.transactionDate).toLocaleDateString('id-ID')}
+                            </td>
+                            <td className="py-2.5 px-3.5 font-semibold text-slate-900">{t.description}</td>
+                            <td className="py-2.5 px-3.5">
+                              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-medium whitespace-nowrap">
+                                {t.category || 'Umum'}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3.5">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
+                                  t.type === 'INCOME' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                                }`}
+                              >
+                                {t.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}
+                              </span>
+                            </td>
+                            <td
+                              className={`py-2.5 px-3.5 text-right font-mono font-bold whitespace-nowrap ${
+                                t.type === 'INCOME' ? 'text-emerald-700' : 'text-slate-900'
                               }`}
                             >
-                              {t.type === 'INCOME' ? 'Pemasukan' : 'Pengeluaran'}
-                            </span>
-                          </td>
-                          <td
-                            className={`py-2.5 px-3.5 text-right font-mono font-bold whitespace-nowrap pr-5 ${
-                              t.type === 'INCOME' ? 'text-emerald-700' : 'text-slate-900'
-                            }`}
-                          >
-                            {t.type === 'INCOME' ? '+' : '-'} {formatRupiah(t.amount)}
-                          </td>
-                        </tr>
-                      ))
+                              {t.type === 'INCOME' ? '+' : '-'} {formatRupiah(t.amount)}
+                            </td>
+                            <td className="py-2.5 px-3.5 text-right pr-5 whitespace-nowrap">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => openCorrectionModal(t)}
+                                  disabled={!canCorrect}
+                                  title={isLinked ? 'Transaksi terhubung ke dokumen induk. Batalkan dokumen induknya dulu.' : 'Koreksi transaksi (alasan wajib diisi)'}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-35"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTransaction(t)}
+                                  disabled={deletingTxId === t.id}
+                                  title="Hapus transaksi (alasan wajib diisi)"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                  {deletingTxId === t.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-slate-400">
+                        <td colSpan={6} className="py-8 text-center text-slate-400">
                           Belum ada transaksi kas yang sesuai dengan pencarian.
                         </td>
                       </tr>
@@ -1214,7 +1471,7 @@ export default function FinanceDashboard({
               </div>
 
               <div className="overflow-x-auto -mx-4 sm:-mx-5 px-4 sm:px-5 pb-2 klir-custom-scrollbar">
-                <table className="w-full text-left text-xs border-collapse min-w-[640px]">
+                <table className="w-full text-left text-xs border-collapse min-w-[860px]">
                   <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200 uppercase tracking-wider">
                     <tr>
                       <th className="py-2.5 px-3.5">No. Faktur</th>
@@ -1222,47 +1479,81 @@ export default function FinanceDashboard({
                       <th className="py-2.5 px-3.5">Jatuh Tempo</th>
                       <th className="py-2.5 px-3.5">Status</th>
                       <th className="py-2.5 px-3.5 text-right">Nominal</th>
-                      <th className="py-2.5 px-3.5 text-center pr-5">Aksi Penagihan</th>
+                      <th className="py-2.5 px-3.5 text-right pr-5">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {(invoices.length > 0 ? invoices : [
                       { id: 'inv-1', invoiceNumber: 'INV-2026-001', clientName: 'CV Berkah Maju Perkasa', dueDate: '2026-09-20', status: 'OVERDUE', amount: 18200000 },
                       { id: 'inv-2', invoiceNumber: 'INV-2026-002', clientName: 'PT Sentosa Boga Abadi', dueDate: '2026-09-28', status: 'PAID', amount: 45000000 },
-                    ]).map((inv: any) => (
-                      <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-2.5 px-3.5 font-mono font-semibold text-blue-600 whitespace-nowrap">{inv.invoiceNumber}</td>
-                        <td className="py-2.5 px-3.5 font-semibold text-slate-900">{inv.clientName}</td>
-                        <td className="py-2.5 px-3.5 text-slate-600 font-mono whitespace-nowrap">
-                          {new Date(inv.dueDate).toLocaleDateString('id-ID')}
-                        </td>
-                        <td className="py-2.5 px-3.5">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
-                              inv.status === 'PAID'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-red-50 text-red-700'
-                            }`}
-                          >
-                            {inv.status === 'PAID' ? 'Lunas' : 'Tertunggak'}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
-                          {formatRupiah(inv.amount)}
-                        </td>
-                        <td className="py-2.5 px-3.5 text-center pr-5">
-                          {inv.status !== 'PAID' && (
-                            <button
-                              onClick={() => handleTriggerWhatsApp(inv.id)}
-                              className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
-                            >
-                              <Send className="w-3 h-3" />
-                              <span>Kirim WA</span>
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    ]).map((inv: any) => {
+                      const actionState = getInvoiceDashboardActionState(String(inv.status || 'UNPAID').toUpperCase());
+                      const amount = Number(inv.totalAmount ?? inv.amount ?? 0);
+                      const dueDateLabel = inv.dueDate
+                        ? new Date(inv.dueDate).toLocaleDateString('id-ID')
+                        : '-';
+                      const statusClass =
+                        actionState.statusTone === 'emerald'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : actionState.statusTone === 'amber'
+                            ? 'bg-amber-50 text-amber-700'
+                            : actionState.statusTone === 'slate'
+                              ? 'bg-slate-100 text-slate-600'
+                              : 'bg-red-50 text-red-700';
+                      const busy = invoiceActionId === inv.id;
+                      return (
+                        <tr key={inv.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-2.5 px-3.5 font-mono font-semibold text-blue-600 whitespace-nowrap">{inv.invoiceNumber}</td>
+                          <td className="py-2.5 px-3.5 font-semibold text-slate-900">{inv.clientName}</td>
+                          <td className="py-2.5 px-3.5 text-slate-600 font-mono whitespace-nowrap">{dueDateLabel}</td>
+                          <td className="py-2.5 px-3.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${statusClass}`}>
+                              {actionState.statusLabel}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                            {formatRupiah(amount)}
+                          </td>
+                          <td className="py-2.5 px-3.5 text-right pr-5">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {actionState.canSendReminder && (
+                                <button
+                                  onClick={() => handleTriggerWhatsApp(inv.id)}
+                                  className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
+                                >
+                                  <Send className="w-3 h-3" />
+                                  <span>Kirim WA</span>
+                                </button>
+                              )}
+                              {actionState.canReopen && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleInvoiceStatusChange(inv, 'UNPAID')}
+                                  disabled={busy}
+                                  title="Buka kembali status lunas dengan alasan (audit trail)"
+                                  className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <RefreshCw className={`w-3 h-3 ${busy ? 'animate-spin' : ''}`} />
+                                  <span>{busy ? 'Proses...' : 'Buka Lunas'}</span>
+                                </button>
+                              )}
+                              {actionState.canCancel && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleInvoiceStatusChange(inv, 'CANCELLED')}
+                                  disabled={busy}
+                                  title="Batalkan faktur dengan alasan; koreksi nilai dilakukan dengan terbit ulang"
+                                  className="px-2 py-1 rounded-md bg-white hover:bg-red-50 text-red-600 border border-red-200 text-[10px] font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                  <XCircle className="w-3 h-3" />
+                                  <span>{busy ? 'Proses...' : 'Batalkan'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1407,6 +1698,13 @@ export default function FinanceDashboard({
           </main>
         )}
 
+        {/* 🧮 TAB 10: SIMULATOR KEPUTUSAN FINANSIAL */}
+        {activeNav === 'simulator' && (
+          <main className="flex-1 p-4 sm:p-5 lg:p-6 space-y-4 overflow-y-auto">
+            <FinancialDecisionSimulator />
+          </main>
+        )}
+
         {/* 🤖 TAB 9: AI FINANCE LEAD ASSISTANT */}
         {activeNav === 'ai-lead' && (
           <main className="flex-1 overflow-hidden flex flex-col h-[calc(100vh-56px)]">
@@ -1509,6 +1807,31 @@ export default function FinanceDashboard({
               </div>
 
               <div>
+                <label className="font-semibold text-slate-700 block mb-1">Proyek:</label>
+                <select
+                  value={txProjectId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setTxProjectId(id);
+                    const project = projects.find((item) => item.id === id);
+                    if (project?.division) setTxDivision(project.division);
+                  }}
+                  title="Pilih proyek agar transaksi masuk ke laba proyek. Divisi mengikuti proyek."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-900 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Tanpa Proyek</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.code ? `${project.code} · ` : ''}{project.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Laba proyek hanya memuat pendapatan/biaya langsung yang ditandai. Overhead bersama tidak dialokasikan otomatis.
+                </p>
+              </div>
+
+              <div>
                 <label className="font-semibold text-slate-700 block mb-1">Keterangan / Uraian:</label>
                 <input
                   type="text"
@@ -1602,6 +1925,42 @@ export default function FinanceDashboard({
                   onChange={(e) => setInvAmount(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Divisi:</label>
+                  <select
+                    value={invDivision}
+                    onChange={(e) => setInvDivision(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-900 focus:outline-none cursor-pointer"
+                  >
+                    <option value="">Tanpa Divisi</option>
+                    {DIVISIONS.map((value) => (
+                      <option key={value} value={value}>{divisionLabel(value)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Proyek:</label>
+                  <select
+                    value={invProjectId}
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      setInvProjectId(id);
+                      const project = projects.find((item) => item.id === id);
+                      if (project?.division) setInvDivision(project.division);
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-slate-900 focus:outline-none cursor-pointer"
+                  >
+                    <option value="">Tanpa Proyek</option>
+                    {projects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.code ? `${project.code} · ` : ''}{project.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -1767,6 +2126,122 @@ export default function FinanceDashboard({
           onClose={() => setSettingsOpen(false)}
           workspaceId={workspaceId}
         />
+      )}
+
+      {actionNotice && (
+        <div className="fixed bottom-4 left-1/2 z-[60] -translate-x-1/2 px-4">
+          <div
+            className={`rounded-xl px-4 py-2.5 text-xs font-semibold shadow-lg ${
+              actionNotice.tone === 'error'
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-900 text-white'
+            }`}
+          >
+            {actionNotice.text}
+          </div>
+        </div>
+      )}
+
+      {correctingTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
+          <form
+            onSubmit={handleCorrectTransaction}
+            className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Koreksi Transaksi Kas</h3>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Nilai sebelum dan sesudah, waktu, pengguna, serta alasan akan tersimpan permanen di audit trail.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCorrectionModal}
+                disabled={isCorrecting}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Nominal (Rp) *
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  value={correctAmount}
+                  onChange={(e) => setCorrectAmount(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Kategori *
+                <input
+                  value={correctCategory}
+                  onChange={(e) => setCorrectCategory(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600 sm:col-span-2">
+                Deskripsi *
+                <input
+                  value={correctDescription}
+                  onChange={(e) => setCorrectDescription(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600">
+                Tanggal transaksi *
+                <input
+                  type="date"
+                  value={correctDate}
+                  onChange={(e) => setCorrectDate(e.target.value)}
+                  className="h-9 rounded-lg border border-slate-200 px-3 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+              </label>
+              <div className="flex flex-col justify-end rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-800">
+                Tipe {correctingTx.type === 'INCOME' ? 'pemasukan' : 'pengeluaran'} tidak bisa diubah.
+              </div>
+              <label className="flex flex-col gap-1 text-[11px] font-semibold text-slate-600 sm:col-span-2">
+                Alasan koreksi *
+                <textarea
+                  value={correctReason}
+                  onChange={(e) => setCorrectReason(e.target.value)}
+                  rows={3}
+                  placeholder="Contoh: nominal salah input, seharusnya Rp 1.250.000 bukan Rp 12.500.000."
+                  className="resize-none rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
+              <button
+                type="button"
+                onClick={closeCorrectionModal}
+                disabled={isCorrecting}
+                className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isCorrecting}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCorrecting ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Simpan Koreksi
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
